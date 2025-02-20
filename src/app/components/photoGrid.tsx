@@ -48,7 +48,6 @@ export default function PhotoGrid() {
     const handleClose = () => setIsOpen(undefined);
     const handleOpen = (id: string | React.SetStateAction<undefined>) => setIsOpen(id);
     useEffect(()=>{
-        console.log(isOpen)
 
         const fetchMedia = async (id: string) => {
             const mediaUrl = `https://graph.instagram.com/${id}?access_token=${accessToken}&fields=media_url,permalink`
