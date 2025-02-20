@@ -6,7 +6,6 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import PhotoModalGrid from "./photoModalGrid"
-import Image from 'next/image';
 
 
 
@@ -29,6 +28,7 @@ const style = {
 };
 
 
+
 export interface InstaItem {
     permalink: string;
     mediaUrl: string;
@@ -46,9 +46,9 @@ export interface InstaChild {
 export default function PhotoGrid() {
 
     const [instaItems, setInstaItems] = useState<InstaItem[]>([]);
-    const [isOpen, setIsOpen] = useState(undefined)
-    const handleClose = () => setIsOpen(undefined);
-    const handleOpen = (id: string | React.SetStateAction<undefined>) => setIsOpen(id);
+    const [isOpen, setIsOpen] = useState("")
+    const handleClose = () => setIsOpen("");
+    const handleOpen = (id: string) => setIsOpen(id);
     useEffect(()=>{
 
         const fetchMedia = async (id: string) => {
@@ -139,12 +139,11 @@ export default function PhotoGrid() {
               <ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:col-start-auto sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
               {instaItems.map((file) => (
               <li key={file.mediaUrl}  className="relative">
-              <div onClick={()=>handleOpen(file.parentId)} className="group overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
-                <Image
-                  fill={true} 
+              <div onClick={()=>handleOpen(file.parentId)} className="group lg:grid-cols-4 overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+                <img
                   alt=""
                   src={file.mediaUrl}
-                  className="pointer-events-none aspect-[4/5] object-cover group-hover:opacity-75"
+                  className="relative pointer-events-none aspect-[4/5] object-cover group-hover:opacity-75 "
                 />
               </div>
               <div>
@@ -161,7 +160,7 @@ export default function PhotoGrid() {
                     },
                   }}
                 >
-                  <Fade in={isOpen}>
+                  <Fade in={isOpen == file.parentId}>
                     <Box sx={style} className="rounded-lg">
                       <PhotoModalGrid instaChildren = {file.children}/>
                     </Box>

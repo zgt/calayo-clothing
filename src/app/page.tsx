@@ -1,7 +1,6 @@
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import PhotoGrid from "./components/photoGrid";
-import Image from 'next/image';
 
 
 
@@ -48,12 +47,12 @@ export default function Home() {
                 <div className="flex h-16 items-center justify-between px-4 sm:px-0">
                   <div className="flex items-center">
                     <div className="shrink-0">
-                      <Image
+                      {/* <Image
                         alt="Your Company"
                         fill={true}
                         src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=500"
                         className="size-8"
-                      />
+                      /> */}
                     </div>
                     <div className="hidden md:block">
                       <div className="ml-10 flex items-baseline space-x-4">
@@ -146,7 +145,7 @@ export default function Home() {
               <div className="border-t border-gray-700 pb-3 pt-4">
                 <div className="flex items-center px-5">
                   <div className="shrink-0">
-                    <Image  fill={true} alt="" src={user.imageUrl} className="size-10 rounded-full" />
+                    {/* <Image  fill={true} alt="" src={user.imageUrl} className="size-10 rounded-full" /> */}
                   </div>
                   <div className="ml-3">
                     <div className="text-base/5 font-medium text-white">{user.name}</div>
