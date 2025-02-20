@@ -24,7 +24,6 @@ export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[
               <div className="group overflow-hidden row-span-2 rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
                 {file.isImage ? (
                     <InnerImageZoom
-                    alt=""
                     src={file.mediaUrl}
                     className="aspect-[4/5] object-cover group-hover:opacity-75"
                     zoomType="hover"
