@@ -82,11 +82,11 @@ export default function PhotoGrid() {
 
         }
 
-        const fetchChildrenMedia = async (children: { mediaId: string; children: Array<object>; }) => {
+        const fetchChildrenMedia = async (children: { mediaId: string; children: Array<{id:string}>; }) => {
           const childrenInstaItems : InstaChild[] = [];
           //const test = children.children[7].id
           //console.log(test)
-          const filteredChildren = children.children.filter(function(e) { return e.id !== "18073671322666337"})
+          const filteredChildren = children.children.filter( (e) => e.id !== "18073671322666337")
 
           for(let i = 0; i<filteredChildren.length; i++){
 

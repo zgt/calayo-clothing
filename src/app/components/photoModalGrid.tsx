@@ -5,9 +5,10 @@ import '@vidstack/react/player/styles/default/layouts/video.css';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import 'react-inner-image-zoom/lib/InnerImageZoom/styles.css'
 import InnerImageZoom from 'react-inner-image-zoom'
+import { InstaChild } from "./photoGrid";
 
 
-export default function PhotoModalGrid(instaChildren: object) {
+export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[]}) {
     //const [children, setChildren] = useState(instaChildren.instaChildren);
 
     
