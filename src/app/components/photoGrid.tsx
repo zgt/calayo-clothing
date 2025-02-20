@@ -6,6 +6,8 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import PhotoModalGrid from "./photoModalGrid"
+import Image from 'next/image';
+
 
 
 const userId = process.env.NEXT_PUBLIC_INSTA_USER_ID
@@ -138,7 +140,8 @@ export default function PhotoGrid() {
               {instaItems.map((file) => (
               <li key={file.mediaUrl}  className="relative">
               <div onClick={()=>handleOpen(file.parentId)} className="group overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
-                <img 
+                <Image
+                  fill={true} 
                   alt=""
                   src={file.mediaUrl}
                   className="pointer-events-none aspect-[4/5] object-cover group-hover:opacity-75"
