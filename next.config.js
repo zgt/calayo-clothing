@@ -6,7 +6,12 @@ module.exports = {
             hostname: '**.cdninstagram.com',
             port: '',
             pathname: '/**',
-          },
+        },
+        {
+          protocol: 'https',
+          hostname: 'https://f6ska5bq6kil7j2r.public.blob.vercel-storage.com',
+          port: ''
+        }
       ],
     },
   }
