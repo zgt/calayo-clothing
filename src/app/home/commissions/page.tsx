@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 
 interface CommissionFormData {
@@ -28,16 +27,12 @@ interface CommissionFormData {
   }
 
 export default function Commissions() {
-  const { toast } = useToast();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { register, handleSubmit, formState: { errors } } = useForm<CommissionFormData>();
 
     const onSubmit = (data: CommissionFormData) => {
         console.log(data);
-        toast({
-          title: "Commission Request Submitted",
-          description: "We'll review your request and get back to you soon!",
-        });
+        
       };
 
   return (
