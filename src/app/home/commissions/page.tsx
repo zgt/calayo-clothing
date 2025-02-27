@@ -38,6 +38,7 @@ export default function Commissions() {
 
   const onSubmit = async (data: CommissionFormData) => {
       const commish = await submitCommission(JSON.parse(JSON.stringify(data)));
+      console.log(commish)
       
     };
 

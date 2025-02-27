@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import Commission from '../../model/commission'
 import { CommissionFormData } from '@/app/home/commissions/page';
 
-const mongoUrl = process.env.MONGODB_URI;
+const mongoUrl = process.env.MONGODB_URI!;
 
 
 export async function submitCommission(formData: CommissionFormData){
