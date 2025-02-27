@@ -12,28 +12,48 @@ import {
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { submitCommission } from "@/app/api/commission/submitCommission";
 
-interface CommissionFormData {
+export interface CommissionFormData {
     garmentType: string;
     measurements: {
-      chest: string;
-      waist: string;
-      hips: string;
-      length: string;
+      chest: number;
+      waist: number;
+      hips: number;
+      length: number;
+      inseam: number;
+      shoulders: number;
     };
     budget: string;
     timeline: string;
     details: string;
   }
 
+
 export default function Commissions() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { register, handleSubmit, formState: { errors } } = useForm<CommissionFormData>();
+  const [ garmentType, setGarmentType] = useState("");
 
-    const onSubmit = (data: CommissionFormData) => {
-        console.log(data);
-        
-      };
+  const onSubmit = async (data: CommissionFormData) => {
+      const commish = await submitCommission(JSON.parse(JSON.stringify(data)));
+      
+    };
+
+  const handleNumberInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow only numbers, backspace, delete, tab, arrows, home, end
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End', '.'];
+    const key = e.key;
+    
+    // Check if the key is not a number or one of the allowed control keys
+    if (!/^[0-9]$/.test(key) && !allowedKeys.includes(key)) {
+      e.preventDefault();
+    }
+  };
+
+  useEffect(()=>{
+  })
 
   return (
     <main className= "-mt-32">
@@ -54,15 +74,14 @@ export default function Commissions() {
           <div className="space-y-6">
             <div>
               <Label htmlFor="garmentType" className="text-emerald-200">Garment Type</Label>
-              <Select>
+              <Select value={garmentType} onValueChange={setGarmentType}>
                 <SelectTrigger className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100">
                   <SelectValue placeholder="Select garment type" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#002c22] border-emerald-800">
-                  <SelectItem value="dress" className="text-emerald-100">Dress</SelectItem>
                   <SelectItem value="shirt" className="text-emerald-100">Shirt</SelectItem>
                   <SelectItem value="pants" className="text-emerald-100">Pants</SelectItem>
-                  <SelectItem value="skirt" className="text-emerald-100">Skirt</SelectItem>
+                  <SelectItem value="jacket" className="text-emerald-100">Jacket</SelectItem>
                   <SelectItem value="other" className="text-emerald-100">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -71,26 +90,61 @@ export default function Commissions() {
             <div>
               <Label className="text-emerald-200">Measurements (inches)</Label>
               <div className="grid grid-cols-2 gap-4">
-                <Input
+                <Input disabled={garmentType == "pants"}
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
                   placeholder="Chest"
                   {...register("measurements.chest")}
                   className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
                 />
-                <Input
+                <Input disabled={garmentType == "pants"}
+                  placeholder="Shoulders" 
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  {...register("measurements.shoulders")}
+                  className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
+                />
+                <Input disabled={garmentType == "shirt" || garmentType == "jacket" }
                   placeholder="Waist"
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
                   {...register("measurements.waist")}
                   className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
                 />
-                <Input 
+                <Input disabled={garmentType == "shirt" || garmentType == "jacket" }
                   placeholder="Hips" 
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
                   {...register("measurements.hips")}
                   className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
                 />
-                <Input
+                <Input disabled={garmentType == "shirt" || garmentType == "jacket" }
                   placeholder="Length"
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
                   {...register("measurements.length")}
                   className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
                 />
+                <Input disabled={garmentType == "shirt" || garmentType == "jacket" }
+                  placeholder="Inseam"
+                  onKeyDown={handleNumberInput}
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  {...register("measurements.inseam")}
+                  className="bg-[#002c22] border-emerald-800/50 focus:ring-emerald-700/30 text-emerald-100 placeholder:text-emerald-500/50"
+                />
+                
               </div>
             </div>
 
