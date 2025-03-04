@@ -11,6 +11,12 @@ module.exports = {
           protocol: 'https',
           hostname: 'https://f6ska5bq6kil7j2r.public.blob.vercel-storage.com',
           port: ''
+        },
+        {
+          protocol: 'https',
+          hostname: '**.googleusercontent.com',
+          port: '',
+          pathname: '/**',
         }
       ],
     },

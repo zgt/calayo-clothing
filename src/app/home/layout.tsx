@@ -1,9 +1,12 @@
 "use client";
 import { usePathname } from 'next/navigation'
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+import { Disclosure, DisclosureButton, DisclosurePanel} from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import "../globals.css";
 import CalayoHeader from './components/calayoHeader';
+import ProfileDropDown from '../components/profileDropdown';
+import { SessionProvider } from "next-auth/react"
+
 
 
 const user = {
@@ -17,11 +20,6 @@ const navigation = [
   { name: 'Commissions', href: '/home/commissions', current: false },
   { name: 'Projects', href: '#', current: false },
   { name: 'About me', href: '#', current: false },
-]
-const userNavigation = [
-  { name: 'Your Profile', href: '#' },
-  { name: 'Settings', href: '#' },
-  { name: 'Sign out', href: '#' },
 ]
 
 
@@ -96,32 +94,9 @@ export default function HomeLayout({
                         <span className="sr-only">View notifications</span>
                         <BellIcon aria-hidden="true" className="size-6" />
                       </button>
-
-                      {/* Profile dropdown */}
-                      <Menu as="div" className="relative ml-3">
-                        <div>
-                          <MenuButton className="relative flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
-                            <span className="absolute -inset-1.5" />
-                            <span className="sr-only">Open user menu</span>
-                            {/* <img alt="" src={user.imageUrl} className="size-8 rounded-full" /> */}
-                          </MenuButton>
-                        </div>
-                        <MenuItems
-                          transition
-                          className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-                        >
-                          {userNavigation.map((item) => (
-                            <MenuItem key={item.name}>
-                              <a
-                                href={item.href}
-                                className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:outline-none"
-                              >
-                                {item.name}
-                              </a>
-                            </MenuItem>
-                          ))}
-                        </MenuItems>
-                      </Menu>
+                      <SessionProvider>
+                        <ProfileDropDown/>
+                      </SessionProvider>
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
@@ -172,18 +147,7 @@ export default function HomeLayout({
                     <BellIcon aria-hidden="true" className="size-6" />
                   </button>
                 </div>
-                <div className="mt-3 space-y-1 px-2">
-                  {userNavigation.map((item) => (
-                    <DisclosureButton
-                      key={item.name}
-                      as="a"
-                      href={item.href}
-                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                    >
-                      {item.name}
-                    </DisclosureButton>
-                  ))}
-                </div>
+                <ProfileDropDown/>
               </div>
             </DisclosurePanel>
           </Disclosure>
@@ -192,7 +156,9 @@ export default function HomeLayout({
           </div>
          
         </div>
+        <SessionProvider>
         {children}
+        </SessionProvider>
       </div>
   );
 }
