@@ -12,7 +12,6 @@ export interface UserDocument {
 }
 
 const UserSchema = new Schema({
-    _id : Schema.Types.ObjectId,
     email: {
       type: String,
       unique: true,
