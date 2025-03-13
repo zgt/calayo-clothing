@@ -10,7 +10,10 @@ export const { handlers, signOut, auth } = NextAuth({
     clientId: process.env.AUTH_GOOGLE_ID,
     clientSecret: process.env.AUTH_GOOGLE_SECRET,
     async profile(profile) {
-      return { ...profile }
+      if(profile.email === "matt@mattcalayo.com"){
+        profile.role = "admin"
+      }
+      return {  role: profile.role ?? "user", ...profile}
     },
     
   }),],
@@ -19,25 +22,22 @@ export const { handlers, signOut, auth } = NextAuth({
   },
   callbacks: {
     jwt({ token, user }) {
-      console.log('token',  token)
 
 
         if (user) { // User is available during sign-in
           token.id = user.id
           token.picture = user.picture
           token.mongoId = user.mongoId
-          console.log('user',  user)
+          token.role = user.role
         }
         return token
       },
-    session({ session, token, user }) {
-      console.log('session',  session)
-      console.log('token',  token)
-      console.log('user',  user)
+    session({ session, token }) {
 
       session.user.id = token.id as string
       session.user.picture = token.picture as string
       session.user.mongoId = token.mongoId as string
+      session.user.role = token.role as string
 
       return session
     },

@@ -5,7 +5,9 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import "../globals.css";
 import CalayoHeader from './components/calayoHeader';
 import ProfileDropDown from '../components/profileDropdown';
-import { SessionProvider } from "next-auth/react"
+import { SessionProvider, useSession } from "next-auth/react"
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 
 
@@ -35,13 +37,15 @@ export default function HomeLayout({
 }>) {
     const pathname = usePathname()
     const notHome = (pathname !== "/home")
+    const { data: session } = useSession()
+    
 
     if(pathname == "/home"){
         navigation[0].current = true
         navigation[1].current = false
         navigation[2].current = false
         navigation[3].current = false
-    } else if(pathname == "/home/commissions"){
+    } else if(pathname == "/home/commissions" || pathname == "/home/commissions/admin" ){
         navigation[0].current = false
         navigation[1].current = true
         navigation[2].current = false
@@ -85,7 +89,16 @@ export default function HomeLayout({
                     </div>
                   </div>
                   <div className="hidden md:block">
-                    <div className="ml-4 flex items-center md:ml-6">
+                    <div className="space-x-4 ml-4 flex items-center md:ml-6">
+                      {session?.user?.role ==="admin" && (
+                        <div className="relative ml-3">
+                          <Link href="/home/commissions/admin">
+                            <Button className="bg-green-950 text-white rounded-md px-3 py-2 text-sm font-medium">
+                              Admin
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
                       <button
                         type="button"
                         className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
@@ -94,9 +107,7 @@ export default function HomeLayout({
                         <span className="sr-only">View notifications</span>
                         <BellIcon aria-hidden="true" className="size-6" />
                       </button>
-                      <SessionProvider>
                         <ProfileDropDown/>
-                      </SessionProvider>
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
@@ -152,7 +163,7 @@ export default function HomeLayout({
             </DisclosurePanel>
           </Disclosure>
           <div>
-          {!notHome ? <CalayoHeader/> : null}
+          <CalayoHeader isHome={notHome}/>
           </div>
          
         </div>

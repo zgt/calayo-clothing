@@ -11,16 +11,19 @@ declare module 'next-auth' {
         id?: string
         picture?: string
         image?: string
+        role?: string
       }
     }
     interface User {
         mongoId?: string
         picture?: string
+        role?: string
     }
 
     interface signIn {
         user: {
             mongoId?: string
+            role?: string
           }
     }
   }

@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 const { Schema, model } = mongoose;
 
 const commissionSchema = new Schema({
+    id: String,
+    orderId: Number,
     garmentType: {
       type: String,
       required: true
@@ -22,7 +24,8 @@ const commissionSchema = new Schema({
         default: () => Date.now(),
         immutable: true,
       },
-    user_id: {type: Schema.Types.ObjectId, ref: 'User'}
+    User: {type: Schema.Types.ObjectId, ref: 'User'},
+    status: String
 })
 
 

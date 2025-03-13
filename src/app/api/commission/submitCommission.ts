@@ -13,7 +13,8 @@ export async function submitCommission(formData: CommissionFormData){
         budget: formData.budget,
         timeline: formData.timeline,
         details: formData.details,
-        user_id: formData.user_id
+        User: formData.user_id,
+        status: formData.status
     })
     const commishId = commish._id.toString()
     return commishId

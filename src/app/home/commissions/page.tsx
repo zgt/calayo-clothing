@@ -10,13 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import toast, { Toaster } from 'react-hot-toast';
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import { submitCommission } from "@/app/api/commission/submitCommission";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 export interface CommissionFormData {
+    _id: string;
+    status: string;
     garmentType: string;
     measurements: {
       chest: number;
@@ -34,7 +37,7 @@ export interface CommissionFormData {
   }
 
 export default function Commissions() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
   const { 
     register, 
     handleSubmit, 
@@ -55,16 +58,20 @@ export default function Commissions() {
   });
   const [ garmentType, setGarmentType] = useState("");
   const { data: session, status } = useSession()
+
   
 
   const onSubmit = async (data: CommissionFormData) => {
-      console.log(data)
-      console.log(typeof session?.user)
       if(status === "authenticated"){
         const userObjectId = session?.user?.mongoId
         data.user_id = userObjectId!
+        data.status = "Pending"!
         const commish = await submitCommission(JSON.parse(JSON.stringify(data)));
-        console.log(commish)
+        if(commish){
+          toast.success("Commission request successfully submitted!")
+        } else{
+          toast.error("Commission request error, please try submitting again.")
+        }
       }
       
     };
@@ -95,8 +102,9 @@ export default function Commissions() {
   };
 
 
+
   return (
-    <main className= "-mt-32">
+    <main className= "-mt-48">
     <div className="max-w-2xl mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -314,6 +322,8 @@ export default function Commissions() {
           <Button type="submit" className="w-full bg-emerald-700 hover:bg-emerald-600 text-emerald-50">
             Submit Commission Request
           </Button>
+          <Toaster 
+            position= 'bottom-right'/>
         </form>
       </motion.div>
     </div>
