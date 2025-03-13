@@ -1,9 +1,9 @@
 'use server'
 import connectMongoDB from "@/lib/connectMongoDB"
-import Commission from '@/app/model/Commission'
+import Commission from '@/app/model/commission'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import User from '@/app/model/User'
+import User from '@/app/model/user'
 
 
 

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 const { Schema, model } = mongoose;
+import User from './user';
 
 const commissionSchema = new Schema({
     id: String,
@@ -24,7 +25,7 @@ const commissionSchema = new Schema({
         default: () => Date.now(),
         immutable: true,
       },
-    User: {type: Schema.Types.ObjectId, ref: 'User'},
+    User: {type: Schema.Types.ObjectId, ref: User},
     status: String
 })
 

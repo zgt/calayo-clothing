@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import connectMongoDB from "@/lib/connectMongoDB"
-import User from "@/app/model/User"
+import User from "@/app/model/user"
 
 
  
