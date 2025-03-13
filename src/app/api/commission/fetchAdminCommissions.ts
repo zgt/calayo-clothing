@@ -2,6 +2,9 @@
 import connectMongoDB from "@/lib/connectMongoDB"
 import Commission from '../../model/commission'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import User from '@/app/model/user'
+
 
 
 export async function fetchAdminCommissions(){
