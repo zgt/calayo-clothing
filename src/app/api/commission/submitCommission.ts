@@ -2,6 +2,7 @@
 import connectMongoDB from "@/lib/connectMongoDB"
 import Commission from '../../model/commission'
 import { CommissionFormData } from '@/app/home/commissions/page';
+import { revalidatePath } from 'next/cache'
 
 
 
@@ -17,6 +18,7 @@ export async function submitCommission(formData: CommissionFormData){
         status: formData.status
     })
     const commishId = commish._id.toString()
+    revalidatePath('/home/commissions/admin')
     return commishId
 
 }
