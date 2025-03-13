@@ -62,7 +62,7 @@ export default function Commissions() {
   
 
   const onSubmit = async (data: CommissionFormData) => {
-      if(status === "authenticated"){
+      if(status === "authenticated" && session.user.mongoId){
         const userObjectId = session?.user?.mongoId
         data.user_id = userObjectId!
         data.status = "Pending"!

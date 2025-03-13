@@ -50,8 +50,10 @@ export const { handlers, signOut, auth } = NextAuth({
 
           if (!userExists) {
             const res = await createUser(name!, email!);
+            console.log(res)
 
-            if (res.ok) {
+            if (res) {
+              user.mongoId = res
               return true;
             }
           } else{
