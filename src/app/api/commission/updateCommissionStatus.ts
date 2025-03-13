@@ -1,6 +1,6 @@
 'use server'
 import connectMongoDB from "@/lib/connectMongoDB"
-import Commission from '../../model/commission'
+import Commission from '../../model/Commission'
 import { revalidatePath } from 'next/cache'
 
 
