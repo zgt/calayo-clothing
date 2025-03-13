@@ -1,4 +1,4 @@
-export default function CalayoHeader({isHome}) {
+export default function CalayoHeader({isHome}: {isHome:boolean}) {
     return (
         <div>
         <header className="py-10">
