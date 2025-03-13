@@ -2,8 +2,7 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import connectMongoDB from "@/lib/connectMongoDB"
 import User from "@/app/model/user"
-
-const apiUrl = process.env.API_URL
+import { createUser } from "./api/user/createUser"
  
 export const { handlers, signOut, auth } = NextAuth({
   providers: [ Google({
@@ -50,16 +49,7 @@ export const { handlers, signOut, auth } = NextAuth({
           const userExists = await User.findOne({ email });
 
           if (!userExists) {
-            const res = await fetch(apiUrl+"/api/user", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                name,
-                email,
-              }),
-            });
+            const res = await createUser(name!, email!);
 
             if (res.ok) {
               return true;
