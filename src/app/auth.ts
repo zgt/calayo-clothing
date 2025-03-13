@@ -61,7 +61,6 @@ export const { handlers, signOut, auth } = NextAuth({
               }),
             });
 
-            console.log(res)
             if (res.ok) {
               return true;
             }

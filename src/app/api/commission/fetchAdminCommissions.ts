@@ -11,7 +11,6 @@ export async function fetchAdminCommissions(){
     try{
         await connectMongoDB();
         const commishes = await Commission.find().populate('User')
-        console.log(commishes)
         return JSON.stringify(commishes)
     } catch (err: unknown) {
         console.log(err)
