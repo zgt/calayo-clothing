@@ -6,13 +6,11 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import PhotoModalGrid from "./photoModalGrid"
+import { fetchUserMedia } from "@/app/api/instagram/fetchUserMedia";
+import { fetchMedia } from "@/app/api/instagram/fetchMedia";
+import { fetchChildrenIds } from "@/app/api/instagram/fetchChildrenIds";
+import { fetchChildrenMedia } from "@/app/api/instagram/fetchChilldrenMedia";
 
-
-
-const userId = process.env.NEXT_PUBLIC_INSTA_USER_ID
-const accessToken = process.env.NEXT_PUBLIC_INSTA_ACCES_TOKEN
-
-const instaUrl = `https://graph.instagram.com/${userId}/media?access_token=${accessToken}`
 
 const style = {
   position: 'absolute',
@@ -51,69 +49,8 @@ export default function PhotoGrid() {
     const handleOpen = (id: string) => setIsOpen(id);
     useEffect(()=>{
 
-        const fetchMedia = async (id: string) => {
-            const mediaUrl = `https://graph.instagram.com/${id}?access_token=${accessToken}&fields=media_url,permalink`
-
-            const res = await fetch(mediaUrl);
-            const json = (await res.json());
-
-            const instaItem: InstaItem = {
-                permalink: json.permalink,
-                mediaUrl: json.media_url,
-                parentId: json.id,
-                children: []
-            }
-            return instaItem
-        }
-
-        const fetchChildrenIds = async (id: string) => {
-          const childrenURL = `https://graph.instagram.com/${id}/children?access_token=${accessToken}`
-
-          const res = await fetch(childrenURL);
-          const json = (await res.json()).data;
-
-
-          const children = {
-            mediaId: id,
-            children: json
-          }
-
-          return children
-
-        }
-
-        const fetchChildrenMedia = async (children: { mediaId: string; children: Array<{id:string}>; }) => {
-          const childrenInstaItems : InstaChild[] = [];
-          //const test = children.children[7].id
-          //console.log(test)
-          const filteredChildren = children.children.filter( (e) => e.id !== "18073671322666337")
-
-          for(let i = 0; i<filteredChildren.length; i++){
-
-            const id = filteredChildren[i].id;
-            const mediaUrl = `https://graph.instagram.com/${id}?access_token=${accessToken}&fields=media_url,permalink`
-
-            const res = await fetch(mediaUrl);
-            const json = (await res.json());
-            const image = json.media_url.includes('jpg');
-            
-            const instaChild: InstaChild = {
-              mediaUrl: json.media_url,
-              parentId: children.mediaId,
-              isImage: image
-            }
-            childrenInstaItems.push(instaChild)
-          }
-
-
-          return childrenInstaItems
-        }
-
         const doFetch = async() =>{
-            const res = await fetch(instaUrl)
-            const json = (await res.json()).data;
-
-
+            const json = await fetchUserMedia();
             const fetchedItems: InstaItem[] = [];
 
             for(let i = 0; i<json.length; i++){
