@@ -40,10 +40,14 @@ export interface InstaChild {
     isImage: boolean;
 }
 
+export interface PhotoGridProps {
+  photoGridProps: InstaItem[]
+}
 
-export default function PhotoGrid() {
 
-    const [instaItems, setInstaItems] = useState<InstaItem[]>([]);
+export default function PhotoGrid({photoGridProps}: PhotoGridProps) {
+
+    const [instaItems, setInstaItems] = useState<InstaItem[]>(photoGridProps);
     const [isOpen, setIsOpen] = useState("")
     const handleClose = () => setIsOpen("");
     const handleOpen = (id: string) => setIsOpen(id);
