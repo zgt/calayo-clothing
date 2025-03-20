@@ -1,5 +1,4 @@
 "use client"
-//import {Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import SignIn from '../../components/sign-in';
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react";
@@ -13,7 +12,7 @@ import SignOut from '@/components/sign-out';
 
 
 const userNavigation = [
-    { name: 'Your Profile', href: '#', id:"1"},
+    { name: 'Your Profile', href: '/home/profile', id:"1"},
     { name: 'Your Orders', href: '/home/profile/orders', id:"2"},
     { name: 'Settings', href: '#', id:"3"},
   ];
