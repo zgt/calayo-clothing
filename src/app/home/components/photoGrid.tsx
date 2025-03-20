@@ -23,6 +23,7 @@ const style = {
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
+  display: 'block'
 };
 
 
@@ -80,7 +81,7 @@ export default function PhotoGrid({photoGridProps}: PhotoGridProps) {
               <ul role="list" className="grid grid-cols-2 gap-x-4 gap-y-8 sm:col-start-auto sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
               {instaItems.map((file) => (
               <li key={file.mediaUrl}  className="relative">
-              <div onClick={()=>handleOpen(file.parentId)} className="group bg-[#003a2d] lg:grid-cols-4 overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+              <div onClick={()=>handleOpen(file.parentId)} className="group bg-[#003a2d] lg:grid-cols-4 overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
                 <img
                   alt=""
                   src={file.mediaUrl}

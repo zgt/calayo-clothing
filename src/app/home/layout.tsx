@@ -18,7 +18,7 @@ const user = {
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 }
 const navigation = [
-  { name: 'Pieces', href: '/home', current: false },
+  { name: 'Pieces', href: '/home/profile', current: false },
   { name: 'Commissions', href: '/home/commissions', current: false },
   { name: 'Projects', href: '#', current: false },
   { name: 'About me', href: '#', current: false },
@@ -68,7 +68,7 @@ export default function HomeLayout({
                         className="size-8"
                       /> */}
                     </div>
-                    <div className="hidden md:block">
+                    <div className=" md:block">
                       <div className="ml-10 flex items-baseline space-x-4">
                         {navigation.map((item) => (
                           <a
@@ -88,7 +88,7 @@ export default function HomeLayout({
                       </div>
                     </div>
                   </div>
-                  <div className="hidden md:block">
+                  <div className=" md:block">
                     <div className="space-x-4 ml-4 flex items-center md:ml-6">
                       {session?.user?.role ==="admin" && (
                         <div className="relative ml-3">
