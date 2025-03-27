@@ -45,6 +45,7 @@ export default function Profile() {
   };
 
   return (
+    <main className= "-mt-32">
     <div className="min-h-screen bg-[#002c22]">
       <div className="container mx-auto pt-8 pb-12 px-4">
         
@@ -335,6 +336,7 @@ export default function Profile() {
             position= 'bottom-right'/>
       </div>
     </div>
+    </main>
   );
 };
 

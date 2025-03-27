@@ -1,5 +1,8 @@
-import { fetchAdminCommissions } from "@/app/api/commission/fetchAdminCommissions";
+"use client"
 import { UserCommissionsTable } from "./components/userCommissionsTable";
+import { fetchUserCommissions } from "@/app/api/commission/fetchUserCommissions";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 
 export interface CommissionData {
@@ -24,14 +27,28 @@ export interface CommissionData {
   createdAt: string;
 }
 
-export default async function UserOrders() {
+export default function UserOrders() {
+  const { data: session } = useSession()
+  const [commissionData, setCommissionData] = useState<CommissionData[]>();
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function getUserCommissions(){
+      const userObjectId = session?.user?.mongoId
+      console.log(userObjectId)
+      const commissions = await fetchUserCommissions(userObjectId!);
+      const commissionJSON = await JSON.parse(commissions)
+      setCommissionData(commissionJSON)
+      setLoading(false)
+      console.log(commissionData)
+    }
+    getUserCommissions()
+  }, [])
   
-  const commissions = await fetchAdminCommissions();
-  const commissionData = JSON.parse(commissions)
 
 
   return (
-    <main className= "">
+    <main className= "-mt-32">
         <div className="min-h-screen bg-[#002c22] text-emerald-50">
         <div className="-mt-32 container mx-auto py-8 px-4">        
             <div className="bg-emerald-900/80 rounded-lg shadow-lg border border-emerald-700/50 overflow-hidden">
@@ -39,10 +56,13 @@ export default async function UserOrders() {
                 <h2 className="text-xl font-semibold text-emerald-100">Your Commission Requests</h2>
                 <p className="text-emerald-300">View all submitted clothing commissions</p>
             </div>
-            
-            <UserCommissionsTable
-                commissionsProps={commissionData}
-            />
+            {loading ? (
+              <></>
+            ) : (
+              <UserCommissionsTable
+              commissionsProps={commissionData!}
+          />
+            )}
             </div>
         </div>
         </div>

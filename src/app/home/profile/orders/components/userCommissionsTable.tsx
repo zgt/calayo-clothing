@@ -29,6 +29,7 @@ interface UserCommissionsTableProps {
 export const UserCommissionsTable = ({ commissionsProps }: UserCommissionsTableProps) => {
   const [openDetail, setOpenDetail] = useState<string | null>(null);
   const [commissions] = useState<CommissionData[]>(commissionsProps);
+  console.log("commissions")
   
   
   const formatDate = (dateString: string) => {
