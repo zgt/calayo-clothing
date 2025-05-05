@@ -1,0 +1,171 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "~/context/auth";
+import SignIn from "./SignIn";
+
+export default function ProfileDropdown() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+  
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Toggle dropdown
+  const toggleDropdown = () => setIsOpen(!isOpen);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Get user data helper function
+  const getUserData = () => {
+    if (!user) return null;
+    
+    return {
+      id: user.id,
+      name: user.user_metadata?.full_name as string | undefined,
+      email: user.email,
+      role: user.role
+    };
+  };
+  
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push("/login");
+    } catch (error) {
+      console.error("Error signing out:", error instanceof Error ? error.message : String(error));
+    }
+  };
+  
+  // Check if user is admin
+  useEffect(() => {
+    if (user) {
+      const userId = user.id;
+      const adminId = process.env.NEXT_PUBLIC_ADMIN_ID;
+      
+      setIsAdmin(userId === adminId);
+    }
+  }, [user]);
+
+  // If not logged in, show SignIn component
+  if (!user) {
+    return <SignIn />;
+  }
+
+  return (
+    <div className="relative" id="profile-dropdown" ref={dropdownRef}>
+      <button
+        onClick={toggleDropdown}
+        className="flex items-center space-x-2 focus:outline-none"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-medium shadow-lg">
+          {user.email?.charAt(0).toUpperCase() ?? 'U'}
+        </div>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          className={`h-5 w-5 text-emerald-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+          viewBox="0 0 20 20" 
+          fill="currentColor"
+        >
+          <path 
+            fillRule="evenodd" 
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
+            clipRule="evenodd" 
+          />
+        </svg>
+      </button>
+      
+      {/* Dropdown Menu - Only shown when dropdown is open */}
+      {isOpen && (
+        <div 
+          className="absolute right-0 mt-2 w-48 bg-gradient-to-br from-gray-900 to-emerald-950 rounded-lg shadow-xl py-1 border border-emerald-800/30 backdrop-blur-sm z-10"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="user-menu"
+        >
+          <div className="px-4 py-2 text-sm text-gray-300 border-b border-emerald-800/30">
+            <div className="font-medium">{getUserData()?.name ?? 'User'}</div>
+            <div className="text-xs text-gray-400 truncate">{getUserData()?.email}</div>
+          </div>
+          
+          <Link
+            href="/profile"
+            className="block px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-800/20 hover:text-white transition-colors"
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+          >
+            Your Profile
+          </Link>
+          
+          <Link
+            href="/profile/orders"
+            className="block px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-800/20 hover:text-white transition-colors"
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+          >
+            Your Commissions
+          </Link>
+          
+          <Link
+            href="/profile/settings"
+            className="block px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-800/20 hover:text-white transition-colors"
+            role="menuitem"
+            onClick={() => setIsOpen(false)}
+          >
+            Settings
+          </Link>
+          
+          {/* Admin Navigation - Only shown if user is admin */}
+          {isAdmin && (
+            <div className="border-t border-emerald-800/30 pt-1 mt-1">
+              <Link
+                href="/admin/orders"
+                className="flex items-center px-4 py-2 text-sm text-purple-300 hover:bg-purple-800/20 hover:text-white transition-colors"
+                role="menuitem"
+                onClick={() => setIsOpen(false)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                </svg>
+                Admin Dashboard
+              </Link>
+            </div>
+          )}
+          
+          <div className="border-t border-emerald-800/30 pt-1 mt-1">
+            <button
+              onClick={handleSignOut}
+              className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors"
+              role="menuitem"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
