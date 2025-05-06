@@ -32,14 +32,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto mt-16">
-      <div className="bg-gradient-to-br from-gray-900 to-emerald-950 rounded-lg shadow-xl overflow-hidden">
+    <div className="auth-page w-full max-w-md mx-auto mt-16">
+      <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-emerald-700/20">
         <div className="px-8 py-6 border-b border-emerald-800/30">
           <h2 className="text-center text-3xl font-bold tracking-tight text-white">
             Welcome Back
           </h2>
           <p className="mt-2 text-center text-sm text-emerald-200">
-            Sign in to your Calayo account
+            Sign in to your account
           </p>
         </div>
         

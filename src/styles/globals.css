@@ -15,7 +15,23 @@
 /* Global styles */
 body {
   color: #1f2937;
-  background-color: #f9fafb;
+  background-color: #000000;
+  background-image: linear-gradient(to bottom, #002c22, #030712);
+}
+
+/* Override for login and signup pages */
+body:has(.auth-page) {
+  background-color: #000000;
+  background-image: linear-gradient(to bottom, #002c22, #030712);
+  min-height: 100vh;
+}
+
+/* Form styles for auth pages */
+.auth-form {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Custom button styles */
@@ -30,6 +46,20 @@ body {
 
 .btn-emerald:hover {
   background-color: var(--color-primary-light);
+}
+
+/* Input field styles */
+.input-emerald {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.2s ease;
+}
+
+.input-emerald:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 /* Custom transitions */
