@@ -7,35 +7,71 @@ import { toast, Toaster } from "react-hot-toast";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import type { User } from "@supabase/supabase-js";
 import { useAuth } from "~/context/auth";
 
 // Types
 export interface CommissionFormData {
-  _id: string;
-  status: string;
   garmentType: string;
   measurements: {
-    chest: number;
-    waist: number;
-    hips: number;
-    length: number;
-    inseam: number;
-    shoulders: number;
+    // Basic measurements (original)
+    chest: number | null;
+    waist: number | null;
+    hips: number | null;
+    length: number | null;
+    inseam: number | null;
+    shoulders: number | null;
+    // Additional measurements (new)
+    neck: number | null;
+    sleeve_length: number | null;
+    bicep: number | null;
+    forearm: number | null;
+    wrist: number | null;
+    armhole_depth: number | null;
+    back_width: number | null;
+    front_chest_width: number | null;
+    thigh: number | null;
+    knee: number | null;
+    calf: number | null;
+    ankle: number | null;
+    rise: number | null;
+    outseam: number | null;
+    height: number | null;
+    weight: number | null;
+    torso_length: number | null;
+    shoulder_slope: number | null;
+    posture: string | null;
   };
   budget: string;
   timeline: string;
   details: string;
-  user_id: string;
 }
 
 interface UserMeasurements {
-  chest?: number;
-  waist?: number;
-  hips?: number;
-  length?: number;
-  inseam?: number;
-  shoulders?: number;
+  chest?: number | null;
+  waist?: number | null;
+  hips?: number | null;
+  length?: number | null;
+  inseam?: number | null;
+  shoulders?: number | null;
+  neck?: number | null;
+  sleeve_length?: number | null;
+  bicep?: number | null;
+  forearm?: number | null;
+  wrist?: number | null;
+  armhole_depth?: number | null;
+  back_width?: number | null;
+  front_chest_width?: number | null;
+  thigh?: number | null;
+  knee?: number | null;
+  calf?: number | null;
+  ankle?: number | null;
+  rise?: number | null;
+  outseam?: number | null;
+  height?: number | null;
+  weight?: number | null;
+  torso_length?: number | null;
+  shoulder_slope?: number | null;
+  posture?: string | null;
 }
 
 type SupabaseError = {
@@ -45,18 +81,30 @@ type SupabaseError = {
   code?: string;
 };
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id: string;
+    garment_type: string;
+    budget: string;
+    timeline: string;
+    details: string;
+    user_id: string;
+    status: string;
+  };
+  error?: string;
+}
+
 // Helper function to fetch profile measurements
 const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurements> => {
   const supabase = createClientComponentClient();
-  console.log("userId", userId);
   
   const { data, error } = await supabase
     .from('profile_measurements')
     .select('*')
     .eq('profile_id', userId)
     .single() as { data: UserMeasurements | null; error: SupabaseError | null };
-    
-  console.log("data", data);
     
   if (error) {
     console.error("Error fetching measurements:", error);
@@ -66,32 +114,98 @@ const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurement
   return data ?? {};
 };
 
-export default function Commissions() {
+// Default empty measurements with all fields initialized to null
+const getEmptyMeasurements = () => ({
+  chest: null,
+  waist: null,
+  hips: null,
+  length: null,
+  inseam: null,
+  shoulders: null,
+  neck: null,
+  sleeve_length: null,
+  bicep: null,
+  forearm: null,
+  wrist: null,
+  armhole_depth: null,
+  back_width: null,
+  front_chest_width: null,
+  thigh: null,
+  knee: null,
+  calf: null,
+  ankle: null,
+  rise: null,
+  outseam: null,
+  height: null,
+  weight: null,
+  torso_length: null,
+  shoulder_slope: null,
+  posture: null,
+});
+
+// Required measurements by garment type
+const REQUIRED_MEASUREMENTS: Record<string, string[]> = {
+  shirt: ['chest', 'shoulders', 'sleeve_length'],
+  jacket: ['chest', 'shoulders', 'sleeve_length', 'bicep'],
+  pants: ['waist', 'hips', 'inseam', 'length', 'rise'],
+  dress: ['chest', 'waist', 'hips', 'length', 'shoulders'],
+  skirt: ['waist', 'hips', 'length'],
+  other: [],
+};
+
+type MeasurementKey = keyof CommissionFormData['measurements'];
+
+export default function CommissionsForm() {
   const { user } = useAuth();
   const supabase = createClientComponentClient();
   const router = useRouter();
   
   const [formData, setFormData] = useState<CommissionFormData>({
-    _id: "",
-    status: "",
     garmentType: "",
-    measurements: {
-      chest: 0,
-      waist: 0,
-      hips: 0,
-      length: 0,
-      inseam: 0,
-      shoulders: 0
-    },
+    measurements: getEmptyMeasurements(),
     budget: "",
     timeline: "",
     details: "",
-    user_id: ""
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
+  
+  // Group measurements by body area for better UI organization
+  const measurementGroups = {
+    upper: [
+      { id: "chest", label: "Chest" },
+      { id: "shoulders", label: "Shoulders" },
+      { id: "neck", label: "Neck" },
+      { id: "sleeve_length", label: "Sleeve Length" },
+      { id: "bicep", label: "Bicep" },
+      { id: "forearm", label: "Forearm" },
+      { id: "wrist", label: "Wrist" },
+      { id: "armhole_depth", label: "Armhole Depth" },
+      { id: "back_width", label: "Back Width" },
+      { id: "front_chest_width", label: "Front Chest Width" },
+    ],
+    lower: [
+      { id: "waist", label: "Waist" },
+      { id: "hips", label: "Hips" },
+      { id: "length", label: "Length" },
+      { id: "inseam", label: "Inseam" },
+      { id: "rise", label: "Rise" },
+      { id: "outseam", label: "Outseam" },
+      { id: "thigh", label: "Thigh" },
+      { id: "knee", label: "Knee" },
+      { id: "calf", label: "Calf" },
+      { id: "ankle", label: "Ankle" },
+    ],
+    general: [
+      { id: "height", label: "Height" },
+      { id: "weight", label: "Weight" },
+      { id: "torso_length", label: "Torso Length" },
+      { id: "shoulder_slope", label: "Shoulder Slope" },
+      { id: "posture", label: "Posture" },
+    ]
+  };
 
   // Function to load measurements from user profile
   const loadMeasurementsFromProfile = async () => {
@@ -111,9 +225,9 @@ export default function Commissions() {
     setIsLoadingMeasurements(true);
     
     try {
-      const measurements = await fetchProfileMeasurements(userId);
+      const profileMeasurements = await fetchProfileMeasurements(userId);
       
-      if (!measurements || Object.keys(measurements).length === 0) {
+      if (!profileMeasurements || Object.keys(profileMeasurements).length === 0) {
         toast("No saved measurements found in your profile");
         return;
       }
@@ -122,12 +236,8 @@ export default function Commissions() {
       setFormData(prev => ({
         ...prev,
         measurements: {
-          chest: measurements.chest ?? prev.measurements.chest,
-          waist: measurements.waist ?? prev.measurements.waist,
-          hips: measurements.hips ?? prev.measurements.hips,
-          length: measurements.length ?? prev.measurements.length,
-          inseam: measurements.inseam ?? prev.measurements.inseam,
-          shoulders: measurements.shoulders ?? prev.measurements.shoulders
+          ...prev.measurements,
+          ...profileMeasurements
         }
       }));
       
@@ -140,7 +250,7 @@ export default function Commissions() {
     }
   };
 
-  // Function to submit commission to Supabase
+  // Function to submit commission to Supabase using the updated API route
   const submitCommission = async (data: CommissionFormData) => {
     // First, check if user is authenticated
     if (!user) {
@@ -150,30 +260,31 @@ export default function Commissions() {
     }
     
     try {
-      // Format the data for PostgreSQL
+      // Format the data for API submission
       const submissionData = {
-        status: "Pending",
-        garment_type: data.garmentType,
-        measurements: data.measurements, // Using JSONB column in PostgreSQL
+        garmentType: data.garmentType,
+        measurements: data.measurements,
         budget: data.budget,
         timeline: data.timeline,
         details: data.details,
-        user_id: user.id
       };
+
+      // Submit to the API route
+      const response = await fetch('/api/commissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
       
-      // Insert into the commissions table
-      const { data: insertedData, error } = await supabase
-        .from('commissions')
-        .insert(submissionData)
-        .select('id')
-        .single();
-        
-      if (error) {
-        console.error("Supabase error:", error);
-        throw new Error(error.message);
+      if (!response.ok) {
+        const errorData = await response.json() as { error: string };
+        throw new Error(errorData.error ?? 'Failed to submit commission');
       }
       
-      return insertedData;
+      const result = await response.json() as ApiResponse;
+      return result.data;
     } catch (error) {
       console.error("Error submitting commission:", error);
       throw error;
@@ -199,29 +310,11 @@ export default function Commissions() {
       newErrors.details = "Please provide additional details";
     }
 
-    // Validate measurements based on garment type
-    const garmentType = formData.garmentType;
-    const measurements = formData.measurements;
-
-    if (garmentType === "shirt" || garmentType === "jacket") {
-      if (!measurements.chest || measurements.chest <= 0) {
-        newErrors["measurements.chest"] = "Required";
-      }
-      if (!measurements.shoulders || measurements.shoulders <= 0) {
-        newErrors["measurements.shoulders"] = "Required";
-      }
-    } else if (garmentType === "pants") {
-      if (!measurements.waist || measurements.waist <= 0) {
-        newErrors["measurements.waist"] = "Required";
-      }
-      if (!measurements.hips || measurements.hips <= 0) {
-        newErrors["measurements.hips"] = "Required";
-      }
-      if (!measurements.length || measurements.length <= 0) {
-        newErrors["measurements.length"] = "Required";
-      }
-      if (!measurements.inseam || measurements.inseam <= 0) {
-        newErrors["measurements.inseam"] = "Required";
+    // Validate required measurements based on garment type
+    const requiredMeasurements = REQUIRED_MEASUREMENTS[formData.garmentType] ?? [];
+    for (const field of requiredMeasurements) {
+      if (!formData.measurements[field as MeasurementKey]) {
+        newErrors[`measurements.${field}`] = "Required";
       }
     }
 
@@ -252,21 +345,11 @@ export default function Commissions() {
         toast.success("Commission request successfully submitted!");
         // Reset form
         setFormData({
-          _id: "",
-          status: "",
           garmentType: "",
-          measurements: {
-            chest: 0,
-            waist: 0,
-            hips: 0,
-            length: 0,
-            inseam: 0,
-            shoulders: 0
-          },
+          measurements: getEmptyMeasurements(),
           budget: "",
           timeline: "",
           details: "",
-          user_id: ""
         });
         
         // Redirect to dashboard or commissions list
@@ -284,19 +367,21 @@ export default function Commissions() {
     const { name, value } = e.target;
     
     if (name.startsWith("measurements.")) {
-      const measurement = name.split(".")[1] as keyof typeof formData.measurements;
-      setFormData({
-        ...formData,
+      const measurementField = name.split(".")[1] as MeasurementKey;
+      setFormData(prev => ({
+        ...prev,
         measurements: {
-          ...formData.measurements,
-          [measurement]: parseFloat(value) || 0
+          ...prev.measurements,
+          [measurementField]: value === "" ? null : 
+                             measurementField === "posture" ? value : 
+                             parseFloat(value) || null
         }
-      });
+      }));
     } else {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         [name]: value
-      });
+      }));
     }
   };
 
@@ -306,14 +391,7 @@ export default function Commissions() {
       setFormData({
         ...formData,
         garmentType: value,
-        measurements: {
-          chest: 0,
-          waist: 0,
-          hips: 0,
-          length: 0,
-          inseam: 0,
-          shoulders: 0
-        }
+        measurements: getEmptyMeasurements()
       });
     } else {
       setFormData({
@@ -334,9 +412,38 @@ export default function Commissions() {
     }
   };
 
+  // Helper function to determine if a measurement field should be shown based on the garment type
+  const shouldShowMeasurement = (measurementId: string) => {
+    const currentGarmentType = formData.garmentType;
+    
+    // For general measurements, always show
+    if (measurementGroups.general.some(m => m.id === measurementId)) {
+      return true;
+    }
+    
+    // For upper body measurements, show for shirt, jacket, dress
+    if (measurementGroups.upper.some(m => m.id === measurementId)) {
+      return ['shirt', 'jacket', 'dress', 'other'].includes(currentGarmentType);
+    }
+    
+    // For lower body measurements, show for pants, skirt, dress
+    if (measurementGroups.lower.some(m => m.id === measurementId)) {
+      return ['pants', 'skirt', 'dress', 'other'].includes(currentGarmentType);
+    }
+    
+    return true;
+  };
+
+  // Helper function to check if a measurement is required
+  const isMeasurementRequired = (measurementId: string) => {
+    const garmentType = formData.garmentType;
+    const requiredMeasurements = REQUIRED_MEASUREMENTS[garmentType] ?? [];
+    return requiredMeasurements.includes(measurementId);
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
+      <div className="-mt-30 w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -366,6 +473,8 @@ export default function Commissions() {
                   <option value="shirt">Shirt</option>
                   <option value="jacket">Jacket</option>
                   <option value="pants">Pants</option>
+                  <option value="dress">Dress</option>
+                  <option value="skirt">Skirt</option>
                   <option value="other">Other</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -380,156 +489,149 @@ export default function Commissions() {
             </div>
 
             {/* Measurements */}
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-emerald-100 font-medium text-sm">Measurements (inches)</label>
-                <button
-                  type="button"
-                  onClick={loadMeasurementsFromProfile}
-                  disabled={isLoadingMeasurements}
-                  className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors flex items-center"
-                >
-                  {!isLoadingMeasurements ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg className="animate-spin h-4 w-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  )}
-                  {isLoadingMeasurements ? "Loading..." : "Load from Profile"}
-                </button>
+            {formData.garmentType && (
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-emerald-100 font-medium text-sm">Measurements (inches)</label>
+                  <button
+                    type="button"
+                    onClick={loadMeasurementsFromProfile}
+                    disabled={isLoadingMeasurements}
+                    className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors flex items-center"
+                  >
+                    {!isLoadingMeasurements ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="animate-spin h-4 w-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {isLoadingMeasurements ? "Loading..." : "Load from Profile"}
+                  </button>
+                </div>
+                
+                {/* Conditionally render the appropriate measurement fields based on garment type */}
+                {formData.garmentType && (
+                  <>
+                    {/* Upper Body Measurements - Show for shirts, jackets, dresses */}
+                    {['shirt', 'jacket', 'dress', 'other'].includes(formData.garmentType) && (
+                      <div className="mb-4">
+                        <h3 className="text-emerald-100 text-sm font-medium mb-2">Upper Body</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {measurementGroups.upper
+                            .filter(m => shouldShowMeasurement(m.id))
+                            .map(measurement => (
+                              <div key={measurement.id}>
+                                <label 
+                                  htmlFor={measurement.id} 
+                                  className="block text-emerald-200/80 text-xs mb-1 flex"
+                                >
+                                  {measurement.label}
+                                  {isMeasurementRequired(measurement.id) && (
+                                    <span className="text-emerald-400 ml-1">*</span>
+                                  )}
+                                </label>
+                                <input
+                                  id={measurement.id}
+                                  name={`measurements.${measurement.id}`}
+                                  type={measurement.id === "posture" ? "text" : "number"}
+                                  step="0.1"
+                                  min="0"
+                                  value={formData.measurements[measurement.id as keyof typeof formData.measurements] ?? ""}
+                                  onChange={handleInputChange}
+                                  onKeyDown={measurement.id === "posture" ? undefined : handleNumberInput}
+                                  className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${
+                                    errors[`measurements.${measurement.id}`] ? "border-red-500" : "border-emerald-700/30"
+                                  } rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all`}
+                                  placeholder={measurement.id === "posture" ? "Description..." : "0.0"}
+                                />
+                                {errors[`measurements.${measurement.id}`] && (
+                                  <p className="text-red-400 text-xs mt-1">{errors[`measurements.${measurement.id}`]}</p>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Lower Body Measurements - Show for pants, skirts, dresses */}
+                    {['pants', 'skirt', 'dress', 'other'].includes(formData.garmentType) && (
+                      <div className="mb-4">
+                        <h3 className="text-emerald-100 text-sm font-medium mb-2">Lower Body</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {measurementGroups.lower
+                            .filter(m => shouldShowMeasurement(m.id))
+                            .map(measurement => (
+                              <div key={measurement.id}>
+                                <label 
+                                  htmlFor={measurement.id} 
+                                  className="block text-emerald-200/80 text-xs mb-1 flex"
+                                >
+                                  {measurement.label}
+                                  {isMeasurementRequired(measurement.id) && (
+                                    <span className="text-emerald-400 ml-1">*</span>
+                                  )}
+                                </label>
+                                <input
+                                  id={measurement.id}
+                                  name={`measurements.${measurement.id}`}
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  value={formData.measurements[measurement.id as keyof typeof formData.measurements] ?? ""}
+                                  onChange={handleInputChange}
+                                  onKeyDown={handleNumberInput}
+                                  className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${
+                                    errors[`measurements.${measurement.id}`] ? "border-red-500" : "border-emerald-700/30"
+                                  } rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all`}
+                                  placeholder="0.0"
+                                />
+                                {errors[`measurements.${measurement.id}`] && (
+                                  <p className="text-red-400 text-xs mt-1">{errors[`measurements.${measurement.id}`]}</p>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* General Body Measurements - Always show */}
+                    <div>
+                      <h3 className="text-emerald-100 text-sm font-medium mb-2">General Information</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {measurementGroups.general.map(measurement => (
+                          <div key={measurement.id}>
+                            <label htmlFor={measurement.id} className="block text-emerald-200/80 text-xs mb-1">
+                              {measurement.label}
+                            </label>
+                            <input
+                              id={measurement.id}
+                              name={`measurements.${measurement.id}`}
+                              type={measurement.id === "posture" ? "text" : "number"}
+                              step="0.1"
+                              min="0"
+                              value={formData.measurements[measurement.id as keyof typeof formData.measurements] ?? ""}
+                              onChange={handleInputChange}
+                              onKeyDown={measurement.id === "posture" ? undefined : handleNumberInput}
+                              className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${
+                                errors[`measurements.${measurement.id}`] ? "border-red-500" : "border-emerald-700/30"
+                              } rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all`}
+                              placeholder={measurement.id === "posture" ? "Description..." : "0.0"}
+                            />
+                            {errors[`measurements.${measurement.id}`] && (
+                              <p className="text-red-400 text-xs mt-1">{errors[`measurements.${measurement.id}`]}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Chest */}
-                <div>
-                  <label htmlFor="chest" className="block text-emerald-200/80 text-xs mb-1">Chest</label>
-                  <input
-                    id="chest"
-                    name="measurements.chest"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.chest}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "pants"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.chest"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.chest"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.chest"]}</p>
-                  )}
-                </div>
-                
-                {/* Shoulders */}
-                <div>
-                  <label htmlFor="shoulders" className="block text-emerald-200/80 text-xs mb-1">Shoulders</label>
-                  <input
-                    id="shoulders"
-                    name="measurements.shoulders"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.shoulders}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "pants"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.shoulders"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.shoulders"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.shoulders"]}</p>
-                  )}
-                </div>
-                
-                {/* Waist */}
-                <div>
-                  <label htmlFor="waist" className="block text-emerald-200/80 text-xs mb-1">Waist</label>
-                  <input
-                    id="waist"
-                    name="measurements.waist"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.waist}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "shirt" || formData.garmentType === "jacket"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.waist"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.waist"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.waist"]}</p>
-                  )}
-                </div>
-                
-                {/* Hips */}
-                <div>
-                  <label htmlFor="hips" className="block text-emerald-200/80 text-xs mb-1">Hips</label>
-                  <input
-                    id="hips"
-                    name="measurements.hips"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.hips}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "shirt" || formData.garmentType === "jacket"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.hips"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.hips"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.hips"]}</p>
-                  )}
-                </div>
-                
-                {/* Length */}
-                <div>
-                  <label htmlFor="length" className="block text-emerald-200/80 text-xs mb-1">Length</label>
-                  <input
-                    id="length"
-                    name="measurements.length"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.length}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "shirt" || formData.garmentType === "jacket"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.length"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.length"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.length"]}</p>
-                  )}
-                </div>
-                
-                {/* Inseam */}
-                <div>
-                  <label htmlFor="inseam" className="block text-emerald-200/80 text-xs mb-1">Inseam</label>
-                  <input
-                    id="inseam"
-                    name="measurements.inseam"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={formData.measurements.inseam}
-                    onChange={handleInputChange}
-                    onKeyDown={handleNumberInput}
-                    disabled={formData.garmentType === "shirt" || formData.garmentType === "jacket"}
-                    className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${errors["measurements.inseam"] ? "border-red-500" : "border-emerald-700/30"} rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
-                    placeholder="0.0"
-                  />
-                  {errors["measurements.inseam"] && (
-                    <p className="text-red-400 text-xs mt-1">{errors["measurements.inseam"]}</p>
-                  )}
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Budget Range */}
             <div>

@@ -1,9 +1,8 @@
 // src/app/profile/page.tsx - Updated version
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { Suspense } from "react";
 import { createClient } from "~/utils/supabase/server";
-import ProfileForm from "./_components/ProfileForm";
+import ProfileSection from "./_components/ProfileSection";
 
 type Profile = {
   id: string;
@@ -16,7 +15,7 @@ type Profile = {
   phone?: string | null;
 };
 
-type ProfileMeasurements = {
+export type ProfileMeasurements = {
   id: string;
   profile_id: string;
   // Basic measurements
@@ -157,6 +156,7 @@ export default async function ProfilePage() {
   } : null;
   
   const measurements: ProfileMeasurements | null = measurementsData ?? null;
+  console.log(measurements);
   
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
@@ -166,160 +166,9 @@ export default async function ProfilePage() {
             <h1 className="text-3xl font-bold text-white">My Profile</h1>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* Left Column - User Info */}
-            <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-4 shadow-2xl border border-emerald-700/20">
-              <div className="mb-4 text-center">
-                <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-emerald-900/50">
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt={`${profile.full_name ?? 'User'}'s avatar`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-2xl text-emerald-200">
-                      {profile?.full_name?.charAt(0) ?? user.email?.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <h2 className="text-xl font-semibold text-white">{profile?.full_name ?? "New User"}</h2>
-                <p className="text-sm text-emerald-200/70">{user.email}</p>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="font-medium text-emerald-200/70">Location:</span>
-                  <span className="text-white">{profile?.location ?? "Not specified"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-emerald-200/70">Phone:</span>
-                  <span className="text-white">{profile?.phone ?? "Not specified"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-emerald-200/70">Website:</span>
-                  <span className="text-white">{profile?.website ?? "Not specified"}</span>
-                </div>
-                <div className="border-t border-emerald-700/30 pt-3">
-                  <span className="block font-medium text-emerald-200/70">Bio:</span>
-                  <p className="mt-1 text-white">{profile?.bio ?? "No bio provided."}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Center/Right Columns - Measurements & Form */}
-            <div className="md:col-span-2">
-              <div className="mb-6 rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
-                <h2 className="mb-4 text-xl font-semibold text-white">Your Measurements</h2>
-                
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {/* Basic Measurements */}
-                  <MeasurementGroup title="Basic Measurements">
-                    <MeasurementItem label="Chest" value={measurements?.chest} />
-                    <MeasurementItem label="Waist" value={measurements?.waist} />
-                    <MeasurementItem label="Hips" value={measurements?.hips} />
-                    <MeasurementItem label="Shoulders" value={measurements?.shoulders} />
-                    <MeasurementItem label="Length" value={measurements?.length} />
-                    <MeasurementItem label="Inseam" value={measurements?.inseam} />
-                  </MeasurementGroup>
-                  
-                  {/* Upper Body Measurements */}
-                  <MeasurementGroup title="Upper Body">
-                    <MeasurementItem label="Neck" value={measurements?.neck} />
-                    <MeasurementItem label="Sleeve" value={measurements?.sleeve_length} />
-                    <MeasurementItem label="Bicep" value={measurements?.bicep} />
-                    <MeasurementItem label="Forearm" value={measurements?.forearm} />
-                    <MeasurementItem label="Wrist" value={measurements?.wrist} />
-                    <MeasurementItem label="Armhole" value={measurements?.armhole_depth} />
-                    <MeasurementItem label="Back Width" value={measurements?.back_width} />
-                    <MeasurementItem label="Chest Width" value={measurements?.front_chest_width} />
-                  </MeasurementGroup>
-                  
-                  {/* Lower Body Measurements */}
-                  <MeasurementGroup title="Lower Body">
-                    <MeasurementItem label="Thigh" value={measurements?.thigh} />
-                    <MeasurementItem label="Knee" value={measurements?.knee} />
-                    <MeasurementItem label="Calf" value={measurements?.calf} />
-                    <MeasurementItem label="Ankle" value={measurements?.ankle} />
-                    <MeasurementItem label="Rise" value={measurements?.rise} />
-                    <MeasurementItem label="Outseam" value={measurements?.outseam} />
-                  </MeasurementGroup>
-                </div>
-                
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {/* Full Body Measurements */}
-                  <MeasurementGroup title="Full Body">
-                    <MeasurementItem label="Height" value={measurements?.height} />
-                    <MeasurementItem label="Weight" value={measurements?.weight} unit="lbs" />
-                  </MeasurementGroup>
-                  
-                  {/* Formal Wear */}
-                  <MeasurementGroup title="Formal Wear">
-                    <MeasurementItem label="Torso Length" value={measurements?.torso_length} />
-                    <MeasurementItem label="Shoulder Slope" value={measurements?.shoulder_slope} />
-                    <TextItem label="Posture" value={measurements?.posture} />
-                  </MeasurementGroup>
-                  
-                  {/* Preferences */}
-                  <MeasurementGroup title="Preferences">
-                    <TextItem label="Size" value={measurements?.size_preference} />
-                    <TextItem label="Fit" value={measurements?.fit_preference} />
-                  </MeasurementGroup>
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <Link 
-                    href="/profile/measurements" 
-                    className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
-                  >
-                    Update Measurements
-                  </Link>
-                </div>
-              </div>
-              
-              {/* Profile Form */}
-              <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
-                <h2 className="mb-4 text-xl font-semibold text-white">Edit Profile</h2>
-                <ProfileForm profile={profile} user={user} />
-              </div>
-            </div>
-          </div>
+          <ProfileSection profile={profile} user={user} measurements={measurements} />
         </Suspense>
       </div>
     </main>
-  );
-}
-
-// Helper components for measurements display
-function MeasurementGroup({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-md border border-emerald-700/30 p-3">
-      <h3 className="mb-2 text-sm font-medium text-emerald-200">{title}</h3>
-      <div className="space-y-1">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function MeasurementItem({ label, value, unit = "in" }: { label: string; value?: number | null; unit?: string }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-emerald-200/70">{label}:</span>
-      <span className="font-medium text-white">
-        {value ? `${value} ${unit}` : "—"}
-      </span>
-    </div>
-  );
-}
-
-function TextItem({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-emerald-200/70">{label}:</span>
-      <span className="font-medium text-white">
-        {value ?? "—"}
-      </span>
-    </div>
   );
 }
