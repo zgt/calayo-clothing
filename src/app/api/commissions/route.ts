@@ -7,8 +7,24 @@ import { NextRequest, NextResponse } from "next/server";
 interface CommissionRequest {
   status?: string;
   garmentType: string;
-  measurements: Record<string, unknown>;
-  budget: number;
+  measurements: {
+    chest?: number | null;
+    waist?: number | null;
+    hips?: number | null;
+    length?: number | null;
+    inseam?: number | null;
+    shoulders?: number | null;
+    neck?: number | null;
+    sleeve_length?: number | null;
+    bicep?: number | null;
+    forearm?: number | null;
+    wrist?: number | null;
+    thigh?: number | null;
+    knee?: number | null;
+    calf?: number | null;
+    ankle?: number | null;
+  };
+  budget: string;
   timeline: string;
   details: string;
 }
@@ -30,11 +46,10 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const requestData = await request.json() as CommissionRequest;
     
-    // Format the data for PostgreSQL
-    const submissionData = {
+    // Format the commission data for PostgreSQL (without measurements)
+    const commissionData = {
       status: requestData.status ?? "Pending",
       garment_type: requestData.garmentType,
-      measurements: requestData.measurements,
       budget: requestData.budget,
       timeline: requestData.timeline,
       details: requestData.details,
@@ -42,25 +57,51 @@ export async function POST(request: NextRequest) {
     };
     
     // Validate required fields
-    if (!submissionData.garment_type || !submissionData.budget || 
-        !submissionData.timeline || !submissionData.details) {
+    if (!commissionData.garment_type || !commissionData.budget || 
+        !commissionData.timeline || !commissionData.details) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
     
-    // Insert into the commissions table
-    const { data, error } = await supabase
+    // Start a transaction to ensure both operations succeed or fail together
+    const { data: commission, error: commissionError } = await supabase
       .from('commissions')
-      .insert(submissionData)
+      .insert(commissionData)
       .select('id')
       .single();
       
-    if (error) {
-      console.error("Supabase error:", error);
+    if (commissionError) {
+      console.error("Supabase error inserting commission:", commissionError);
       return NextResponse.json(
-        { error: error.message },
+        { error: commissionError.message },
+        { status: 500 }
+      );
+    }
+    
+    // Now insert the measurements linked to the commission
+    const measurementsData = {
+      commission_id: commission.id,
+      ...Object.entries(requestData.measurements).reduce((acc, [key, value]) => {
+        // Convert any empty strings to null
+        acc[key] = value === "" ? null : value;
+        return acc;
+      }, {} as Record<string, any>)
+    };
+    
+    const { error: measurementsError } = await supabase
+      .from('commission_measurements')
+      .insert(measurementsData);
+      
+    if (measurementsError) {
+      console.error("Supabase error inserting measurements:", measurementsError);
+      
+      // If measurements insertion fails, try to delete the commission to maintain consistency
+      await supabase.from('commissions').delete().eq('id', commission.id);
+      
+      return NextResponse.json(
+        { error: measurementsError.message },
         { status: 500 }
       );
     }
@@ -68,7 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       message: "Commission submitted successfully",
-      data 
+      data: commission
     });
     
   } catch (error: unknown) {

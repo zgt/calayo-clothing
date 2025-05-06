@@ -1,14 +1,12 @@
 // src/app/profile/measurements/page.tsx
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import type { PostgrestSingleResponse } from "@supabase/supabase-js";
-
 import { createClient } from "~/utils/supabase/server";
 import MeasurementsForm from "./_components/MeasurementsForm";
-import type { Database } from "~/types/supabase";
 
-type Profile = {
+type ProfileMeasurements = {
   id: string;
+  profile_id: string;
   // Basic measurements
   chest: number | null;
   waist: number | null;
@@ -45,41 +43,11 @@ type Profile = {
   [key: string]: unknown;
 };
 
-// Default empty profile with all fields set to null
-const emptyProfile: Omit<Profile, 'id'> = {
-  // Basic measurements
-  chest: null,
-  waist: null,
-  hips: null,
-  length: null,
-  inseam: null,
-  shoulders: null,
-  // Additional upper body
-  neck: null,
-  sleeve_length: null,
-  bicep: null,
-  forearm: null,
-  wrist: null,
-  armhole_depth: null,
-  back_width: null,
-  front_chest_width: null,
-  // Additional lower body
-  thigh: null,
-  knee: null,
-  calf: null,
-  ankle: null,
-  rise: null,
-  outseam: null,
-  // Full body
-  height: null,
-  weight: null,
-  // Formal wear
-  torso_length: null,
-  shoulder_slope: null,
-  posture: null,
-  // Preferences
-  size_preference: null,
-  fit_preference: null,
+type SupabaseError = {
+  code: string;
+  message: string;
+  details?: string;
+  hint?: string;
 };
 
 export default async function MeasurementsPage() {
@@ -93,23 +61,19 @@ export default async function MeasurementsPage() {
     redirect("/login");
   }
   
-  // Fetch user profile with measurements
-  const { data: dbProfile, error: profileError }: PostgrestSingleResponse<Database["public"]["Tables"]["profiles"]["Row"]> = await supabase
-    .from("profiles")
+  // Fetch user profile measurements
+  const { data: measurements, error: measurementsError } = await supabase
+    .from("profile_measurements")
     .select("*")
-    .eq("id", user.id)
-    .single();
+    .eq("profile_id", user.id)
+    .single() as { data: ProfileMeasurements | null; error: SupabaseError | null };
   
-  if (profileError && profileError.code !== "PGRST116") {
-    console.error("Error fetching profile:", profileError);
+  if (measurementsError && measurementsError.code !== "PGRST116") {
+    console.error("Error fetching measurements:", measurementsError);
   }
 
-  // Transform the database profile into the format expected by MeasurementsForm
-  const profile: Profile | null = dbProfile ? {
-    id: dbProfile.id,
-    ...emptyProfile,
-    ...(dbProfile.measurements as Record<string, unknown>),
-  } as Profile : null;
+  // Create measurements object
+  const profileMeasurements: ProfileMeasurements | null = measurements ?? null;
   
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
@@ -134,7 +98,7 @@ export default async function MeasurementsPage() {
               </p>
             </div>
             
-            <MeasurementsForm profile={profile} userId={user.id} />
+            <MeasurementsForm measurements={profileMeasurements} userId={user.id} />
           </div>
           
           <div className="mt-6 rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">

@@ -2,11 +2,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import type { PostgrestSingleResponse } from "@supabase/supabase-js";
-
 import { createClient } from "~/utils/supabase/server";
 import ProfileForm from "./_components/ProfileForm";
-import type { Database } from "~/types/supabase";
 
 type Profile = {
   id: string;
@@ -17,7 +14,11 @@ type Profile = {
   website?: string | null;
   location?: string | null;
   phone?: string | null;
-  // Measurements
+};
+
+type ProfileMeasurements = {
+  id: string;
+  profile_id: string;
   chest?: number | null;
   waist?: number | null;
   hips?: number | null;
@@ -32,6 +33,13 @@ type Profile = {
   knee?: number | null;
   calf?: number | null;
   ankle?: number | null;
+};
+
+type SupabaseError = {
+  code: string;
+  message: string;
+  details?: string;
+  hint?: string;
 };
 
 function LoadingProfile() {
@@ -100,25 +108,36 @@ export default async function ProfilePage() {
     // Redirect to login if not authenticated
     redirect("/login");
   }
-  console.log("User:", user);
   
   // Fetch user profile
-  const { data: profileData, error: profileError }: PostgrestSingleResponse<Database["public"]["Tables"]["profiles"]["Row"]> = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
-  console.log("Profile data:", profileData);
+    .single() as { data: Profile | null; error: SupabaseError | null };
   
   if (profileError && profileError.code !== "PGRST116") {
     console.error("Error fetching profile:", profileError);
   }
+  
+  // Fetch user measurements from the new profile_measurements table
+  const { data: measurementsData, error: measurementsError } = await supabase
+    .from("profile_measurements")
+    .select("*")
+    .eq("profile_id", user.id)
+    .single() as { data: ProfileMeasurements | null; error: SupabaseError | null };
+  
+  if (measurementsError && measurementsError.code !== "PGRST116") {
+    console.error("Error fetching measurements:", measurementsError);
+  }
 
-  // Transform the profile data to match the expected type
+  // Create profile and measurements objects for display
   const profile: Profile | null = profileData ? {
     ...profileData,
     email: user.email ?? "",
   } : null;
+  
+  const measurements: ProfileMeasurements | null = measurementsData ?? null;
   
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
@@ -177,28 +196,28 @@ export default async function ProfilePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {/* Basic Measurements */}
                   <MeasurementGroup title="Basic Measurements">
-                    <MeasurementItem label="Chest" value={profile?.chest} />
-                    <MeasurementItem label="Waist" value={profile?.waist} />
-                    <MeasurementItem label="Hips" value={profile?.hips} />
-                    <MeasurementItem label="Shoulders" value={profile?.shoulders} />
-                    <MeasurementItem label="Length" value={profile?.length} />
-                    <MeasurementItem label="Inseam" value={profile?.inseam} />
+                    <MeasurementItem label="Chest" value={measurements?.chest} />
+                    <MeasurementItem label="Waist" value={measurements?.waist} />
+                    <MeasurementItem label="Hips" value={measurements?.hips} />
+                    <MeasurementItem label="Shoulders" value={measurements?.shoulders} />
+                    <MeasurementItem label="Length" value={measurements?.length} />
+                    <MeasurementItem label="Inseam" value={measurements?.inseam} />
                   </MeasurementGroup>
                   
                   {/* Upper Body Measurements */}
                   <MeasurementGroup title="Upper Body">
-                    <MeasurementItem label="Neck" value={profile?.neck} />
-                    <MeasurementItem label="Sleeve" value={profile?.sleeve_length} />
-                    <MeasurementItem label="Bicep" value={profile?.bicep} />
-                    <MeasurementItem label="Wrist" value={profile?.wrist} />
+                    <MeasurementItem label="Neck" value={measurements?.neck} />
+                    <MeasurementItem label="Sleeve" value={measurements?.sleeve_length} />
+                    <MeasurementItem label="Bicep" value={measurements?.bicep} />
+                    <MeasurementItem label="Wrist" value={measurements?.wrist} />
                   </MeasurementGroup>
                   
                   {/* Lower Body Measurements */}
                   <MeasurementGroup title="Lower Body">
-                    <MeasurementItem label="Thigh" value={profile?.thigh} />
-                    <MeasurementItem label="Knee" value={profile?.knee} />
-                    <MeasurementItem label="Calf" value={profile?.calf} />
-                    <MeasurementItem label="Ankle" value={profile?.ankle} />
+                    <MeasurementItem label="Thigh" value={measurements?.thigh} />
+                    <MeasurementItem label="Knee" value={measurements?.knee} />
+                    <MeasurementItem label="Calf" value={measurements?.calf} />
+                    <MeasurementItem label="Ankle" value={measurements?.ankle} />
                   </MeasurementGroup>
                 </div>
                 

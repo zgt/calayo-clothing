@@ -44,17 +44,19 @@ const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurement
   console.log("userId", userId);
   
   const { data, error } = await supabase
-    .from('profiles')
-    .select('measurements')
-    .eq('id', userId)
+    .from('profile_measurements')
+    .select('*')
+    .eq('profile_id', userId)
     .single();
+
+    console.log("data", data);
     
   if (error) {
     console.error("Error fetching measurements:", error);
     throw error;
   }
   
-  return (data?.measurements as UserMeasurements) ?? {};
+  return (data as UserMeasurements) ?? {};
 };
 
 export default function Commissions() {

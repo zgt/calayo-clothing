@@ -1,11 +1,11 @@
 "use client";
 
-// src/app/profile/measurements/_components/MeasurementsForm.tsx
 import { useState } from "react";
 import { createClient } from "~/utils/supabase/client";
 
-type Profile = {
-  id: string;
+type ProfileMeasurements = {
+  id?: string;
+  profile_id: string;
   // Basic measurements
   chest: number | null;
   waist: number | null;
@@ -43,7 +43,7 @@ type Profile = {
 };
 
 interface MeasurementsFormProps {
-  profile: Profile | null;
+  measurements: ProfileMeasurements | null;
   userId: string;
 }
 
@@ -80,34 +80,34 @@ function MeasurementInput({
   );
 }
 
-export default function MeasurementsForm({ profile, userId }: MeasurementsFormProps) {
+export default function MeasurementsForm({ measurements, userId }: MeasurementsFormProps) {
   const supabase = createClient();
   
   // Initialize measurements from profile or empty
-  const [measurements, setMeasurements] = useState({
+  const [formData, setFormData] = useState({
     // Basic measurements
-    chest: profile?.chest ?? "",
-    waist: profile?.waist ?? "",
-    hips: profile?.hips ?? "",
-    length: profile?.length ?? "",
-    inseam: profile?.inseam ?? "",
-    shoulders: profile?.shoulders ?? "",
+    chest: measurements?.chest ?? "",
+    waist: measurements?.waist ?? "",
+    hips: measurements?.hips ?? "",
+    length: measurements?.length ?? "",
+    inseam: measurements?.inseam ?? "",
+    shoulders: measurements?.shoulders ?? "",
     // Additional upper body
-    neck: profile?.neck ?? "",
-    sleeve_length: profile?.sleeve_length ?? "",
-    bicep: profile?.bicep ?? "",
-    forearm: profile?.forearm ?? "",
-    wrist: profile?.wrist ?? "",
-    back_width: profile?.back_width ?? "",
+    neck: measurements?.neck ?? "",
+    sleeve_length: measurements?.sleeve_length ?? "",
+    bicep: measurements?.bicep ?? "",
+    forearm: measurements?.forearm ?? "",
+    wrist: measurements?.wrist ?? "",
+    back_width: measurements?.back_width ?? "",
     // Lower body
-    thigh: profile?.thigh ?? "",
-    knee: profile?.knee ?? "",
-    calf: profile?.calf ?? "",
-    ankle: profile?.ankle ?? "",
+    thigh: measurements?.thigh ?? "",
+    knee: measurements?.knee ?? "",
+    calf: measurements?.calf ?? "",
+    ankle: measurements?.ankle ?? "",
     // Full body
-    height: profile?.height ?? "",
+    height: measurements?.height ?? "",
     // Preferences
-    fit_preference: profile?.fit_preference ?? "",
+    fit_preference: measurements?.fit_preference ?? "",
   });
   
   const [activeTab, setActiveTab] = useState("basic");
@@ -117,7 +117,7 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setMeasurements(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
   // Handle form submission
@@ -127,7 +127,7 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
     setMessage({ text: "", type: "" });
     
     // Convert empty strings to null and strings to numbers where appropriate
-    const formattedMeasurements = Object.entries(measurements).reduce((acc, [key, value]) => {
+    const formattedMeasurements = Object.entries(formData).reduce((acc, [key, value]) => {
       // Handle empty strings
       if (value === "") {
         acc[key] = null;
@@ -144,24 +144,38 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
     }, {} as Record<string, number | string | null>);
     
     try {
-      if (!profile) {
-        // Create new profile if doesn't exist yet
-        const { error } = await supabase
-          .from("profiles")
-          .insert([{
-            id: userId,
-            ...formattedMeasurements
-          }]);
+      // Check if measurements already exist for this profile
+      const { data: existingMeasurements, error: fetchError } = await supabase
+        .from("profile_measurements")
+        .select("id")
+        .eq("profile_id", userId)
+        .maybeSingle();
+        
+      if (fetchError && fetchError.code !== "PGRST116") {
+        throw fetchError;
+      }
+      
+      // Add profile_id to the measurements data
+      const measurementsData = {
+        ...formattedMeasurements,
+        profile_id: userId,
+      };
+      
+      if (existingMeasurements?.id) {
+        // Update existing measurements
+        const { error: updateError } = await supabase
+          .from("profile_measurements")
+          .update(measurementsData)
+          .eq("id", existingMeasurements.id);
           
-        if (error) throw error;
+        if (updateError) throw updateError;
       } else {
-        // Update existing profile
-        const { error } = await supabase
-          .from("profiles")
-          .update(formattedMeasurements)
-          .eq("id", userId);
+        // Insert new measurements
+        const { error: insertError } = await supabase
+          .from("profile_measurements")
+          .insert(measurementsData);
           
-        if (error) throw error;
+        if (insertError) throw insertError;
       }
       
       setMessage({
@@ -260,43 +274,43 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
           <MeasurementInput
             label="Chest"
             name="chest"
-            value={measurements.chest}
+            value={formData.chest}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Waist"
             name="waist"
-            value={measurements.waist}
+            value={formData.waist}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Hips"
             name="hips"
-            value={measurements.hips}
+            value={formData.hips}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Shoulders"
             name="shoulders"
-            value={measurements.shoulders}
+            value={formData.shoulders}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Length"
             name="length"
-            value={measurements.length}
+            value={formData.length}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Inseam"
             name="inseam"
-            value={measurements.inseam}
+            value={formData.inseam}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Height"
             name="height"
-            value={measurements.height}
+            value={formData.height}
             onChange={handleChange}
           />
         </div>
@@ -308,37 +322,37 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
           <MeasurementInput
             label="Neck"
             name="neck"
-            value={measurements.neck}
+            value={formData.neck}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Sleeve Length"
             name="sleeve_length"
-            value={measurements.sleeve_length}
+            value={formData.sleeve_length}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Bicep"
             name="bicep"
-            value={measurements.bicep}
+            value={formData.bicep}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Forearm"
             name="forearm"
-            value={measurements.forearm}
+            value={formData.forearm}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Wrist"
             name="wrist"
-            value={measurements.wrist}
+            value={formData.wrist}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Back Width"
             name="back_width"
-            value={measurements.back_width}
+            value={formData.back_width}
             onChange={handleChange}
           />
         </div>
@@ -350,25 +364,25 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
           <MeasurementInput
             label="Thigh"
             name="thigh"
-            value={measurements.thigh}
+            value={formData.thigh}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Knee"
             name="knee"
-            value={measurements.knee}
+            value={formData.knee}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Calf"
             name="calf"
-            value={measurements.calf}
+            value={formData.calf}
             onChange={handleChange}
           />
           <MeasurementInput
             label="Ankle"
             name="ankle"
-            value={measurements.ankle}
+            value={formData.ankle}
             onChange={handleChange}
           />
         </div>
@@ -384,7 +398,7 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
             <select
               id="fit_preference"
               name="fit_preference"
-              value={measurements.fit_preference}
+              value={formData.fit_preference}
               onChange={handleChange}
               className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
             >
@@ -424,30 +438,30 @@ export default function MeasurementsForm({ profile, userId }: MeasurementsFormPr
           type="button"
           onClick={() => {
             // Reset form to original values
-            if (profile) {
-              setMeasurements({
-                chest: profile.chest ?? "",
-                waist: profile.waist ?? "",
-                hips: profile.hips ?? "",
-                length: profile.length ?? "",
-                inseam: profile.inseam ?? "",
-                shoulders: profile.shoulders ?? "",
-                neck: profile.neck ?? "",
-                sleeve_length: profile.sleeve_length ?? "",
-                bicep: profile.bicep ?? "",
-                forearm: profile.forearm ?? "",
-                wrist: profile.wrist ?? "",
-                back_width: profile.back_width ?? "",
-                thigh: profile.thigh ?? "",
-                knee: profile.knee ?? "",
-                calf: profile.calf ?? "",
-                ankle: profile.ankle ?? "",
-                height: profile.height ?? "",
-                fit_preference: profile.fit_preference ?? "",
+            if (measurements) {
+              setFormData({
+                chest: measurements.chest ?? "",
+                waist: measurements.waist ?? "",
+                hips: measurements.hips ?? "",
+                length: measurements.length ?? "",
+                inseam: measurements.inseam ?? "",
+                shoulders: measurements.shoulders ?? "",
+                neck: measurements.neck ?? "",
+                sleeve_length: measurements.sleeve_length ?? "",
+                bicep: measurements.bicep ?? "",
+                forearm: measurements.forearm ?? "",
+                wrist: measurements.wrist ?? "",
+                back_width: measurements.back_width ?? "",
+                thigh: measurements.thigh ?? "",
+                knee: measurements.knee ?? "",
+                calf: measurements.calf ?? "",
+                ankle: measurements.ankle ?? "",
+                height: measurements.height ?? "",
+                fit_preference: measurements.fit_preference ?? "",
               });
             } else {
-              // Reset to empty values if no profile
-              setMeasurements({
+              // Reset to empty values if no measurements
+              setFormData({
                 chest: "",
                 waist: "",
                 hips: "",
