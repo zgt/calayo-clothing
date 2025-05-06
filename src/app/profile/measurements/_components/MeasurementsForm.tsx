@@ -80,6 +80,37 @@ function MeasurementInput({
   );
 }
 
+// Helper component for text inputs (like posture)
+function TextInput({ 
+  label, 
+  name, 
+  value, 
+  onChange 
+}: { 
+  label: string; 
+  name: string; 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+}) {
+  return (
+    <div>
+      <label htmlFor={name} className="block text-sm font-medium text-emerald-200">
+        {label}
+      </label>
+      <div className="relative mt-1">
+        <input
+          type="text"
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className="block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 placeholder:text-emerald-600/50 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MeasurementsForm({ measurements, userId }: MeasurementsFormProps) {
   const supabase = createClient();
   
@@ -98,15 +129,25 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
     bicep: measurements?.bicep ?? "",
     forearm: measurements?.forearm ?? "",
     wrist: measurements?.wrist ?? "",
+    armhole_depth: measurements?.armhole_depth ?? "",
     back_width: measurements?.back_width ?? "",
+    front_chest_width: measurements?.front_chest_width ?? "",
     // Lower body
     thigh: measurements?.thigh ?? "",
     knee: measurements?.knee ?? "",
     calf: measurements?.calf ?? "",
     ankle: measurements?.ankle ?? "",
+    rise: measurements?.rise ?? "",
+    outseam: measurements?.outseam ?? "",
     // Full body
     height: measurements?.height ?? "",
+    weight: measurements?.weight ?? "",
+    // Formal wear
+    torso_length: measurements?.torso_length ?? "",
+    shoulder_slope: measurements?.shoulder_slope ?? "",
+    posture: measurements?.posture ?? "",
     // Preferences
+    size_preference: measurements?.size_preference ?? "",
     fit_preference: measurements?.fit_preference ?? "",
   });
   
@@ -133,7 +174,11 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
         acc[key] = null;
       } 
       // Convert numeric values to numbers
-      else if (key !== "fit_preference" && key !== "posture" && key !== "size_preference") {
+      else if (
+        key !== "fit_preference" && 
+        key !== "posture" && 
+        key !== "size_preference"
+      ) {
         acc[key] = parseFloat(value as string);
       } 
       // Keep string values as strings
@@ -200,6 +245,58 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
     }
   };
   
+  // Function to reset form data based on current measurements or empty values
+  const resetForm = () => {
+    if (measurements) {
+      setFormData({
+        // Basic measurements
+        chest: measurements.chest ?? "",
+        waist: measurements.waist ?? "",
+        hips: measurements.hips ?? "",
+        length: measurements.length ?? "",
+        inseam: measurements.inseam ?? "",
+        shoulders: measurements.shoulders ?? "",
+        // Additional upper body
+        neck: measurements.neck ?? "",
+        sleeve_length: measurements.sleeve_length ?? "",
+        bicep: measurements.bicep ?? "",
+        forearm: measurements.forearm ?? "",
+        wrist: measurements.wrist ?? "",
+        armhole_depth: measurements.armhole_depth ?? "",
+        back_width: measurements.back_width ?? "",
+        front_chest_width: measurements.front_chest_width ?? "",
+        // Lower body
+        thigh: measurements.thigh ?? "",
+        knee: measurements.knee ?? "",
+        calf: measurements.calf ?? "",
+        ankle: measurements.ankle ?? "",
+        rise: measurements.rise ?? "",
+        outseam: measurements.outseam ?? "",
+        // Full body
+        height: measurements.height ?? "",
+        weight: measurements.weight ?? "",
+        // Formal wear
+        torso_length: measurements.torso_length ?? "",
+        shoulder_slope: measurements.shoulder_slope ?? "",
+        posture: measurements.posture ?? "",
+        // Preferences
+        size_preference: measurements.size_preference ?? "",
+        fit_preference: measurements.fit_preference ?? "",
+      });
+    } else {
+      // Reset to empty values if no measurements
+      setFormData({
+        chest: "", waist: "", hips: "", length: "", inseam: "", shoulders: "",
+        neck: "", sleeve_length: "", bicep: "", forearm: "", wrist: "", 
+        armhole_depth: "", back_width: "", front_chest_width: "",
+        thigh: "", knee: "", calf: "", ankle: "", rise: "", outseam: "",
+        height: "", weight: "", torso_length: "", shoulder_slope: "", posture: "",
+        size_preference: "", fit_preference: "",
+      });
+    }
+    setMessage({ text: "", type: "" });
+  };
+  
   return (
     <form onSubmit={handleSubmit}>
       {message.text && (
@@ -216,7 +313,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
       
       {/* Tab Navigation */}
       <div className="mb-6 border-b border-emerald-700/30">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        <nav className="-mb-px flex flex-wrap space-x-2 sm:space-x-8" aria-label="Tabs">
           <button
             type="button"
             onClick={() => setActiveTab("basic")}
@@ -227,7 +324,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             }
             whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
           >
-            Basic Measurements
+            Basic
           </button>
           <button
             type="button"
@@ -255,6 +352,30 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab("fullbody")}
+            className={`${
+              activeTab === "fullbody"
+                ? "border-emerald-500 text-emerald-400"
+                : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
+            }
+            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+          >
+            Full Body
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("formal")}
+            className={`${
+              activeTab === "formal"
+                ? "border-emerald-500 text-emerald-400"
+                : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
+            }
+            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+          >
+            Formal Wear
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab("preferences")}
             className={`${
               activeTab === "preferences"
@@ -263,7 +384,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             }
             whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
           >
-            Fit Preferences
+            Preferences
           </button>
         </nav>
       </div>
@@ -307,12 +428,6 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             value={formData.inseam}
             onChange={handleChange}
           />
-          <MeasurementInput
-            label="Height"
-            name="height"
-            value={formData.height}
-            onChange={handleChange}
-          />
         </div>
       </div>
       
@@ -350,9 +465,21 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             onChange={handleChange}
           />
           <MeasurementInput
+            label="Armhole Depth"
+            name="armhole_depth"
+            value={formData.armhole_depth}
+            onChange={handleChange}
+          />
+          <MeasurementInput
             label="Back Width"
             name="back_width"
             value={formData.back_width}
+            onChange={handleChange}
+          />
+          <MeasurementInput
+            label="Front Chest Width"
+            name="front_chest_width"
+            value={formData.front_chest_width}
             onChange={handleChange}
           />
         </div>
@@ -385,6 +512,79 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             value={formData.ankle}
             onChange={handleChange}
           />
+          <MeasurementInput
+            label="Rise"
+            name="rise"
+            value={formData.rise}
+            onChange={handleChange}
+          />
+          <MeasurementInput
+            label="Outseam"
+            name="outseam"
+            value={formData.outseam}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+      
+      {/* Full Body Measurements Tab */}
+      <div className={activeTab === "fullbody" ? "block" : "hidden"}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <MeasurementInput
+            label="Height"
+            name="height"
+            value={formData.height}
+            onChange={handleChange}
+          />
+          <MeasurementInput
+            label="Weight (lbs)"
+            name="weight"
+            value={formData.weight}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+      
+      {/* Formal Wear Measurements Tab */}
+      <div className={activeTab === "formal" ? "block" : "hidden"}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <MeasurementInput
+            label="Torso Length"
+            name="torso_length"
+            value={formData.torso_length}
+            onChange={handleChange}
+          />
+          <MeasurementInput
+            label="Shoulder Slope"
+            name="shoulder_slope"
+            value={formData.shoulder_slope}
+            onChange={handleChange}
+          />
+          <TextInput
+            label="Posture"
+            name="posture"
+            value={formData.posture}
+            onChange={handleChange}
+          />
+        </div>
+        
+        <div className="mt-4 rounded-md bg-emerald-900/50 p-4 border border-emerald-700/30">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-emerald-200">Formal wear tip:</h3>
+              <div className="mt-2 text-sm text-emerald-200/70">
+                <p>
+                  For posture, use descriptive terms like &quot;Average&quot;, &quot;Erect&quot;, &quot;Stooped&quot;, or &quot;Forward Head&quot;.
+                  These details help our tailors create formal wear that fits your natural stance perfectly.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -410,6 +610,27 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             </select>
           </div>
           
+          <div>
+            <label htmlFor="size_preference" className="block text-sm font-medium text-emerald-200">
+              Size Preference
+            </label>
+            <select
+              id="size_preference"
+              name="size_preference"
+              value={formData.size_preference}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+            >
+              <option value="">Select your typical size preference</option>
+              <option value="XS">XS - Extra Small</option>
+              <option value="S">S - Small</option>
+              <option value="M">M - Medium</option>
+              <option value="L">L - Large</option>
+              <option value="XL">XL - Extra Large</option>
+              <option value="XXL">XXL - Double Extra Large</option>
+            </select>
+          </div>
+          
           <div className="rounded-md bg-emerald-900/50 p-4 border border-emerald-700/30">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -421,8 +642,8 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
                 <h3 className="text-sm font-medium text-emerald-200">Important note</h3>
                 <div className="mt-2 text-sm text-emerald-200/70">
                   <p>
-                    Your fit preference helps us customize garments to your liking. 
-                    This is in addition to your exact measurements and helps our designers 
+                    Your fit and size preferences help us customize garments to your liking.
+                    These are in addition to your exact measurements and help our designers
                     understand your personal style preferences.
                   </p>
                 </div>
@@ -436,54 +657,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
       <div className="mt-6 flex justify-end space-x-3">
         <button
           type="button"
-          onClick={() => {
-            // Reset form to original values
-            if (measurements) {
-              setFormData({
-                chest: measurements.chest ?? "",
-                waist: measurements.waist ?? "",
-                hips: measurements.hips ?? "",
-                length: measurements.length ?? "",
-                inseam: measurements.inseam ?? "",
-                shoulders: measurements.shoulders ?? "",
-                neck: measurements.neck ?? "",
-                sleeve_length: measurements.sleeve_length ?? "",
-                bicep: measurements.bicep ?? "",
-                forearm: measurements.forearm ?? "",
-                wrist: measurements.wrist ?? "",
-                back_width: measurements.back_width ?? "",
-                thigh: measurements.thigh ?? "",
-                knee: measurements.knee ?? "",
-                calf: measurements.calf ?? "",
-                ankle: measurements.ankle ?? "",
-                height: measurements.height ?? "",
-                fit_preference: measurements.fit_preference ?? "",
-              });
-            } else {
-              // Reset to empty values if no measurements
-              setFormData({
-                chest: "",
-                waist: "",
-                hips: "",
-                length: "",
-                inseam: "",
-                shoulders: "",
-                neck: "",
-                sleeve_length: "",
-                bicep: "",
-                forearm: "",
-                wrist: "",
-                back_width: "",
-                thigh: "",
-                knee: "",
-                calf: "",
-                ankle: "",
-                height: "",
-                fit_preference: "",
-              });
-            }
-            setMessage({ text: "", type: "" });
-          }}
+          onClick={resetForm}
           className="rounded-lg border border-emerald-700/30 bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 focus:ring-offset-emerald-950/50 transition-all"
         >
           Reset

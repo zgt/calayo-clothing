@@ -1,4 +1,4 @@
-// src/app/profile/page.tsx
+// src/app/profile/page.tsx - Updated version
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -19,20 +19,39 @@ type Profile = {
 type ProfileMeasurements = {
   id: string;
   profile_id: string;
-  chest?: number | null;
-  waist?: number | null;
-  hips?: number | null;
-  length?: number | null;
-  inseam?: number | null;
-  shoulders?: number | null;
-  neck?: number | null;
-  sleeve_length?: number | null;
-  bicep?: number | null;
-  wrist?: number | null;
-  thigh?: number | null;
-  knee?: number | null;
-  calf?: number | null;
-  ankle?: number | null;
+  // Basic measurements
+  chest: number | null;
+  waist: number | null;
+  hips: number | null;
+  length: number | null;
+  inseam: number | null;
+  shoulders: number | null;
+  // Additional upper body
+  neck: number | null;
+  sleeve_length: number | null;
+  bicep: number | null;
+  forearm: number | null;
+  wrist: number | null;
+  armhole_depth: number | null;
+  back_width: number | null;
+  front_chest_width: number | null;
+  // Additional lower body
+  thigh: number | null;
+  knee: number | null;
+  calf: number | null;
+  ankle: number | null;
+  rise: number | null;
+  outseam: number | null;
+  // Full body
+  height: number | null;
+  weight: number | null;
+  // Formal wear
+  torso_length: number | null;
+  shoulder_slope: number | null;
+  posture: string | null;
+  // Preferences
+  size_preference: string | null;
+  fit_preference: string | null;
 };
 
 type SupabaseError = {
@@ -209,7 +228,11 @@ export default async function ProfilePage() {
                     <MeasurementItem label="Neck" value={measurements?.neck} />
                     <MeasurementItem label="Sleeve" value={measurements?.sleeve_length} />
                     <MeasurementItem label="Bicep" value={measurements?.bicep} />
+                    <MeasurementItem label="Forearm" value={measurements?.forearm} />
                     <MeasurementItem label="Wrist" value={measurements?.wrist} />
+                    <MeasurementItem label="Armhole" value={measurements?.armhole_depth} />
+                    <MeasurementItem label="Back Width" value={measurements?.back_width} />
+                    <MeasurementItem label="Chest Width" value={measurements?.front_chest_width} />
                   </MeasurementGroup>
                   
                   {/* Lower Body Measurements */}
@@ -218,6 +241,29 @@ export default async function ProfilePage() {
                     <MeasurementItem label="Knee" value={measurements?.knee} />
                     <MeasurementItem label="Calf" value={measurements?.calf} />
                     <MeasurementItem label="Ankle" value={measurements?.ankle} />
+                    <MeasurementItem label="Rise" value={measurements?.rise} />
+                    <MeasurementItem label="Outseam" value={measurements?.outseam} />
+                  </MeasurementGroup>
+                </div>
+                
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                  {/* Full Body Measurements */}
+                  <MeasurementGroup title="Full Body">
+                    <MeasurementItem label="Height" value={measurements?.height} />
+                    <MeasurementItem label="Weight" value={measurements?.weight} unit="lbs" />
+                  </MeasurementGroup>
+                  
+                  {/* Formal Wear */}
+                  <MeasurementGroup title="Formal Wear">
+                    <MeasurementItem label="Torso Length" value={measurements?.torso_length} />
+                    <MeasurementItem label="Shoulder Slope" value={measurements?.shoulder_slope} />
+                    <TextItem label="Posture" value={measurements?.posture} />
+                  </MeasurementGroup>
+                  
+                  {/* Preferences */}
+                  <MeasurementGroup title="Preferences">
+                    <TextItem label="Size" value={measurements?.size_preference} />
+                    <TextItem label="Fit" value={measurements?.fit_preference} />
                   </MeasurementGroup>
                 </div>
                 
@@ -256,12 +302,23 @@ function MeasurementGroup({ title, children }: { title: string; children: React.
   );
 }
 
-function MeasurementItem({ label, value }: { label: string; value?: number | null }) {
+function MeasurementItem({ label, value, unit = "in" }: { label: string; value?: number | null; unit?: string }) {
   return (
     <div className="flex justify-between text-sm">
       <span className="text-emerald-200/70">{label}:</span>
       <span className="font-medium text-white">
-        {value ? `${value} in` : "—"}
+        {value ? `${value} ${unit}` : "—"}
+      </span>
+    </div>
+  );
+}
+
+function TextItem({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className="text-emerald-200/70">{label}:</span>
+      <span className="font-medium text-white">
+        {value ?? "—"}
       </span>
     </div>
   );

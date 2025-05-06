@@ -38,6 +38,13 @@ interface UserMeasurements {
   shoulders?: number;
 }
 
+type SupabaseError = {
+  message: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+};
+
 // Helper function to fetch profile measurements
 const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurements> => {
   const supabase = createClientComponentClient();
@@ -47,16 +54,16 @@ const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurement
     .from('profile_measurements')
     .select('*')
     .eq('profile_id', userId)
-    .single();
-
-    console.log("data", data);
+    .single() as { data: UserMeasurements | null; error: SupabaseError | null };
+    
+  console.log("data", data);
     
   if (error) {
     console.error("Error fetching measurements:", error);
-    throw error;
+    throw new Error(error.message);
   }
   
-  return (data as UserMeasurements) ?? {};
+  return data ?? {};
 };
 
 export default function Commissions() {
