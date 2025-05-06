@@ -3,13 +3,26 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import PhotoModal from "./PhotoModal";
+import { Modal, Backdrop, Fade, Box } from "@mui/material";
 import LoadingAnimation from "./LoadingAnimation";
-import { Dialog, DialogContent } from "@mui/material";
 import { fetchUserMedia } from "../api/instagram/fetchUserMedia";
-import { fetchMedia } from "../api/instagram/fetchMedia";
 import { fetchChildrenIds } from "../api/instagram/fetchChildrenIds";
 import { fetchChildrenMedia } from "../api/instagram/fetchChildrenMedia";
+import PhotoModalGrid from "./PhotoModalGrid";
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '50%',
+  height: '65%',
+  bgcolor: 'bg-gradient-to-br from-emerald-900/30 to-emerald-950/80',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+  display: 'block'
+};
   
 export interface InstaItem {
   permalink: string;
@@ -30,7 +43,9 @@ export default function PhotoGrid() {
   const [fetchedItems, setFetchedItems] = useState<InstaItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<InstaItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState("");
+  const handleClose = () => setIsOpen("");
+  const handleOpen = (id: string) => setIsOpen(id);
 
   useEffect(() => {
     async function loadInstaItems() {
@@ -72,9 +87,9 @@ export default function PhotoGrid() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="relative w-full"
+      className="relative w-full min-h-screen"
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-emerald-950 to-gray-950 -z-10"></div>
+      <div className="fixed inset-0 bg-gradient-to-b from-emerald-950 to-gray-950 -z-10"></div>
       
       {/* 70% width container with centering */}
       <div className="w-[70%] -mt-80 mx-auto px-4 py-8">
@@ -100,7 +115,7 @@ export default function PhotoGrid() {
                     className="w-full text-left" 
                     onClick={() => {
                       setSelectedItem(item);
-                      setIsOpen(true);
+                      setIsOpen(item.parentId);
                     }}
                   >
                     <div className="group relative cursor-pointer overflow-hidden rounded-lg shadow-md shadow-emerald-950/50 ring-1 ring-emerald-700/30 transition-all hover:shadow-lg hover:shadow-emerald-900/30 hover:ring-emerald-500/40">
@@ -141,6 +156,27 @@ export default function PhotoGrid() {
                       )}
                     </div>
                   </button>
+                  <div>
+                      <Modal
+                        aria-labelledby="transition-modal-title"
+                        aria-describedby="transition-modal-description"
+                        open={isOpen == item.parentId}
+                        onClose={handleClose}
+                        closeAfterTransition
+                        slots={{ backdrop: Backdrop }}
+                        slotProps={{
+                          backdrop: {
+                            timeout: 500,
+                          },
+                        }}
+                      >
+                        <Fade in={isOpen == item.parentId}>
+                          <Box sx={style} className="rounded-xl bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm">
+                            <PhotoModalGrid instaChildren = {item.children}/>
+                          </Box>
+                        </Fade>
+                      </Modal>
+                    </div>
                 </motion.div>
               ))}
             </div>
@@ -148,42 +184,6 @@ export default function PhotoGrid() {
         )}
       </div>
 
-      {/* MUI Dialog */}
-      <Dialog 
-        open={isOpen} 
-        onClose={() => setIsOpen(false)}
-        maxWidth="xl"
-        fullWidth
-        PaperProps={{
-          style: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            overflow: 'hidden',
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-          }
-        }}
-      >
-        <DialogContent 
-          sx={{ 
-            padding: 0, 
-            overflow: 'hidden',
-            backgroundColor: 'transparent',
-            '&:first-of-type': { paddingTop: 0 }
-          }}
-        >
-          {selectedItem && (
-            <PhotoModal 
-              instaChildren={selectedItem.children ?? []} 
-              title={selectedItem.caption ?? "Photo Gallery"}
-              onClose={() => {
-                setSelectedItem(null);
-                setIsOpen(false);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </motion.main>
   );
 }

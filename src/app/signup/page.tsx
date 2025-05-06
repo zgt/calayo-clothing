@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuth } from "~/context/auth";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { redirect } from "next/navigation";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -35,6 +36,7 @@ export default function SignupPage() {
         toast.error(error.message);
       } else {
         toast.success("Account created successfully!");
+        redirect("/login");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
