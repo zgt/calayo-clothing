@@ -8,6 +8,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { User } from "@supabase/supabase-js";
+import { useAuth } from "~/context/auth";
 
 // Types
 export interface CommissionFormData {
@@ -40,6 +41,7 @@ interface UserMeasurements {
 // Helper function to fetch profile measurements
 const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurements> => {
   const supabase = createClientComponentClient();
+  console.log("userId", userId);
   
   const { data, error } = await supabase
     .from('profiles')
@@ -56,6 +58,7 @@ const fetchProfileMeasurements = async (userId: string): Promise<UserMeasurement
 };
 
 export default function Commissions() {
+  const { user } = useAuth();
   const supabase = createClientComponentClient();
   const router = useRouter();
   
@@ -80,27 +83,6 @@ export default function Commissions() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
-
-  // Check authentication status on load
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setIsAuthChecking(false);
-    };
-    
-    void checkAuth();
-    
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
-
 
   // Function to load measurements from user profile
   const loadMeasurementsFromProfile = async () => {
@@ -161,13 +143,13 @@ export default function Commissions() {
     try {
       // Format the data for PostgreSQL
       const submissionData = {
-        status: data.status,
+        status: "Pending",
         garment_type: data.garmentType,
         measurements: data.measurements, // Using JSONB column in PostgreSQL
         budget: data.budget,
         timeline: data.timeline,
         details: data.details,
-        user_id: data.user_id
+        user_id: user.id
       };
       
       // Insert into the commissions table
@@ -255,22 +237,9 @@ export default function Commissions() {
     setIsLoading(true);
     
     try {
-      // Get the current authenticated user's ID
-      const userId = user.id;
+      const insertedData = await submitCommission(formData);
       
-      if (!userId) {
-        throw new Error("User ID not found");
-      }
-      
-      const submissionData = {
-        ...formData,
-        status: "Pending",
-        user_id: userId
-      };
-      
-      const result = await submitCommission(submissionData);
-      
-      if (result) {
+      if (insertedData) {
         toast.success("Commission request successfully submitted!");
         // Reset form
         setFormData({
@@ -355,19 +324,6 @@ export default function Commissions() {
       e.preventDefault();
     }
   };
-
-  // Show loading or redirect if not authenticated
-  if (isAuthChecking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center">
-        <div className="text-emerald-100">Loading...</div>
-      </div>
-    );
-  }
-
-  // if (!user) {
-  //   return null; // Will redirect in useEffect
-  // }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center p-4">

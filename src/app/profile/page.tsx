@@ -126,19 +126,13 @@ export default async function ProfilePage() {
         <Suspense fallback={<LoadingProfile />}>
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">My Profile</h1>
-            <Link 
-              href="/" 
-              className="rounded-md bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 border border-emerald-700/30"
-            >
-              Back to Home
-            </Link>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* Left Column - User Info */}
-            <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
-              <div className="mb-6 text-center">
-                <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full bg-emerald-900/50">
+            <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-4 shadow-2xl border border-emerald-700/20">
+              <div className="mb-4 text-center">
+                <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-emerald-900/50">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -155,7 +149,7 @@ export default async function ProfilePage() {
                 <p className="text-sm text-emerald-200/70">{user.email}</p>
               </div>
 
-              <div className="space-y-3 text-sm">
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="font-medium text-emerald-200/70">Location:</span>
                   <span className="text-white">{profile?.location ?? "Not specified"}</span>
