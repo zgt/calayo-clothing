@@ -1,0 +1,123 @@
+// src/app/admin/orders/[id]/page.tsx
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "~/utils/supabase/server";
+import { Suspense } from "react";
+import AdminCommissionDetails from "./_components/AdminCommissionDetails";
+
+export const metadata = {
+  title: "Admin Commission Details | Calayo Clothing",
+  description: "View and manage customer commission details",
+};
+
+type CommissionMeasurements = {
+  id: string;
+  commission_id: string;
+  chest: number | null;
+  waist: number | null;
+  hips: number | null;
+  length: number | null;
+  inseam: number | null;
+  shoulders: number | null;
+  // Additional fields omitted for brevity
+};
+
+type Profile = {
+  full_name: string | null;
+  email: string | null;
+};
+
+type Commission = {
+  id: string;
+  status: string;
+  garment_type: string;
+  budget: string;
+  timeline: string;
+  details: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  commission_measurements: CommissionMeasurements | null;
+  profiles: Profile;
+};
+
+// Simple loading skeleton
+function LoadingDetails() {
+  return (
+    <div className="animate-pulse">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="h-8 w-48 rounded bg-emerald-900/50"></div>
+        <div className="h-8 w-24 rounded bg-emerald-900/50"></div>
+      </div>
+      <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+        <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-8 w-full rounded bg-emerald-900/50"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default async function AdminCommissionDetailsPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient();
+  
+  // Check if user is authenticated
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !user) {
+    // Redirect to login if not authenticated
+    redirect("/login");
+  }
+  
+  // Check if user is admin
+  const adminId = process.env.NEXT_PUBLIC_ADMIN_ID;
+  if (user.id !== adminId) {
+    // Redirect to home if not admin
+    redirect("/");
+  }
+  
+  // Fetch commission details
+  const { data: commission, error: commissionError } = await supabase
+    .from("commissions")
+    .select(`
+      *,
+      commission_measurements(*),
+      profiles:user_id(full_name, email)
+    `)
+    .eq("id", params.id)
+    .single<Commission>();
+    
+  if (commissionError) {
+    console.error("Error fetching commission:", commissionError);
+    // Redirect to admin orders page if commission not found
+    redirect("/admin/orders");
+  }
+  
+  if (!commission) {
+    // Redirect to admin orders page if commission not found
+    redirect("/admin/orders");
+  }
+  
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
+      <div className="container mx-auto px-4 py-8">
+        <Suspense fallback={<LoadingDetails />}>
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-white">Commission Details <span className="text-purple-400">(Admin)</span></h1>
+            <Link
+              href="/admin/orders"
+              className="rounded-md bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 border border-emerald-700/30"
+            >
+              Back to Admin Dashboard
+            </Link>
+          </div>
+
+          <AdminCommissionDetails commission={commission} />
+        </Suspense>
+      </div>
+    </main>
+  );
+}
