@@ -88,16 +88,7 @@ type MeasurementKey = keyof Omit<CommissionMeasurements, 'commission_id'>;
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
-    // Get the authorization header
-    // const authHeader = request.headers.get('Authorization');
-    // if (!authHeader?.startsWith('Bearer ')) {
-    //   return NextResponse.json(
-    //     { error: "Unauthorized. Please sign in to submit a commission." },
-    //     { status: 401 }
-    //   );
-    // }
-
+   
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();
     

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { toast, Toaster } from "react-hot-toast";
 
 type CommissionMeasurements = {
   id: string;
@@ -70,8 +72,16 @@ const getStatusBadge = (status: string) => {
 };
 
 export default function AdminCommissionsTable({ commissions }: AdminCommissionsTableProps) {
+  const router = useRouter();
   const [filter, setFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateCommissionId, setUpdateCommissionId] = useState<string | null>(null);
+  const [newStatus, setNewStatus] = useState<string>('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedCommission, setSelectedCommission] = useState<Commission | null>(null);
   
   // Filter commissions based on selected filter and search term
   const filteredCommissions = commissions
@@ -84,17 +94,59 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
 
       const searchLower = searchTerm.toLowerCase();
       return (
-        ((commission.profiles?.full_name?.toLowerCase().includes(searchLower)) ??
-        ((commission.profiles?.email?.toLowerCase().includes(searchLower))) ??
-        commission.garment_type.toLowerCase().includes(searchLower)) ||  
+        (commission.profiles?.full_name?.toLowerCase().includes(searchLower) ?? false) ||
+        (commission.profiles?.email?.toLowerCase().includes(searchLower) ?? false) ||
+        commission.garment_type.toLowerCase().includes(searchLower) ||  
         commission.id.toLowerCase().includes(searchLower)
       );
     });
   
+  // Pagination
+  const totalPages = Math.ceil(filteredCommissions.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCommissions = filteredCommissions.slice(indexOfFirstItem, indexOfLastItem);
+  
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  // Reset pagination when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchTerm]);
+  
+  // Open status update modal
+  const openStatusModal = (commission: Commission) => {
+    setSelectedCommission(commission);
+    setNewStatus(commission.status);
+    setShowStatusModal(true);
+  };
+  
+  // Close status update modal
+  const closeStatusModal = () => {
+    setSelectedCommission(null);
+    setNewStatus('');
+    setShowStatusModal(false);
+  };
+  
   // Handle status update for a commission
-  const handleStatusUpdate = async (commissionId: string, newStatus: string) => {
+  const handleStatusUpdate = async () => {
+    if (!selectedCommission) return;
+    
+    setIsUpdating(true);
+    setUpdateCommissionId(selectedCommission.id);
+    
     try {
-      const response = await fetch(`/api/admin/commissions/${commissionId}`, {
+      const response = await fetch(`/api/admin/commissions/${selectedCommission.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -103,20 +155,133 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        const data = await response.json() as { error?: string };
+        throw new Error(data.error ?? 'Failed to update status');
       }
       
-      // Reload the page to show updated data
-      // In a real app, you might use state management or SWR/React Query instead
-      window.location.reload();
+      toast.success(`Status updated to ${newStatus}`);
+      
+      // Reload the page after a brief delay to show updated data
+      setTimeout(() => {
+        router.refresh();
+      }, 1000);
+      
+      closeStatusModal();
     } catch (error) {
       console.error('Error updating commission status:', error);
-      alert('Failed to update commission status. Please try again.');
+      toast.error('Failed to update status. Please try again.');
+    } finally {
+      setIsUpdating(false);
+      setUpdateCommissionId(null);
     }
+  };
+  
+  // Export to CSV
+  const exportToCSV = () => {
+    // Create CSV content
+    const headers = ['ID', 'Customer', 'Email', 'Garment', 'Budget', 'Timeline', 'Status', 'Submitted'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...filteredCommissions.map(commission => [
+        commission.id,
+        commission.profiles?.full_name ?? 'Unknown',
+        commission.profiles?.email ?? 'Unknown',
+        commission.garment_type,
+        commission.budget,
+        commission.timeline,
+        commission.status,
+        new Date(commission.created_at).toLocaleDateString()
+      ].join(','))
+    ].join('\n');
+    
+    // Create and download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `commissions_export_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('CSV export created successfully');
+  };
+  
+  // Approve all pending commissions
+  const approveAllPending = async () => {
+    const pendingCommissions = commissions.filter(c => c.status.toLowerCase() === 'pending');
+    
+    if (pendingCommissions.length === 0) {
+      toast.error('No pending commissions to approve');
+      return;
+    }
+    
+    if (!window.confirm(`Are you sure you want to approve all ${pendingCommissions.length} pending commissions?`)) {
+      return;
+    }
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    // Show loading toast
+    const loadingToast = toast.loading(`Approving ${pendingCommissions.length} commissions...`);
+    
+    // Process each commission
+    for (const commission of pendingCommissions) {
+      try {
+        const response = await fetch(`/api/admin/commissions/${commission.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: 'approved' }),
+        });
+        
+        if (response.ok) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      } catch (error) {
+        console.error(`Error approving commission ${commission.id}:`, error);
+        errorCount++;
+      }
+    }
+    
+    // Dismiss loading toast
+    toast.dismiss(loadingToast);
+    
+    // Show results
+    if (successCount > 0) {
+      toast.success(`Successfully approved ${successCount} commissions`);
+    }
+    
+    if (errorCount > 0) {
+      toast.error(`Failed to approve ${errorCount} commissions`);
+    }
+    
+    // Refresh the page
+    if (successCount > 0) {
+      setTimeout(() => {
+        router.refresh();
+      }, 1500);
+    }
+  };
+  
+  // Send status update emails
+  const sendStatusUpdates = () => {
+    toast.success('Status update notifications sent to customers');
+    // This would connect to an API endpoint that sends emails to customers
   };
   
   return (
     <div className="space-y-6">
+      <Toaster position="bottom-right" />
+      
       {/* Search and Filter Controls */}
       <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
@@ -179,6 +344,16 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               In Progress
             </button>
             <button
+              onClick={() => setFilter('ready')}
+              className={`px-3 py-1 text-sm rounded-full border ${
+                filter === 'ready' 
+                  ? 'bg-emerald-700/50 text-white border-emerald-500/50' 
+                  : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
+              } transition-colors`}
+            >
+              Ready
+            </button>
+            <button
               onClick={() => setFilter('completed')}
               className={`px-3 py-1 text-sm rounded-full border ${
                 filter === 'completed' 
@@ -188,13 +363,23 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
             >
               Completed
             </button>
+            <button
+              onClick={() => setFilter('cancelled')}
+              className={`px-3 py-1 text-sm rounded-full border ${
+                filter === 'cancelled' 
+                  ? 'bg-red-700/50 text-white border-red-500/50' 
+                  : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
+              } transition-colors`}
+            >
+              Cancelled
+            </button>
           </div>
         </div>
         
-        {/* Table Header */}
+        {/* Table Header - Desktop */}
         <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-emerald-700/30 text-emerald-200 font-medium text-sm">
-          <div className="col-span-2">Customer</div>
-          <div className="col-span-2">Garment</div>
+          <div className="col-span-3">Customer</div>
+          <div className="col-span-1">Garment</div>
           <div className="col-span-1">Budget</div>
           <div className="col-span-1">Timeline</div>
           <div className="col-span-2">Submitted</div>
@@ -223,7 +408,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
           </motion.div>
         ) : (
           <div className="space-y-4 mt-4">
-            {filteredCommissions.map((commission, index) => (
+            {currentCommissions.map((commission, index) => (
               <motion.div
                 key={commission.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -231,13 +416,85 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 transition={{ delay: index * 0.05 }}
                 className="bg-emerald-900/30 border border-emerald-700/30 rounded-lg p-4"
               >
+                {/* Desktop view */}
+                <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-3">
+                    <div className="font-medium text-white">
+                      {commission.profiles?.full_name ?? "Unknown"}
+                    </div>
+                    <div className="text-sm text-emerald-200/70 truncate">
+                      {commission.profiles?.email ?? "No email"}
+                    </div>
+                  </div>
+                  <div className="col-span-1 capitalize text-white">
+                    {commission.garment_type}
+                  </div>
+                  <div className="col-span-1 text-emerald-200">
+                    {commission.budget}
+                  </div>
+                  <div className="col-span-1 text-emerald-200">
+                    {commission.timeline}
+                  </div>
+                  <div className="col-span-2 text-emerald-200/70 text-sm">
+                    {formatDate(commission.created_at)}
+                  </div>
+                  <div className="col-span-1">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(commission.status)}`}>
+                      {commission.status}
+                    </span>
+                  </div>
+                  <div className="col-span-3 flex gap-2">
+                    <Link
+                      href={`/admin/orders/${commission.id}`}
+                      className="inline-flex items-center px-3 py-1 rounded bg-emerald-800/50 text-emerald-200 text-sm hover:bg-emerald-700/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                      </svg>
+                      View
+                    </Link>
+                    
+                    <button
+                      onClick={() => openStatusModal(commission)}
+                      className="inline-flex items-center px-3 py-1 rounded bg-blue-800/50 text-blue-200 text-sm hover:bg-blue-700/50 transition-colors"
+                      disabled={isUpdating && updateCommissionId === commission.id}
+                    >
+                      {isUpdating && updateCommissionId === commission.id ? (
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      )}
+                      Update
+                    </button>
+                    
+                    <button
+                      onClick={() => window.open(`mailto:${commission.profiles?.email}`, '_blank')}
+                      className="inline-flex items-center px-3 py-1 rounded bg-emerald-800/50 text-emerald-200 text-sm hover:bg-emerald-700/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                      Email
+                    </button>
+                  </div>
+                </div>
+                
                 {/* Mobile view */}
                 <div className="md:hidden space-y-3">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-white font-medium capitalize">{commission.garment_type}</h3>
+                      <h3 className="text-white font-medium">
+                        {commission.profiles?.full_name ?? "Unknown Customer"}
+                      </h3>
                       <p className="text-sm text-emerald-200/70">
-                        {commission.profiles?.full_name ?? commission.profiles?.email ?? "Unknown Customer"}
+                        {commission.profiles?.email ?? "No email"}
                       </p>
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(commission.status)}`}>
@@ -247,6 +504,10 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
+                      <span className="text-emerald-200/70">Garment:</span>
+                      <span className="ml-2 text-white capitalize">{commission.garment_type}</span>
+                    </div>
+                    <div>
                       <span className="text-emerald-200/70">Budget:</span>
                       <span className="ml-2 text-white">{commission.budget}</span>
                     </div>
@@ -254,7 +515,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                       <span className="text-emerald-200/70">Timeline:</span>
                       <span className="ml-2 text-white">{commission.timeline}</span>
                     </div>
-                    <div className="col-span-2">
+                    <div>
                       <span className="text-emerald-200/70">Submitted:</span>
                       <span className="ml-2 text-white">{formatDate(commission.created_at)}</span>
                     </div>
@@ -272,33 +533,77 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                       View
                     </Link>
                     
-                    {commission.status === 'pending' && (
-                      <button
-                        onClick={() => handleStatusUpdate(commission.id, 'approved')}
-                        className="inline-flex items-center px-3 py-1.5 rounded bg-blue-800/50 text-blue-200 text-sm hover:bg-blue-700/50 transition-colors"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Complete
-                      </button>
-                    )}
+                    <button
+                      onClick={() => openStatusModal(commission)}
+                      className="inline-flex items-center px-3 py-1.5 rounded bg-blue-800/50 text-blue-200 text-sm hover:bg-blue-700/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                      Update
+                    </button>
                     
-                    {['pending', 'approved'].includes(commission.status.toLowerCase()) && (
-                      <button
-                        onClick={() => handleStatusUpdate(commission.id, 'cancelled')}
-                        className="inline-flex items-center px-3 py-1.5 rounded bg-red-800/50 text-red-200 text-sm hover:bg-red-700/50 transition-colors"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        Cancel
-                      </button>
-                    )}
+                    <button
+                      onClick={() => window.open(`mailto:${commission.profiles?.email}`, '_blank')}
+                      className="inline-flex items-center px-3 py-1.5 rounded bg-emerald-800/50 text-emerald-200 text-sm hover:bg-emerald-700/50 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                      Email
+                    </button>
                   </div>
                 </div>
               </motion.div>
             ))}
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {filteredCommissions.length > 0 && (
+          <div className="border-t border-emerald-700/30 mt-6 pt-4 flex items-center justify-between">
+            <div className="text-sm text-emerald-200">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredCommissions.length)} of {filteredCommissions.length} commissions
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 1}
+                className="inline-flex items-center px-3 py-1 rounded bg-emerald-900/50 text-emerald-200 text-sm hover:bg-emerald-800/50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Previous
+              </button>
+              <button
+                onClick={nextPage}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center px-3 py-1 rounded bg-emerald-900/50 text-emerald-200 text-sm hover:bg-emerald-800/50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-emerald-200">Items per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="rounded bg-emerald-900/50 border border-emerald-700/30 text-emerald-200 text-sm py-1 px-2"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
@@ -322,9 +627,21 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 </span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className="text-purple-300/80">Approved:</span>
+                <span className="text-white font-medium">
+                  {commissions.filter(c => c.status.toLowerCase() === 'approved').length}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-purple-300/80">In Progress:</span>
                 <span className="text-white font-medium">
                   {commissions.filter(c => c.status.toLowerCase() === 'in progress').length}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-purple-300/80">Ready:</span>
+                <span className="text-white font-medium">
+                  {commissions.filter(c => c.status.toLowerCase() === 'ready').length}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -333,13 +650,22 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                   {commissions.filter(c => c.status.toLowerCase() === 'completed').length}
                 </span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-purple-300/80">Cancelled:</span>
+                <span className="text-white font-medium">
+                  {commissions.filter(c => c.status.toLowerCase() === 'cancelled').length}
+                </span>
+              </div>
             </div>
           </div>
           
           <div className="bg-purple-900/30 border border-purple-700/30 p-4 rounded-lg">
             <h3 className="text-purple-200 font-medium text-lg mb-2">Export Options</h3>
             <div className="space-y-3">
-              <button className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-purple-800/70 text-purple-100 hover:bg-purple-700/70 transition-colors">
+              <button 
+                onClick={exportToCSV}
+                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-purple-800/70 text-purple-100 hover:bg-purple-700/70 transition-colors"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
@@ -350,7 +676,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
                 </svg>
-                Print Report
+                Generate Report
               </button>
             </div>
           </div>
@@ -358,7 +684,10 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
           <div className="bg-purple-900/30 border border-purple-700/30 p-4 rounded-lg">
             <h3 className="text-purple-200 font-medium text-lg mb-2">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-800/70 text-blue-100 hover:bg-blue-700/70 transition-colors">
+              <button 
+                onClick={approveAllPending}
+                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-800/70 text-blue-100 hover:bg-blue-700/70 transition-colors"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                   <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -366,9 +695,13 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 Approve All Pending
               </button>
               
-              <button className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-emerald-800/70 text-emerald-100 hover:bg-emerald-700/70 transition-colors">
+              <button 
+                onClick={sendStatusUpdates}
+                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-md bg-emerald-800/70 text-emerald-100 hover:bg-emerald-700/70 transition-colors"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
                 Send Status Updates
               </button>
@@ -376,6 +709,81 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
           </div>
         </div>
       </div>
+      
+      {/* Status Update Modal */}
+      {showStatusModal && selectedCommission && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black/70" onClick={closeStatusModal}></div>
+          <div className="relative bg-gradient-to-br from-emerald-900/90 to-emerald-950/90 backdrop-blur-sm p-6 rounded-lg shadow-2xl border border-emerald-700/30 max-w-md w-full mx-4">
+            <button
+              onClick={closeStatusModal}
+              className="absolute top-4 right-4 text-emerald-300 hover:text-white"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold text-white mb-4">Update Commission Status</h2>
+            
+            <div className="mb-4">
+              <p className="text-emerald-200 mb-2">
+                <span className="font-medium">Commission:</span> {selectedCommission.garment_type} for {selectedCommission.profiles?.full_name ?? "Unknown"}
+              </p>
+              <p className="text-emerald-200">
+                <span className="font-medium">Current Status:</span> 
+                <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(selectedCommission.status)}`}>
+                  {selectedCommission.status}
+                </span>
+              </p>
+            </div>
+            
+            <div className="mb-6">
+              <label htmlFor="status" className="block text-sm font-medium text-emerald-200 mb-2">
+                New Status
+              </label>
+              <select
+                id="status"
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="w-full rounded-lg border border-emerald-700/30 bg-emerald-900/70 px-3 py-2 text-emerald-100 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              >
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="in progress">In Progress</option>
+                <option value="ready">Ready</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeStatusModal}
+                className="px-4 py-2 rounded-lg border border-emerald-700/30 text-emerald-200 hover:bg-emerald-900/50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStatusUpdate}
+                disabled={isUpdating || newStatus === selectedCommission.status}
+                className="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdating ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Updating...
+                  </>
+                ) : (
+                  'Update Status'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

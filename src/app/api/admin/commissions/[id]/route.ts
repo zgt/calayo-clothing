@@ -74,6 +74,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('here in patch')
     const supabase = await createClient();
     
     // Check if user is authenticated
@@ -98,6 +99,7 @@ export async function PATCH(
     // Parse request body
     const body = await request.json() as UpdateCommissionBody;
     const { status } = body;
+    console.log(status);
     
     // Validate status
     const validStatuses: CommissionStatus[] = ['pending', 'approved', 'in progress', 'ready', 'completed', 'cancelled'];
