@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import MessagesComponent from "~/app/_components/Messages";
 
 type CommissionMeasurements = {
   id: string;
@@ -245,6 +246,15 @@ export default function CommissionDetails({ commission }: CommissionDetailsProps
               >
                 Measurements
               </button>
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'messages' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-emerald-300 hover:text-emerald-200 hover:border-emerald-700/50'}
+                `}
+              >
+                Messages
+              </button>
             </nav>
           </div>
           
@@ -381,24 +391,15 @@ export default function CommissionDetails({ commission }: CommissionDetailsProps
           </div>
         )}
       </div>
+      <div className={`py-6 ${activeTab === 'messages' ? 'block' : 'hidden'}`}>
+        <MessagesComponent 
+          commissionId={commission.id} 
+          currentUserId={commission.user_id}
+          isAdmin={false}
+        />
+      </div>
     </div>
   </motion.div>
-  
-  {/* Display messages if they exist */}
-  {/* This would be for a future feature */}
-  {/* <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.1 }}
-    className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20"
-  >
-    <h2 className="text-xl font-semibold text-white mb-4">Messages</h2>
-    <div className="text-center py-6">
-      <p className="text-emerald-200/70">
-        No messages yet. We'll contact you here with updates.
-      </p>
-    </div>
-  </motion.div> */}
 </div>
 );
 }

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
+import MessagesComponent from "~/app/_components/Messages";
+import { useAuth } from "~/context/auth";
 
 type CommissionMeasurements = {
   id: string;
@@ -110,6 +112,9 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
   const [activeTab, setActiveTab] = useState('details');
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState(commission.status);
+  console.log(commission);
+
+  
   
   // Group measurements by body area
   const upperBodyMeasurements = [
@@ -379,6 +384,15 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
               >
                 Admin Notes
               </button>
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === 'messages' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-emerald-300 hover:text-emerald-200 hover:border-emerald-700/50'}
+                `}
+              >
+                Messages
+              </button>
             </nav>
           </div>
           
@@ -557,6 +571,14 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
                 </div>
               </div>
             </div>
+          </div>
+          {/* Messages Tab Content */}
+          <div className={`py-6 ${activeTab === 'messages' ? 'block' : 'hidden'}`}>
+            <MessagesComponent 
+              commissionId={commission.id} 
+              currentUserId={commission.user_id}
+              isAdmin={true}
+            />
           </div>
         </div>
       </motion.div>
