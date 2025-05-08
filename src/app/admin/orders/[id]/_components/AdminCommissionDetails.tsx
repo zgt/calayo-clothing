@@ -112,7 +112,7 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
   const [activeTab, setActiveTab] = useState('details');
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState(commission.status);
-  console.log(commission);
+  const { user } = useAuth();
 
   
   
@@ -576,7 +576,7 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
           <div className={`py-6 ${activeTab === 'messages' ? 'block' : 'hidden'}`}>
             <MessagesComponent 
               commissionId={commission.id} 
-              currentUserId={commission.user_id}
+              currentUserId={user?.id ?? ''}
               isAdmin={true}
             />
           </div>
