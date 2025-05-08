@@ -1,5 +1,5 @@
 // src/app/api/admin/commissions/[id]/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "~/utils/supabase/server";
 
 type CommissionStatus = 'pending' | 'approved' | 'in progress' | 'ready' | 'completed' | 'cancelled';
@@ -71,11 +71,12 @@ type CommissionDetails = {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     console.log('here in patch')
     const supabase = await createClient();
+    const params = await context.params;
     
     // Check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -146,10 +147,11 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
+    const params = await context.params;
     
     // Check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();

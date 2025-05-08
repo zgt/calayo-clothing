@@ -1,15 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function SignIn() {
-  const router = useRouter();
   
-  const handleSignIn = () => {
-    router.push("/login");
-  };
-  
+
   return (
     <div className="flex space-x-3">
       <Link 

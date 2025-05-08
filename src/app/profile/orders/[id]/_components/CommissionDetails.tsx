@@ -189,7 +189,7 @@ export default function CommissionDetails({ commission }: CommissionDetailsProps
               <div className="w-full border-t border-emerald-700/30"></div>
             </div>
             <div className="relative flex justify-between">
-              {['Pending', 'Approved', 'In Progress', 'Ready', 'Completed'].map((step, index) => {
+              {['Pending', 'Approved', 'In Progress', 'Ready', 'Completed'].map((step) => {
                 const status = getStatusStep(commission.status, step.toLowerCase());
                 return (
                   <div key={step} className="flex items-center">

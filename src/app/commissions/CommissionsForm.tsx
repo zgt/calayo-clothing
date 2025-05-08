@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
@@ -157,7 +157,6 @@ type MeasurementKey = keyof CommissionFormData['measurements'];
 
 export default function CommissionsForm() {
   const { user } = useAuth();
-  const supabase = createClientComponentClient();
   const router = useRouter();
   
   const [formData, setFormData] = useState<CommissionFormData>({

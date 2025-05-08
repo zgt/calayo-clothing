@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "~/context/auth";
 import ProfileDropdown from "./ProfileDropdown";
 
 export default function Nav() {

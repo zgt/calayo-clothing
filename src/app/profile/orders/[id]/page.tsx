@@ -71,9 +71,13 @@ function LoadingDetails() {
     </div>
   );
 }
+export type paramsType = Promise<{ id: string }>;
 
-export default async function CommissionDetailsPage({ params }: { params: { id: string } }) {
+export default async function CommissionDetailsPage( props : { params: paramsType }) {
   const supabase = await createClient();
+  const params = await props.params;
+
+  
   
   // Check if user is authenticated
   const { data: { user }, error: authError } = await supabase.auth.getUser();

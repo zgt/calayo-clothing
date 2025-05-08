@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { createClient } from '~/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Database } from '~/types/supabase';
-import type { RealtimeChannel, RealtimePostgresChangesPayload, PostgrestSingleResponse } from '@supabase/supabase-js';
+import type { RealtimePostgresChangesPayload, PostgrestSingleResponse } from '@supabase/supabase-js';
 
 type Message = Database['public']['Tables']['messages']['Row'] & {
   profiles?: {
@@ -46,7 +46,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
   };
 
   // Fetch messages
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -85,7 +85,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [commissionId, currentUserId, supabase]);
 
   // Subscribe to new messages
   useEffect(() => {
@@ -145,7 +145,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
     return () => {
       void subscription.unsubscribe();
     };
-  }, [commissionId, currentUserId]);
+  }, [commissionId, currentUserId, fetchMessages, supabase]);
 
   // Scroll to bottom when messages update
   useEffect(() => {

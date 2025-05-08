@@ -41,11 +41,9 @@ export interface InstaChild {
 
 export default function PhotoGrid() {
   const [fetchedItems, setFetchedItems] = useState<InstaItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<InstaItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState("");
   const handleClose = () => setIsOpen("");
-  const handleOpen = (id: string) => setIsOpen(id);
 
   useEffect(() => {
     async function loadInstaItems() {
@@ -114,7 +112,6 @@ export default function PhotoGrid() {
                   <button 
                     className="w-full text-left" 
                     onClick={() => {
-                      setSelectedItem(item);
                       setIsOpen(item.parentId);
                     }}
                   >

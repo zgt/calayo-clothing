@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import ProfileForm from "./ProfileForm";
 import type { ProfileMeasurements } from "../page";
 
@@ -37,10 +38,12 @@ export default function ProfileSection({ profile, user, measurements }: ProfileS
         <div className="mb-4 text-center">
           <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-emerald-900/50">
             {profile?.avatar_url ? (
-              <img
+              <Image
                 src={profile.avatar_url}
                 alt={`${profile.full_name ?? 'User'}'s avatar`}
                 className="h-full w-full object-cover"
+                width={80}
+                height={80}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-2xl text-emerald-200">

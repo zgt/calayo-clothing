@@ -1,6 +1,4 @@
-import Link from "next/link";
 
-import { HydrateClient } from "~/trpc/server";
 import PhotoGrid from "./_components/PhotoGrid";
 
 
