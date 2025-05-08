@@ -19,7 +19,25 @@ type CommissionMeasurements = {
   length: number | null;
   inseam: number | null;
   shoulders: number | null;
-  // Additional fields omitted for brevity
+  neck: number | null;
+  sleeve_length: number | null;
+  bicep: number | null;
+  forearm: number | null;
+  wrist: number | null;
+  armhole_depth: number | null;
+  back_width: number | null;
+  front_chest_width: number | null;
+  thigh: number | null;
+  knee: number | null;
+  calf: number | null;
+  ankle: number | null;
+  rise: number | null;
+  outseam: number | null;
+  height: number | null;
+  weight: number | null;
+  torso_length: number | null;
+  shoulder_slope: number | null;
+  posture: string | null;
 };
 
 type Profile = {

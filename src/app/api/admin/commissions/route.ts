@@ -2,6 +2,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "~/utils/supabase/server";
 
+type CommissionStatus = 'pending' | 'approved' | 'in progress' | 'ready' | 'completed' | 'cancelled';
+
+type UpdateCommissionBody = {
+  status: CommissionStatus;
+};
+
+type CommissionResponse = {
+  id: string;
+  status: CommissionStatus;
+  updated_at: string;
+  garment_type: string;
+  budget: string;
+  timeline: string;
+  details: string | null;
+  created_at: string;
+  user_id: string;
+};
+
+type CommissionMeasurements = {
+  id: string;
+  commission_id: string;
+  chest: number | null;
+  waist: number | null;
+  hips: number | null;
+  length: number | null;
+  inseam: number | null;
+  shoulders: number | null;
+  neck: number | null;
+  sleeve_length: number | null;
+  bicep: number | null;
+  forearm: number | null;
+  wrist: number | null;
+  armhole_depth: number | null;
+  back_width: number | null;
+  front_chest_width: number | null;
+  thigh: number | null;
+  knee: number | null;
+  calf: number | null;
+  ankle: number | null;
+  rise: number | null;
+  outseam: number | null;
+  height: number | null;
+  weight: number | null;
+  torso_length: number | null;
+  shoulder_slope: number | null;
+  posture: string | null;
+};
+
+type Profile = {
+  full_name: string | null;
+  email: string | null;
+};
+
+type CommissionDetails = {
+  id: string;
+  status: CommissionStatus;
+  user_id: string;
+  garment_type: string;
+  budget: string;
+  timeline: string;
+  details: string | null;
+  created_at: string;
+  updated_at: string;
+  commission_measurements: CommissionMeasurements | null;
+  profiles: Profile;
+};
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -29,12 +96,12 @@ export async function PATCH(
     }
     
     // Parse request body
-    const body = await request.json();
+    const body = await request.json() as UpdateCommissionBody;
     const { status } = body;
     
     // Validate status
-    const validStatuses = ['pending', 'approved', 'in progress', 'ready', 'completed', 'cancelled'];
-    if (!status || !validStatuses.includes(status.toLowerCase())) {
+    const validStatuses: CommissionStatus[] = ['pending', 'approved', 'in progress', 'ready', 'completed', 'cancelled'];
+    if (!status || !validStatuses.includes(status.toLowerCase() as CommissionStatus)) {
       return NextResponse.json(
         { error: "Invalid status provided" },
         { status: 400 }
@@ -49,7 +116,8 @@ export async function PATCH(
         updated_at: new Date().toISOString()
       })
       .eq('id', params.id)
-      .select();
+      .select()
+      .returns<CommissionResponse[]>();
       
     if (error) {
       console.error("Error updating commission:", error);
@@ -109,7 +177,7 @@ export async function GET(
         profiles:user_id(full_name, email)
       `)
       .eq('id', params.id)
-      .single();
+      .single<CommissionDetails>();
       
     if (error) {
       console.error("Error fetching commission:", error);

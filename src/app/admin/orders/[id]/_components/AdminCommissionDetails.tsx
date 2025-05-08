@@ -164,8 +164,8 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
       });
       
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update status');
+        const data = await response.json() as { error?: string };
+        throw new Error(data.error ?? 'Failed to update status');
       }
       
       toast.success(`Status updated to ${newStatus}`);
@@ -324,13 +324,13 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
             <div>
               <p className="text-sm text-emerald-200/70">Name:</p>
               <p className="text-emerald-100 font-medium">
-                {commission.profiles.full_name || "Not provided"}
+                {commission.profiles.full_name ?? "Not provided"}
               </p>
             </div>
             <div>
               <p className="text-sm text-emerald-200/70">Email:</p>
               <p className="text-emerald-100 font-medium">
-                {commission.profiles.email || "Not provided"}
+                {commission.profiles.email ?? "Not provided"}
               </p>
             </div>
             <div>
