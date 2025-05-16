@@ -23,6 +23,7 @@ const style = {
     xl: '50%'
   },
   maxHeight: '90vh',
+  overflowY: 'auto',
   bgcolor: 'bg-gradient-to-br from-emerald-900/30 to-emerald-950/80',
   border: '2px solid #000',
   boxShadow: 24,

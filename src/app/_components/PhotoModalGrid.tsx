@@ -31,8 +31,7 @@ export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[
     let gridCols = '';
     if (count === 1) gridCols = 'grid-cols-1';
     else if (count === 2) gridCols = 'grid-cols-2';
-    else if (count === 3) gridCols = 'grid-cols-3';
-    else gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4';
+    else gridCols = 'grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4';
 
     return (
         <ul role="list" className={`grid ${gridCols} gap-x-2 gap-y-6 sm:gap-y-4`}>
