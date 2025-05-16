@@ -5,20 +5,37 @@ import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import 'react-inner-image-zoom/lib/styles.min.css';
 import InnerImageZoom from 'react-inner-image-zoom'
 import type { InstaChild } from "./PhotoGrid";
+import { useState, useEffect } from 'react';
 
 
 export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[]}) {
     //const [children, setChildren] = useState(instaChildren.instaChildren);
+
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+      const handleResize = () => {
+        // Define mobile as screens smaller than the sm breakpoint (e.g., 640px)
+        setIsMobile(window.innerWidth < 640);
+      };
+
+      handleResize(); // Check on mount
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, []);
 
     const count = instaChildren.instaChildren.length;
     let gridCols = '';
     if (count === 1) gridCols = 'grid-cols-1';
     else if (count === 2) gridCols = 'grid-cols-2';
     else if (count === 3) gridCols = 'grid-cols-3';
-    else gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:gap-x-6';
+    else gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4';
 
     return (
-        <ul role="list" className={`grid ${gridCols} gap-x-2 gap-y-4`}>
+        <ul role="list" className={`grid ${gridCols} gap-x-2 gap-y-6 sm:gap-y-4`}>
           {instaChildren.instaChildren.map((file) => (
             <li key={file.mediaUrl} className="relative">
               <div className="group overflow-hidden row-span-2 rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
@@ -30,7 +47,7 @@ export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[
                     hideHint={true}
                   />
                 ) : (
-                    <MediaPlayer src={file.mediaUrl} aspectRatio="4/5" autoplay={true} muted={true} loop={true} className="rounded-lg">
+                    <MediaPlayer src={file.mediaUrl} aspectRatio="4/5" autoplay={!isMobile} muted={true} loop={true} className="rounded-lg">
                         <MediaProvider />
                     </MediaPlayer>
                     
