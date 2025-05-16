@@ -15,12 +15,18 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '50%',
-  height: '65%',
+  width: {
+    xs: '90%',
+    sm: '80%',
+    md: '70%',
+    lg: '60%',
+    xl: '50%'
+  },
+  maxHeight: '90vh',
   bgcolor: 'bg-gradient-to-br from-emerald-900/30 to-emerald-950/80',
   border: '2px solid #000',
   boxShadow: 24,
-  p: 4,
+  p: { xs: 2, sm: 3, md: 4 },
   display: 'block'
 };
   
@@ -89,8 +95,8 @@ export default function PhotoGrid() {
     >
       <div className="fixed inset-0 bg-gradient-to-b from-emerald-950 to-gray-950 -z-10"></div>
       
-      {/* 70% width container with centering */}
-      <div className="w-[70%] -mt-80 mx-auto px-4 py-8">
+      {/* Responsive container */}
+      <div className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[80%] -mt-40 sm:-mt-60 md:-mt-80 mx-auto px-2 sm:px-4 py-4 sm:py-8">
         
         {isLoading ? (
           <LoadingAnimation />
@@ -99,9 +105,9 @@ export default function PhotoGrid() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-xl bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-4 sm:p-6 shadow-xl border border-emerald-700/20"
+            className="rounded-xl bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-2 sm:p-4 md:p-6 shadow-xl border border-emerald-700/20"
           >
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
               {fetchedItems.map((item, index) => (
                 <motion.div
                   key={item.parentId}

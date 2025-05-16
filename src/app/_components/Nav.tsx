@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import ProfileDropdown from "./ProfileDropdown";
 
 export default function Nav() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Check if we're on the login page
   const isLoginPage = pathname === "/login";
@@ -23,9 +26,13 @@ export default function Nav() {
         <div className="flex items-center space-x-6">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-            </svg>
+            <Image
+              src="/nested_green_Cs.svg"
+              alt="Calayo Clothing Logo"
+              width={32}
+              height={32}
+              className="text-emerald-800"
+            />
             <span className="ml-2 text-xl font-bold text-white">Calayo Clothing</span>
           </Link>
 
@@ -55,40 +62,74 @@ export default function Nav() {
           )}
           
           {/* Mobile menu button */}
-          <button className="ml-4 md:hidden rounded-lg p-2 text-emerald-100 hover:bg-emerald-700/50 hover:text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="ml-4 md:hidden rounded-lg p-2 text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-6 w-6" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                d="M4 6h16M4 12h16M4 18h16" 
+              />
             </svg>
           </button>
         </div>
       </div>
       
-      {/* Mobile navigation menu - hidden by default */}
-      <div className="hidden md:hidden bg-emerald-800 pb-3">
+      {/* Mobile navigation menu */}
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-emerald-800 pb-3`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link 
             href="/" 
-            className={`block px-3 py-2 rounded-md ${pathname === "/" ? "bg-emerald-700 text-white" : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"}`}
+            className={`block px-3 py-2 rounded-md ${
+              pathname === "/" 
+                ? "bg-emerald-700 text-white" 
+                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Home
           </Link>
           <Link 
-            href="/about" 
-            className={`block px-3 py-2 rounded-md ${pathname === "/about" ? "bg-emerald-700 text-white" : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"}`}
+            href="/commissions" 
+            className={`block px-3 py-2 rounded-md ${
+              pathname === "/commissions" 
+                ? "bg-emerald-700 text-white" 
+                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
-            About
+            Commissions
           </Link>
           <Link 
             href="/features" 
-            className={`block px-3 py-2 rounded-md ${pathname === "/features" ? "bg-emerald-700 text-white" : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"}`}
+            className={`block px-3 py-2 rounded-md ${
+              pathname === "/features" 
+                ? "bg-emerald-700 text-white" 
+                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Features
           </Link>
           <Link 
-            href="/contact" 
-            className={`block px-3 py-2 rounded-md ${pathname === "/contact" ? "bg-emerald-700 text-white" : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"}`}
+            href="/about" 
+            className={`block px-3 py-2 rounded-md ${
+              pathname === "/about" 
+                ? "bg-emerald-700 text-white" 
+                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
+            }`}
+            onClick={() => setIsMobileMenuOpen(false)}
           >
-            Contact
+            About me
           </Link>
         </div>
       </div>
