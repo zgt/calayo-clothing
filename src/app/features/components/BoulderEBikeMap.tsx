@@ -139,21 +139,33 @@ const BoulderEBikeMap = () => {
   useEffect(() => {
     if (typeof window.google === 'undefined') return;
 
-    const service = new google.maps.DirectionsService();
-    const renderer = new google.maps.DirectionsRenderer({
-      suppressMarkers: true, // We'll use our own markers
-      polylineOptions: {
-        strokeColor: '#0088FF',
-        strokeOpacity: 0.8,
-        strokeWeight: 3
+    // Wait for the Google Maps API to be fully loaded
+    const initDirections = () => {
+      if (typeof google.maps.DirectionsService === 'undefined') {
+        setTimeout(initDirections, 100);
+        return;
       }
-    });
 
-    setDirectionsService(service);
-    setDirectionsRenderer(renderer);
+      const service = new google.maps.DirectionsService();
+      const renderer = new google.maps.DirectionsRenderer({
+        suppressMarkers: true, // We'll use our own markers
+        polylineOptions: {
+          strokeColor: '#0088FF',
+          strokeOpacity: 0.8,
+          strokeWeight: 3
+        }
+      });
+
+      setDirectionsService(service);
+      setDirectionsRenderer(renderer);
+    };
+
+    initDirections();
 
     return () => {
-      renderer.setMap(null);
+      if (directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
     };
   }, []);
 
