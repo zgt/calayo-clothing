@@ -1,4 +1,4 @@
-// src/app/features/_components/BoulderEBikeMap.tsx
+// src/app/features/components/BoulderEBikeMap.tsx
 'use client';
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
@@ -23,61 +23,84 @@ const BoulderEBikeMap = () => {
   
   // Define the locations for the map
   const locations = useMemo(() => [
-    { 
-      name: "Bike Rental - Start/End (2512 Broadway)", 
-      lat: 40.0214, 
-      lng: -105.2805,
-      description: "10:00 AM: Arrive for fitting & waivers\n10:30 AM: Depart on tour\n4:30 PM: Return bikes",
-      isStartEnd: true
-    },
-    { 
-      name: "Boulder Creek Festival", 
-      lat: 40.0138, 
-      lng: -105.2833,
-      description: "1:00 PM: Enjoy food vendors, music & art\nPerfect lunch opportunity\nSpend 45-60 minutes exploring",
-      order: 4
-    },
-    { 
-      name: "Pearl Street Mall", 
-      lat: 40.0181, 
-      lng: -105.2785,
-      description: "12:00 PM: Explore shops & street performers\nLock bikes at designated racks\nSpend about 45 minutes here",
-      order: 2
-    },
-    { 
-      name: "Hotel Boulderado", 
-      lat: 40.0194, 
-      lng: -105.2795,
-      description: "11:00 AM: Quick visit to historic hotel\nSee original 1908 Otis Elevator\nAdmire the beautiful lobby",
+    {
+      name: "Pedego Electric Bikes - Start/End (2512 Broadway)",
+      lat: 40.0209,
+      lng: -105.2811,
+      description: "10:15 AM: Arrive for fitting & paperwork\n10:30 AM: Depart on tour\n4:30 PM: Return bikes",
+      isStartEnd: true,
       order: 1
     },
-    { 
-      name: "Boulder Dushanbe Tea House", 
-      lat: 40.0147, 
-      lng: -105.2771,
-      description: "1:30 PM: Visit unique cultural landmark\nHandcrafted Tajik architecture\nOptional refreshment stop",
+    {
+      name: "Boulder Creek Path Entry",
+      lat: 40.0170,
+      lng: -105.2800,
+      description: "10:45 AM: Join the scenic Boulder Creek Path\nBegin heading east toward festival area\nSmooth, paved trail alongside the creek",
+      order: 2
+    },
+    {
+      name: "Boulder Creek Festival",
+      lat: 40.0135,
+      lng: -105.2797,
+      description: "11:15 AM: Arrive at Boulder Creek Festival\nEnjoy food vendors, music, art & activities\nLunch opportunity during festival visit",
       order: 3
     },
-    { 
-      name: "University of Colorado & Folsom Field", 
-      lat: 40.0076, 
-      lng: -105.2659,
-      description: "2:00 PM: Tour beautiful campus\nVisit Folsom Field (football stadium)\nEnjoy the architecture and grounds",
+    {
+      name: "Boulder Creek Festival Exit",
+      lat: 40.0133,
+      lng: -105.2843,
+      description: "1:00 PM: Leave festival heading west\nContinue on Boulder Creek Path\nPrepare for ride to Flatirons area",
+      order: 4
+    },
+    {
+      name: "South Boulder Road & Highway 93 Junction",
+      lat: 39.9800,
+      lng: -105.2519,
+      description: "1:30 PM: Key intersection on route south\nContinue following Highway 93 south\nWatch for bike lane and traffic",
       order: 5
     },
-    { 
-      name: "Chautauqua Park & Flatirons View", 
-      lat: 39.9999, 
-      lng: -105.2831,
-      description: "3:00 PM: Most uphill section (e-bikes help!)\nTake group photos with Flatirons backdrop\nEnjoy the historic park & scenic views",
+    {
+      name: "Flatirons Vista Trailhead",
+      lat: 39.9372,
+      lng: -105.2371,
+      description: "2:00 PM: Arrive at trailhead parking area\nBegin off-road portion of the adventure\nPrepare for beautiful Flatiron views",
       order: 6
     },
-    { 
-      name: "Eben G. Fine Park", 
-      lat: 40.0119, 
-      lng: -105.2982,
-      description: "3:45 PM: Scenic creek-side park\nHistoric Arapahoe Indian site\nBrief stop before returning",
+    {
+      name: "Flatirons Vista North Loop",
+      lat: 39.9355,
+      lng: -105.2395,
+      description: "2:15 PM: Ride the scenic north loop trail\nModerate off-road terrain suitable for e-bikes\nEnjoy panoramic views of the Flatirons",
       order: 7
+    },
+    {
+      name: "Doudy Draw Trail Junction",
+      lat: 39.9308,
+      lng: -105.2479,
+      description: "2:45 PM: Connect to Doudy Draw Trail\nCloser views of the Flatirons\nRolling terrain through meadows and forests",
+      order: 8
+    },
+    {
+      name: "Flatirons Vista South Return",
+      lat: 39.9355,
+      lng: -105.2347,
+      description: "3:10 PM: Complete the loop via south trail\nLast views of the Flatirons before return\nGradual terrain back to trailhead",
+      order: 9
+    },
+    {
+      name: "University of Colorado Boulder",
+      lat: 40.0072,
+      lng: -105.2659,
+      description: "3:45 PM: Ride through scenic campus\nAlternative return route to downtown\nFlat, easy riding after off-road section",
+      order: 10
+    },
+    {
+      name: "Return to Pedego Electric Bikes",
+      lat: 40.0209,
+      lng: -105.2811,
+      description: "4:30 PM: Complete the full loop\nReturn bikes and share adventure stories\nEnd of your Boulder e-bike adventure",
+      order: 11,
+      isStartEnd: true
     }
   ], []);
 
