@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import BoulderEBikeMap from './components/BoulderEBikeMap'
+import BoulderEBikeMap from './components/BoulderEBikeMap';
+import FlatironHikeMap from './components/FlatironHikeMap';
 
 export default function FeaturesPage() {
   const [activeTab, setActiveTab] = useState<string>('map');
 
   const tabContent = {
     map: <BoulderEBikeMap />,
+    hike: <FlatironHikeMap />,
     vizuals: <ComingSoon title="Data Visualizations" />,
     tools: <ComingSoon title="Tools" />,
     demos: <ComingSoon title="Interactive Demos" />
@@ -33,7 +35,7 @@ export default function FeaturesPage() {
         {/* Tabs Navigation */}
         <div className="mb-8 flex justify-center">
           <div className="inline-flex rounded-md bg-emerald-900/30 p-1 backdrop-blur-sm border border-emerald-700/20">
-            {['Map', 'Vizuals', 'Tools', 'Demos'].map((tab) => {
+            {['Map', 'Hike', 'Vizuals', 'Tools', 'Demos'].map((tab) => {
               const tabKey = tab.toLowerCase();
               const isActive = activeTab === tabKey;
               
