@@ -26,7 +26,7 @@ export default function FeaturesPage() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-white text-center">Features</h1>
+          <h1 className="text-4xl font-bold text-white text-center">Matt&apos;s Features</h1>
           <p className="mt-2 text-emerald-200/70 text-center max-w-2xl mx-auto">
             Explore various feature demos showcasing different capabilities and interesting projects.
           </p>

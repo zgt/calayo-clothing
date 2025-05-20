@@ -7,6 +7,7 @@ import Nav from "~/app/_components/Nav";
 import { TRPCReactProvider } from "~/trpc/react";
 import { SupabaseProvider } from "~/context/supabase-provider";
 import { AuthProvider } from "~/context/auth";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
@@ -30,7 +31,8 @@ export default function RootLayout({
             <AuthProvider>
               <Nav />
               {children}
-              <Toaster />
+              <Toaster /> 
+              <SpeedInsights />
             </AuthProvider>
           </SupabaseProvider>
         </TRPCReactProvider>
