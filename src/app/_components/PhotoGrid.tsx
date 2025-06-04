@@ -56,24 +56,35 @@ export default function PhotoGrid() {
     async function loadInstaItems() {
       try {
         const json = await fetchUserMedia();
-        const items: InstaItem[] = [];
         
-        for (const item of json) {
-          if (!item?.id) continue;
-          const itemId = item.id;
-          const instaItem: InstaItem = {
-            permalink: item.permalink,
-            mediaUrl: item.media_url,
-            parentId: item.id,
-            children: [],
-          };
-          const childrenIds = await fetchChildrenIds(itemId);
-          const childrenMedia = await fetchChildrenMedia(childrenIds);
+        // Process all items in parallel instead of sequentially
+        const itemPromises = json
+          .filter(item => item?.id)
+          .map(async (item) => {
+            const itemId = item.id;
+            const instaItem: InstaItem = {
+              permalink: item.permalink,
+              mediaUrl: item.media_url,
+              parentId: item.id,
+              children: [],
+            };
 
-          instaItem.children = childrenMedia;
-          items.push(instaItem);
-        }
+            try {
+              // Fetch children data for this item
+              const childrenIds = await fetchChildrenIds(itemId);
+              const childrenMedia = await fetchChildrenMedia(childrenIds);
+              instaItem.children = childrenMedia;
+            } catch (error) {
+              console.error(`Error fetching children for item ${itemId}:`, error);
+              // Continue with empty children array if fetching fails
+              instaItem.children = [];
+            }
 
+            return instaItem;
+          });
+
+        // Wait for all items to be processed in parallel
+        const items = await Promise.all(itemPromises);
         setFetchedItems(items);
         
         // Simulate loading time if needed

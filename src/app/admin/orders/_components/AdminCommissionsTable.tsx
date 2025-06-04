@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
+import { api } from "~/trpc/react";
 
 type CommissionMeasurements = {
   id: string;
@@ -138,6 +139,26 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     setShowStatusModal(false);
   };
   
+  // tRPC mutation for updating commission status
+  const updateStatusMutation = api.commissions.admin.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success(`Status updated to ${newStatus}`);
+      // Reload the page after a brief delay to show updated data
+      setTimeout(() => {
+        router.refresh();
+      }, 1000);
+      closeStatusModal();
+    },
+    onError: (error) => {
+      console.error('Error updating commission status:', error);
+      toast.error('Failed to update status. Please try again.');
+    },
+    onSettled: () => {
+      setIsUpdating(false);
+      setUpdateCommissionId(null);
+    },
+  });
+
   // Handle status update for a commission
   const handleStatusUpdate = async () => {
     if (!selectedCommission) return;
@@ -145,35 +166,10 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     setIsUpdating(true);
     setUpdateCommissionId(selectedCommission.id);
     
-    try {
-      const response = await fetch(`/api/admin/commissions/${selectedCommission.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      
-      if (!response.ok) {
-        const data = await response.json() as { error?: string };
-        throw new Error(data.error ?? 'Failed to update status');
-      }
-      
-      toast.success(`Status updated to ${newStatus}`);
-      
-      // Reload the page after a brief delay to show updated data
-      setTimeout(() => {
-        router.refresh();
-      }, 1000);
-      
-      closeStatusModal();
-    } catch (error) {
-      console.error('Error updating commission status:', error);
-      toast.error('Failed to update status. Please try again.');
-    } finally {
-      setIsUpdating(false);
-      setUpdateCommissionId(null);
-    }
+    updateStatusMutation.mutate({
+      id: selectedCommission.id,
+      status: newStatus as "Pending" | "In Progress" | "Completed" | "Cancelled",
+    });
   };
   
   // Export to CSV
@@ -230,22 +226,14 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     // Show loading toast
     const loadingToast = toast.loading(`Approving ${pendingCommissions.length} commissions...`);
     
-    // Process each commission
+    // Process each commission using tRPC
     for (const commission of pendingCommissions) {
       try {
-        const response = await fetch(`/api/admin/commissions/${commission.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: 'approved' }),
+        await updateStatusMutation.mutateAsync({
+          id: commission.id,
+          status: "In Progress", // Changed from "approved" to match enum
         });
-        
-        if (response.ok) {
-          successCount++;
-        } else {
-          errorCount++;
-        }
+        successCount++;
       } catch (error) {
         console.error(`Error approving commission ${commission.id}:`, error);
         errorCount++;

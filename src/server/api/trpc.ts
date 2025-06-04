@@ -6,9 +6,10 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { createClient } from "~/utils/supabase/server";
 
 /**
  * 1. CONTEXT
@@ -23,8 +24,16 @@ import { ZodError } from "zod";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const supabase = await createClient();
+  
+  // Get the session from Supabase
+  const { data: { session } } = await supabase.auth.getSession();
+  
   return {
     ...opts,
+    supabase,
+    session,
+    user: session?.user ?? null,
   };
 };
 
@@ -94,6 +103,56 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 /**
+ * Authentication middleware that enforces the user is authenticated
+ */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to access this resource",
+    });
+  }
+  return next({
+    ctx: {
+      session: ctx.session,
+      user: ctx.session.user,
+      supabase: ctx.supabase,
+    },
+  });
+});
+
+/**
+ * Admin authentication middleware that enforces the user is an admin
+ */
+const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You must be logged in to access this resource",
+    });
+  }
+
+  // Check if user is admin (you can adjust this logic based on your admin check)
+  // For now, checking against ADMIN_ID environment variable
+  const isAdmin = ctx.session.user.id === process.env.ADMIN_ID;
+  
+  if (!isAdmin) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You must be an admin to access this resource",
+    });
+  }
+
+  return next({
+    ctx: {
+      session: ctx.session,
+      user: ctx.session.user,
+      supabase: ctx.supabase,
+    },
+  });
+});
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
@@ -101,3 +160,13 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected procedure that requires authentication
+ */
+export const protectedProcedure = t.procedure.use(timingMiddleware).use(enforceUserIsAuthed);
+
+/**
+ * Admin procedure that requires admin authentication
+ */
+export const adminProcedure = t.procedure.use(timingMiddleware).use(enforceUserIsAdmin);

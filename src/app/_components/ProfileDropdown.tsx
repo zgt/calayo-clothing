@@ -58,13 +58,27 @@ export default function ProfileDropdown() {
     }
   };
   
-  // Check if user is admin
+  // Check if user is admin via server-side API
   useEffect(() => {
     if (user) {
-      const userId = user.id;
-      const adminId = process.env.NEXT_PUBLIC_ADMIN_ID;
+      const checkAdminStatus = async () => {
+        try {
+          const response = await fetch('/api/auth/admin-check');
+          if (response.ok) {
+            const data = await response.json() as { isAdmin: boolean };
+            setIsAdmin(data.isAdmin);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
+      };
       
-      setIsAdmin(userId === adminId);
+      void checkAdminStatus();
+    } else {
+      setIsAdmin(false);
     }
   }, [user]);
 
