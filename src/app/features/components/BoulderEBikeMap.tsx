@@ -160,6 +160,8 @@ const BoulderEBikeMap = () => {
 
   // Initialize directions service and renderer
   useEffect(() => {
+    // Commented out to disable Google Maps API
+    /*
     if (typeof window.google === 'undefined') return;
 
     // Wait for the Google Maps API to be fully loaded
@@ -190,13 +192,17 @@ const BoulderEBikeMap = () => {
         directionsRenderer.setMap(null);
       }
     };
+    */
   }, []);
 
   // Calculate route when directions service and renderer are ready
   useEffect(() => {
+    // Commented out to disable route calculation
+    /*
     if (directionsService && directionsRenderer) {
       void calculateRoute();
     }
+    */
   }, [directionsService, directionsRenderer, calculateRoute]);
 
   // Map component that handles the directions renderer
@@ -204,9 +210,12 @@ const BoulderEBikeMap = () => {
     const map = useMap();
     
     useEffect(() => {
+      // Commented out to disable map rendering
+      /*
       if (map && directionsRenderer) {
         directionsRenderer.setMap(map);
       }
+      */
     }, [map, directionsRenderer]);
 
     return null;
@@ -224,6 +233,7 @@ const BoulderEBikeMap = () => {
       )}
       
       <div className="w-full h-[600px] rounded-lg border border-emerald-700/30 shadow-lg mb-4 bg-emerald-900/30">
+        {/* Commented out Google Maps API Provider
         <APIProvider 
           apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}
           libraries={['marker', 'places']}
@@ -266,6 +276,10 @@ const BoulderEBikeMap = () => {
             )}
           </Map>
         </APIProvider>
+        */}
+        <div className="w-full h-full flex items-center justify-center text-emerald-200/80">
+          Map temporarily disabled
+        </div>
       </div>
       
       <div className="bg-emerald-900/40 p-4 rounded-lg text-sm border border-emerald-700/30">
