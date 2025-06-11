@@ -15,17 +15,23 @@ const config = {
   images: {
     remotePatterns: [
       {
-          protocol: 'https',
-          hostname: '**.cdninstagram.com',
-          port: '',
-          pathname: '/**',
+        protocol: "https",
+        hostname: "**.cdninstagram.com",
+        port: "",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.googleusercontent.com',
-        port: '',
-        pathname: '/**',
-      }
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.ufs.sh",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
