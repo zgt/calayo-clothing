@@ -19,170 +19,116 @@ interface StoredPhoto {
   createdAt: Date;
 }
 
-// Type for media items from UploadThing
-interface MediaItem {
-  id: string;
-  parentId: string;
-  mediaUrl: string;
-  permalink: string;
-  isVideo: boolean;
-  isParent: boolean;
-  uploadedAt: string;
-  name: string;
-}
-
-// Type for grouped media
-interface GroupedMedia {
-  parent: MediaItem | null;
-  children: MediaItem[];
-}
-
 // In-memory storage for now (you might want to use a database later)
 let storedPhotos: StoredPhoto[] = [];
 
 export const instagramRouter = createTRPCRouter({
-  // Get all stored photos for display - now fetches directly from UploadThing
   getStoredPhotos: publicProcedure.query(async () => {
     try {
-      // Get all files from UploadThing
       const listFilesResponse = await utapi.listFiles();
 
       if (!listFilesResponse?.files) {
-        throw new Error("Invalid response from UploadThing listFiles");
+        return [];
       }
 
       const { files } = listFilesResponse;
 
-      // Filter for image and video files
       const mediaFiles = files.filter((file) => {
         const fileName = file.name.toLowerCase();
-        console.log(fileName);
-        const isImage =
+        const isMediaFile =
           fileName.endsWith(".jpg") ||
           fileName.endsWith(".jpeg") ||
           fileName.endsWith(".png") ||
-          fileName.endsWith(".webp");
-        const isVideo =
+          fileName.endsWith(".webp") ||
           fileName.endsWith(".mp4") ||
           fileName.endsWith(".mov") ||
           fileName.endsWith(".webm");
-        return (isImage || isVideo) && file.status === "Uploaded";
+        return isMediaFile && file.status === "Uploaded";
       });
 
       if (mediaFiles.length === 0) {
         return [];
       }
 
-      // Get URLs for all media files
-      const mediaUrls = await utapi.getFileUrls(
-        mediaFiles.map((file) => file.key),
-      );
-
-      if (!mediaUrls?.data) {
-        throw new Error("Invalid response from UploadThing getFileUrls");
+      const uploadthingAppId = process.env.UPLOADTHING_APP_ID;
+      if (!uploadthingAppId) {
+        throw new Error("UPLOADTHING_APP_ID environment variable is not set");
       }
 
-      // Map the files to our format
-      const mediaItems: MediaItem[] = mediaFiles.map((file, index) => {
-        if (!mediaUrls.data[index]?.url) {
-          throw new Error(`Missing URL for file ${file.key}`);
-        }
+      const parents: Array<{
+        parentId: string;
+        mediaUrl: string;
+        children: Array<{
+          id: string;
+          parentId: string;
+          mediaUrl: string;
+          isImage: boolean;
+        }>;
+      }> = [];
 
-        const fileName = file.name.toLowerCase();
-        const isVideo =
-          fileName.endsWith(".mp4") ||
-          fileName.endsWith(".mov") ||
-          fileName.endsWith(".webm");
+      const childrenByParentId: Record<
+        string,
+        Array<{
+          id: string;
+          parentId: string;
+          mediaUrl: string;
+          isImage: boolean;
+        }>
+      > = {};
 
-        // Parse parent ID from filename
-        // Format: parent-[id].jpg or child-[parent-id]-[timestamp].jpg
-        let parentId: string;
-        let isParent: boolean;
+      mediaFiles.forEach((file) => {
+        const mediaUrl = `https://${uploadthingAppId}.ufs.sh/f/${file.key}`;
 
-        if (file.name.startsWith('parent-')) {
-          // Extract ID from parent-[id].jpg
-          parentId = file.name.split('-')[1]?.split('.')[0] ?? file.key;
-          isParent = true;
-        } else if (file.name.startsWith('child-')) {
-          // Extract parent ID from child-[parent-id]-[timestamp].jpg
-          parentId = file.name.split('-')[1] ?? file.key;
-          isParent = false;
-        } else {
-          // Fallback for files that don't match the expected format
-          parentId = file.key;
-          isParent = true;
-        }
-
-        return {
-          id: file.key,
-          parentId,
-          mediaUrl: mediaUrls.data[index].url,
-          permalink: `#${file.key}`,
-          isVideo,
-          isParent,
-          uploadedAt: new Date(file.uploadedAt).toISOString(),
-          name: file.name,
-        };
-      });
-
-      // Group media by parentId to create parent/child structure
-      const groupedMedia = mediaItems.reduce(
-        (acc, item) => {
-          const parentId = item.parentId;
-          acc[parentId] ??= {
-            parent: null,
-            children: [],
-          };
-
-          if (item.isParent) {
-            // This is a parent image
-            acc[parentId].parent = item;
-          } else {
-            // This is a child image
-            acc[parentId].children.push(item);
+        if (file.name.startsWith("parent-")) {
+          const parentId = file.name.substring(7).split(".")[0];
+          if (parentId) {
+            parents.push({
+              parentId,
+              mediaUrl,
+              children: [],
+            });
           }
+        } else if (file.name.startsWith("child-")) {
+          const nameParts = file.name.substring(6).split("-");
+          if (nameParts.length >= 2) {
+            const parentId = nameParts[0];
+            const childId = nameParts[1]?.split(".")[0];
 
-          return acc;
-        },
-        {} as Record<string, GroupedMedia>,
-      );
+            if (parentId && childId) {
+              const fileName = file.name.toLowerCase();
+              // Check if it's a video file by extension
+              const isVideo =
+                fileName.endsWith(".mp4") ||
+                fileName.endsWith(".mov") ||
+                fileName.endsWith(".webm") ||
+                fileName.endsWith(".avi") ||
+                fileName.endsWith(".mkv");
 
-      // Convert grouped media to the expected format
-      return Object.values(groupedMedia)
-        .filter((group): group is GroupedMedia & { parent: MediaItem } => 
-          group.parent !== null
-        )
-        .map((group) => ({
-          permalink: group.parent.permalink,
-          mediaUrl: group.parent.mediaUrl,
-          parentId: group.parent.parentId,
-          children: group.children.map((child) => ({
-            mediaUrl: child.mediaUrl,
-            parentId: group.parent.parentId, // Use the parent's ID for consistency
-            isImage: !child.isVideo,
-          })),
-        }));
-    } catch (error) {
-      console.error("Error fetching media from UploadThing:", error);
-      // Fallback to in-memory storage if UploadThing fails
-      const parentPhotos = storedPhotos.filter((photo) => photo.isParent);
+              const isImage = !isVideo;
 
-      return parentPhotos.map((parent) => {
-        const children = storedPhotos
-          .filter((photo) => photo.customId === parent.id)
-          .map((child) => ({
-            mediaUrl: child.uploadthingUrl,
-            parentId: parent.id,
-            isImage: true,
-          }));
-
-        return {
-          permalink: `https://instagram.com/p/${parent.id}`,
-          mediaUrl: parent.uploadthingUrl,
-          parentId: parent.id,
-          children,
-        };
+              childrenByParentId[parentId] ??= [];
+              childrenByParentId[parentId].push({
+                id: childId,
+                parentId,
+                mediaUrl,
+                isImage,
+              });
+            }
+          }
+        }
       });
+
+      parents.forEach((parent) => {
+        const children = childrenByParentId[parent.parentId];
+        if (children) {
+          parent.children = children;
+        }
+      });
+
+      return parents;
+    } catch (error) {
+      console.error("Error fetching stored photos:", error);
+      return [];
     }
   }),
 
@@ -206,10 +152,40 @@ export const instagramRouter = createTRPCRouter({
             }
             const parentBlob = await parentResponse.blob();
 
+            // Determine proper file extension based on blob type
+            const parentMimeType = parentBlob.type;
+            let parentFileExtension = ".jpg"; // default
+
+            if (parentMimeType.startsWith("video/")) {
+              if (parentMimeType.includes("mp4")) parentFileExtension = ".mp4";
+              else if (parentMimeType.includes("webm"))
+                parentFileExtension = ".webm";
+              else if (
+                parentMimeType.includes("quicktime") ||
+                parentMimeType.includes("mov")
+              )
+                parentFileExtension = ".mov";
+              else parentFileExtension = ".mp4"; // default video extension
+            } else if (parentMimeType.startsWith("image/")) {
+              if (parentMimeType.includes("png")) parentFileExtension = ".png";
+              else if (parentMimeType.includes("webp"))
+                parentFileExtension = ".webp";
+              else if (
+                parentMimeType.includes("jpeg") ||
+                parentMimeType.includes("jpg")
+              )
+                parentFileExtension = ".jpg";
+              else parentFileExtension = ".jpg"; // default image extension
+            }
+
             // Convert blob to File for UploadThing
-            const parentFile = new File([parentBlob], `parent-${item.id}.jpg`, {
-              type: parentBlob.type || "image/jpeg",
-            });
+            const parentFile = new File(
+              [parentBlob],
+              `parent-${item.id}${parentFileExtension}`,
+              {
+                type: parentBlob.type || "image/jpeg",
+              },
+            );
 
             // Upload parent photo to UploadThing
             const parentUpload = await utapi.uploadFiles(parentFile);
@@ -241,10 +217,34 @@ export const instagramRouter = createTRPCRouter({
 
                   const childBlob = await childResponse.blob();
 
+                  // Determine proper file extension based on blob type
+                  const mimeType = childBlob.type;
+                  let fileExtension = ".jpg"; // default
+
+                  if (mimeType.startsWith("video/")) {
+                    if (mimeType.includes("mp4")) fileExtension = ".mp4";
+                    else if (mimeType.includes("webm")) fileExtension = ".webm";
+                    else if (
+                      mimeType.includes("quicktime") ||
+                      mimeType.includes("mov")
+                    )
+                      fileExtension = ".mov";
+                    else fileExtension = ".mp4"; // default video extension
+                  } else if (mimeType.startsWith("image/")) {
+                    if (mimeType.includes("png")) fileExtension = ".png";
+                    else if (mimeType.includes("webp")) fileExtension = ".webp";
+                    else if (
+                      mimeType.includes("jpeg") ||
+                      mimeType.includes("jpg")
+                    )
+                      fileExtension = ".jpg";
+                    else fileExtension = ".jpg"; // default image extension
+                  }
+
                   // Convert blob to File for UploadThing
                   const childFile = new File(
                     [childBlob],
-                    `child-${item.id}-${Date.now()}.jpg`,
+                    `child-${item.id}-${Date.now()}${fileExtension}`,
                     {
                       type: childBlob.type || "image/jpeg",
                     },

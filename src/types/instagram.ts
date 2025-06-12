@@ -38,7 +38,6 @@ export interface InstagramData {
   
   // Types for your application components
   export interface InstaItem {
-    permalink: string;
     mediaUrl: string;
     parentId: string;
     children: InstaChild[];

@@ -26,7 +26,7 @@ This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, 
 
 ### Key Architecture Patterns
 
-**Authentication Flow**: 
+**Authentication Flow**:
 - Supabase auth with custom React context (`src/context/auth.tsx`)
 - Auth provider wraps the app and manages user state
 - Protected routes use the `useAuth()` hook
@@ -68,4 +68,4 @@ The app handles:
 - Material-UI with Emotion for component styling
 
 ### Claude Guidance
-- Never add information about claude in the commit messages
+- Never add information about claude in the commit messages, that includes made by claude or helped by claude.

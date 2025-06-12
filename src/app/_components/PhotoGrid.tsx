@@ -30,7 +30,6 @@ const style = {
 };
 
 export interface InstaItem {
-  permalink: string;
   mediaUrl: string;
   parentId: string;
   children: InstaChild[];
@@ -54,8 +53,6 @@ export default function PhotoGrid() {
     isLoading,
     error,
   } = api.instagram.getStoredPhotos.useQuery();
-
-  console.log(fetchedItems);
 
   return (
     <motion.main
@@ -102,7 +99,7 @@ export default function PhotoGrid() {
             className="rounded-xl border border-emerald-700/20 bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 p-2 shadow-xl backdrop-blur-sm sm:p-4 md:p-6"
           >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
-              {fetchedItems.map((item, index) => (
+              {fetchedItems.map((item: InstaItem, index: number) => (
                 <motion.div
                   key={item.parentId}
                   initial={{ opacity: 0, y: 15 }}

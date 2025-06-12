@@ -7,11 +7,14 @@ import Nav from "~/app/_components/Nav";
 import { TRPCReactProvider } from "~/trpc/react";
 import { SupabaseProvider } from "~/context/supabase-provider";
 import { AuthProvider } from "~/context/auth";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "~/server/uploadthing";
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
-  description: "Your premium clothing store",
+  description: "Custom made clothing for your unique style",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -29,9 +32,12 @@ export default function RootLayout({
         <TRPCReactProvider>
           <SupabaseProvider>
             <AuthProvider>
+              <NextSSRPlugin
+                routerConfig={extractRouterConfig(ourFileRouter)}
+              />
               <Nav />
               {children}
-              <Toaster /> 
+              <Toaster />
               <SpeedInsights />
             </AuthProvider>
           </SupabaseProvider>

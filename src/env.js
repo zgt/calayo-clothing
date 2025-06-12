@@ -10,6 +10,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     UPLOADTHING_SECRET: z.string().min(1).optional(),
     UPLOADTHING_TOKEN: z.string().min(1).optional(),
+    UPLOADTHING_APP_ID: z.string().min(1),
     ADMIN_ID: z.string().min(1),
   },
 
@@ -37,6 +38,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

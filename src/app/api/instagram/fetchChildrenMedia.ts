@@ -16,7 +16,7 @@ export async function fetchChildrenMedia(children: ChildrenMedia): Promise<Insta
 
   for (const child of filteredChildren) {
     const id = child.id;
-    const mediaUrl = `https://graph.instagram.com/${id}?access_token=${accessToken}&fields=media_url,permalink`;
+    const mediaUrl = `https://graph.instagram.com/${id}?access_token=${accessToken}&fields=media_url,permalink,media_type`;
 
     const res = await fetch(mediaUrl);
     
@@ -25,13 +25,31 @@ export async function fetchChildrenMedia(children: ChildrenMedia): Promise<Insta
       continue; // Skip this item but continue with others
     }
     
-    const json = await res.json() as InstagramMediaResponse;
-    const image = json.media_url.includes('jpg');
+    const json = await res.json() as InstagramMediaResponse & { media_type?: string };
+    
+    // First try to use Instagram's media_type field
+    let isImage = true;
+    if (json.media_type) {
+      isImage = json.media_type === 'IMAGE';
+    } else {
+      // Fallback: Check the actual media content by fetching a small portion
+      try {
+        const mediaResponse = await fetch(json.media_url, { 
+          method: 'HEAD' // Only get headers to check content-type
+        });
+        const contentType = mediaResponse.headers.get('content-type') ?? '';
+        isImage = contentType.startsWith('image/');
+      } catch (error) {
+        console.error(`Failed to determine media type for ${id}:`, error);
+        // Final fallback: assume it's an image
+        isImage = true;
+      }
+    }
     
     const instaChild: InstaChild = {
       mediaUrl: json.media_url,
       parentId: children.mediaId,
-      isImage: image
+      isImage: isImage
     };
     
     childrenInstaItems.push(instaChild);

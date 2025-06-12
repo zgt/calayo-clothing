@@ -16,7 +16,6 @@ export async function fetchMedia(id: string): Promise<InstaItem> {
   const json = await res.json() as InstagramMediaResponse;
 
   const instaItem: InstaItem = {
-    permalink: json.permalink,
     mediaUrl: json.media_url,
     parentId: json.id,
     children: []
