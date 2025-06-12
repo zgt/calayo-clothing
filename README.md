@@ -1,29 +1,68 @@
-# Create T3 App
+# Calayo Clothing
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A custom clothing commission platform built with the T3 Stack, enabling customers to request personalized clothing designs and manage their orders.
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Custom Commission Requests**: Users can submit detailed requests for custom clothing designs
+- **User Authentication**: Secure authentication system with user profiles and measurements
+- **Admin Order Management**: Comprehensive admin interface for managing commissions and orders
+- **Instagram Integration**: Media fetching and display from Instagram
+- **Responsive Design**: Mobile-friendly interface built with TailwindCSS and Material-UI
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Framework**: [Next.js 15](https://nextjs.org) with App Router
+- **API**: [tRPC](https://trpc.io) for type-safe endpoints
+- **Database & Auth**: [Supabase](https://supabase.com)
+- **Styling**: [TailwindCSS](https://tailwindcss.com) + [Material-UI](https://mui.com)
+- **Type Safety**: [TypeScript](https://typescriptlang.org) + [Zod](https://zod.dev)
 
-## Learn More
+## Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Prerequisites
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- Node.js 18+ and npm
+- Supabase account for database and authentication
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Environment Setup
 
-## How do I deploy this?
+Create a `.env.local` file in the root directory:
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+ADMIN_ID=your_admin_user_id
+```
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Development Commands
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run typecheck` - Run TypeScript type checking
+- `npm run lint` - Check code linting
+- `npm run format:check` - Check code formatting
+- `npm run check` - Run linting and type checking
+
+## Project Structure
+
+```
+src/
+├── app/                 # Next.js App Router pages
+├── server/api/         # tRPC API routes
+├── context/            # React contexts (auth, etc.)
+├── trpc/              # tRPC client setup
+└── env.js             # Environment variable validation
+```
