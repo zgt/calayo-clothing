@@ -20,7 +20,7 @@ export default function Nav() {
       : "border-transparent text-emerald-100/80 hover:border-emerald-400/70 hover:text-white";
   
   return (
-    <nav className="bg-gradient-to-r from-emerald-900 to-emerald-800 shadow-md">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-emerald-900 to-emerald-800 shadow-md">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         {/* Left side - Logo and Navigation links */}
         <div className="flex items-center space-x-6">

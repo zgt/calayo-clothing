@@ -36,7 +36,9 @@ export default function RootLayout({
                 routerConfig={extractRouterConfig(ourFileRouter)}
               />
               <Nav />
-              {children}
+              <main className="pt-16">
+                {children}
+              </main>
               <Toaster />
               <SpeedInsights />
             </AuthProvider>

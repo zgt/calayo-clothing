@@ -148,8 +148,8 @@ export default function CommissionsForm() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center p-4">
-      <div className="-mt-30 w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -229,6 +229,6 @@ export default function CommissionsForm() {
         </motion.div>
       </div>
       <Toaster position="bottom-right" />
-    </main>
+    </div>
   );
 }
