@@ -110,7 +110,7 @@ export default async function CommissionDetailsPage( props : { params: paramsTyp
   }
   
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
+    <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingDetails />}>
           <div className="mb-6 flex items-center justify-between">

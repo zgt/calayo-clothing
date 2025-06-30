@@ -16,7 +16,7 @@ export default function FeaturesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 pt-6 pb-12">
+    <main className="min-h-screen pt-6 pb-12">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

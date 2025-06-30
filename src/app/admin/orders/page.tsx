@@ -72,7 +72,7 @@ export default async function AdminOrdersPage() {
   const commissions = commissionsData ?? [];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
+    <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingCommissions />}>
           <div className="mb-6 flex items-center justify-between">

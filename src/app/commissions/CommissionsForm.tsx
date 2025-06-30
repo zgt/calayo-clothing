@@ -148,7 +148,7 @@ export default function CommissionsForm() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

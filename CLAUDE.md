@@ -69,5 +69,6 @@ The app handles:
 
 ### Claude Guidance
 - Never add information about claude in the commit messages, that includes made by claude or helped by claude.
-- Never include this information: 🤖 Generated with [Claude Code](https://claude.ai/code)                                                                      Co-Authored-By: Claude <noreply@anthropic.com>
-Commit changes with descriptive message
+- Never include this information: 🤖 Generated with [Claude Code](https://claude.ai/code)                                                           Co-Authored-By: Claude <noreply@anthropic.com>
+- Commit changes with descriptive message
+- don't run npm run lint after every change, it tends to timeout

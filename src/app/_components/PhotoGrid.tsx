@@ -69,7 +69,6 @@ export default function PhotoGrid() {
 
   return (
     <main className="relative min-h-screen w-full">
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-emerald-950 to-gray-950"></div>
 
       {/* Responsive container */}
       <div className="mx-auto -mt-40 w-[95%] px-2 py-4 sm:-mt-60 sm:w-[85%] sm:px-4 sm:py-8 md:-mt-80 md:w-[75%] lg:w-[80%]">

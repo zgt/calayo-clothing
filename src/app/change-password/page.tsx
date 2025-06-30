@@ -2,45 +2,73 @@
 
 import { useState } from "react";
 import { useAuth } from "~/context/auth";
+import { useSupabase } from "~/context/supabase-provider";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { redirect } from "next/navigation";
 
-export default function SignupPage() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function ChangePasswordPage() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { supabase } = useSupabase();
+  const router = useRouter();
+
+  if (!isAuthenticated()) {
+    router.push("/login");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
-      toast.error("Passwords don't match");
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
       return;
     }
-    
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (!user?.email) {
+      toast.error("User email not found");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Include the user's full name in the metadata
-      const userData = {
-        full_name: fullName,
-      };
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast.error("Current password is incorrect");
+        setIsLoading(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
       
-      const { error } = await signUp(email, password, userData);
-      
-      if (error) {
-        toast.error(error.message);
+      if (updateError) {
+        toast.error(updateError.message);
       } else {
-        toast.success("Account created successfully!");
-        redirect("/login");
+        toast.success("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        router.push("/profile");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
-      console.error("Signup error:", error);
+      console.error("Password change error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -51,105 +79,65 @@ export default function SignupPage() {
       <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-emerald-700/20">
         <div className="px-8 py-6 border-b border-emerald-800/30">
           <h2 className="text-center text-3xl font-bold tracking-tight text-white">
-            Create an Account
+            Change Password
           </h2>
           <p className="mt-2 text-center text-sm text-emerald-200">
-            Join the Calayo community
+            Update your account password
           </p>
         </div>
         
         <form className="px-8 py-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="full-name" className="block text-sm font-medium text-emerald-200 mb-1">
-                Full name
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-emerald-200 mb-1">
+                Current Password
               </label>
               <input
-                id="full-name"
-                name="full-name"
-                type="text"
-                autoComplete="name"
-                required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
-                placeholder="Your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-emerald-200 mb-1">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-emerald-200 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
+                id="currentPassword"
+                name="currentPassword"
                 type="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 required
                 className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
               />
-              <p className="mt-1 text-xs text-emerald-300/70">
-                Password must be at least 8 characters
-              </p>
             </div>
-            
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-emerald-200 mb-1">
-                Confirm password
+              <label htmlFor="newPassword" className="block text-sm font-medium text-emerald-200 mb-1">
+                New Password
               </label>
               <input
-                id="confirm-password"
-                name="confirm-password"
+                id="newPassword"
+                name="newPassword"
                 type="password"
                 autoComplete="new-password"
                 required
+                minLength={6}
+                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-emerald-200 mb-1">
+                Confirm New Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={6}
                 className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              required
-              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-            />
-            <label htmlFor="terms" className="ml-2 block text-sm text-emerald-200">
-              I agree to the{" "}
-              <Link href="/terms" className="font-medium text-emerald-400 hover:text-emerald-300">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="font-medium text-emerald-400 hover:text-emerald-300">
-                Privacy Policy
-              </Link>
-            </label>
           </div>
 
           <div>
@@ -164,21 +152,18 @@ export default function SignupPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Creating account...
+                  Updating password...
                 </>
               ) : (
-                "Create account"
+                "Update password"
               )}
             </button>
           </div>
 
-          <div className="text-center mt-6">
-            <p className="text-sm text-emerald-200">
-              Already have an account?{" "}
-              <Link href="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
-                Sign in
-              </Link>
-            </p>
+          <div className="text-center">
+            <Link href="/profile" className="text-emerald-400 hover:text-emerald-300 text-sm font-medium">
+              Back to profile
+            </Link>
           </div>
         </form>
       </div>

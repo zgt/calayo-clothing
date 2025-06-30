@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950 py-4 px-4 sm:px-6">
+    <main className="min-h-screen py-4 px-4 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

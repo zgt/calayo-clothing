@@ -77,7 +77,7 @@ export default async function MeasurementsPage() {
   const profileMeasurements: ProfileMeasurements | null = measurements ?? null;
   
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-950 to-gray-950">
+    <main className="min-h-screen ">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">My Measurements</h1>

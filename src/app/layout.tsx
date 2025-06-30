@@ -11,6 +11,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "~/server/uploadthing";
+import ShaderGradientBackground from "./_components/ShaderGradient";
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
@@ -36,6 +37,7 @@ export default function RootLayout({
                 routerConfig={extractRouterConfig(ourFileRouter)}
               />
               <Nav />
+              <ShaderGradientBackground />
               <main className="pt-16">
                 {children}
               </main>
