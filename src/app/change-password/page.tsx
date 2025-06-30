@@ -17,7 +17,9 @@ export default function ChangePasswordPage() {
   const router = useRouter();
 
   if (!isAuthenticated()) {
-    router.push("/login");
+    if (typeof window !== 'undefined') {
+      router.push("/login");
+    }
     return null;
   }
 
