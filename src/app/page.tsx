@@ -1,5 +1,4 @@
 import { ReactLenis } from 'lenis/react'
-import PhotoGrid from "./_components/PhotoGrid";
 import InfinitePhotoGrid from './_components/InfinitePhotoGrid';
 
 

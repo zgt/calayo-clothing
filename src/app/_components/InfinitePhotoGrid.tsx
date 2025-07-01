@@ -157,7 +157,7 @@ export default function InfinitePhotoGrid() {
     }
     
     return positions;
-  }, [photos, gridConfig.columns, gridConfig.maxItemsPerRow]);
+  }, [photos, gridConfig]);
 
   // Handle screen resize and orientation change
   useEffect(() => {
@@ -250,7 +250,6 @@ export default function InfinitePhotoGrid() {
   if (isLoading) {
     return (
       <main className="relative min-h-screen w-full flex items-center justify-center">
-        <div className="text-white">Loading photos...</div>
       </main>
     );
   }

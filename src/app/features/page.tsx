@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import IntervalTimer from './_components/IntervalTimer';
 
 export default function FeaturesPage() {
-  const [activeTab, setActiveTab] = useState<string>('map');
+  const [activeTab, setActiveTab] = useState<string>('tools');
 
   const tabContent = {
     vizuals: <ComingSoon title="Data Visualizations" />,
-    tools: <ComingSoon title="Tools" />,
+    tools: <IntervalTimer />,
     demos: <ComingSoon title="Interactive Demos" />
   };
 
