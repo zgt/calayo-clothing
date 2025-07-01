@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import BoulderEBikeMap from './components/BoulderEBikeMap';
-import FlatironHikeMap from './components/FlatironHikeMap';
 
 export default function FeaturesPage() {
   const [activeTab, setActiveTab] = useState<string>('map');

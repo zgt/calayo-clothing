@@ -154,7 +154,7 @@ export default function CommissionsForm() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-emerald-700/20"
+          className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-emerald-700/10"
         >
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">Clothing Commission Request</h2>

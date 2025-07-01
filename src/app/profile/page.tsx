@@ -68,7 +68,7 @@ function LoadingProfile() {
         <div className="h-10 w-32 rounded bg-emerald-900/50"></div>
       </div>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+        <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md p-6 shadow-2xl border border-emerald-700/10">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 h-24 w-24 rounded-full bg-emerald-900/50"></div>
             <div className="mx-auto mb-2 h-6 w-32 rounded bg-emerald-900/50"></div>
@@ -84,7 +84,7 @@ function LoadingProfile() {
           </div>
         </div>
         <div className="md:col-span-2 space-y-6">
-          <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+          <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md p-6 shadow-2xl border border-emerald-700/10">
             <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
@@ -102,7 +102,7 @@ function LoadingProfile() {
               ))}
             </div>
           </div>
-          <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+          <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md p-6 shadow-2xl border border-emerald-700/10">
             <div className="mb-4 h-6 w-32 rounded bg-emerald-900/50"></div>
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
