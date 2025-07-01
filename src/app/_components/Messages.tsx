@@ -26,6 +26,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   // Function to format date
@@ -42,7 +43,9 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   // Fetch messages
@@ -100,6 +103,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
           filter: `commission_id=eq.${commissionId}`,
         },
         (payload: MessagePayload) => {
+          console.log('payload', payload);
           // Only fetch the new message if it wasn't sent by the current user
           const newMessage = payload.new as Message;
           if (newMessage.sender_id !== currentUserId) {
@@ -151,6 +155,13 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (!isLoading && messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [isLoading, messages.length]);
 
   // Send message
   const handleSendMessage = async (e: React.MouseEvent) => {
@@ -213,7 +224,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
       </div>
 
       {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
@@ -247,7 +258,7 @@ export default function MessagesComponent({ commissionId, currentUserId, isAdmin
                     <span className="text-xs font-medium text-emerald-300/80">
                       {message.sender_id === currentUserId
                         ? 'You'
-                        : message.profiles?.full_name ?? 'User'}
+                        : message.profiles?.full_name ?? 'Calayo Clothing'}
                     </span>
                     <span className="text-xs text-emerald-300/50">
                       {formatDate(message.created_at)}

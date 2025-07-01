@@ -376,86 +376,88 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
               >
                 Admin Notes
               </button>
-              <button
-                onClick={() => setActiveTab('messages')}
-                className={`
-                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-                  ${activeTab === 'messages' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-emerald-300 hover:text-emerald-200 hover:border-emerald-700/50'}
-                `}
-              >
-                Messages
-              </button>
             </nav>
           </div>
           
           {/* Details Tab Content */}
           <div className={`py-6 ${activeTab === 'details' ? 'block' : 'hidden'}`}>
             <div className="prose prose-sm prose-emerald prose-invert max-w-none">
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-white mb-2">Commission Details</h3>
-                <p className="text-emerald-200/90 whitespace-pre-wrap">
-                  {commission.details ?? "No additional details provided."}
-                </p>
-              </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2">Order Information</h3>
-                  <dl className="grid grid-cols-1 gap-y-3">
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Order ID:</dt>
-                      <dd className="text-white font-mono text-sm">{commission.id}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Garment Type:</dt>
-                      <dd className="text-white capitalize">{commission.garment_type}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Budget Range:</dt>
-                      <dd className="text-white">{commission.budget}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Timeline:</dt>
-                      <dd className="text-white">{commission.timeline}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Status:</dt>
-                      <dd className="text-white capitalize">{commission.status}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Submitted:</dt>
-                      <dd className="text-white">{formatDate(commission.created_at)}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-emerald-200/70">Last Updated:</dt>
-                      <dd className="text-white">{formatDate(commission.updated_at)}</dd>
-                    </div>
-                  </dl>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Commission Details</h3>
+                    <p className="text-emerald-200/90 whitespace-pre-wrap">
+                      {commission.details ?? "No additional details provided."}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Order Information</h3>
+                    <dl className="grid grid-cols-1 gap-y-3">
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Order ID:</dt>
+                        <dd className="text-white font-mono text-sm">{commission.id}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Garment Type:</dt>
+                        <dd className="text-white capitalize">{commission.garment_type}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Budget Range:</dt>
+                        <dd className="text-white">{commission.budget}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Timeline:</dt>
+                        <dd className="text-white">{commission.timeline}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Status:</dt>
+                        <dd className="text-white capitalize">{commission.status}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Submitted:</dt>
+                        <dd className="text-white">{formatDate(commission.created_at)}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-emerald-200/70">Last Updated:</dt>
+                        <dd className="text-white">{formatDate(commission.updated_at)}</dd>
+                      </div>
+                    </dl>
+                  </div>
                 </div>
                 
-                {/* Activity Log */}
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2">Activity Log</h3>
-                  <div className="bg-emerald-900/30 rounded-lg p-3 border border-emerald-700/40">
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <div className="flex-shrink-0 h-4 w-4 mt-0.5 rounded-full bg-emerald-400"></div>
-                        <div className="ml-3">
-                          <p className="text-sm text-white">Order submitted</p>
-                          <p className="text-xs text-emerald-300/70">{formatDate(commission.created_at)}</p>
-                        </div>
-                      </li>
-                      {commission.status !== 'pending' && (
+                <div className="space-y-6">
+                  <div>
+                    <MessagesComponent 
+                      commissionId={commission.id} 
+                      currentUserId={user?.id ?? ''}
+                      isAdmin={true}
+                    />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Activity Log</h3>
+                    <div className="bg-emerald-900/30 rounded-lg p-3 border border-emerald-700/40">
+                      <ul className="space-y-3">
                         <li className="flex items-start">
-                          <div className="flex-shrink-0 h-4 w-4 mt-0.5 rounded-full bg-blue-400"></div>
+                          <div className="flex-shrink-0 h-4 w-4 mt-0.5 rounded-full bg-emerald-400"></div>
                           <div className="ml-3">
-                            <p className="text-sm text-white">Status updated to {commission.status}</p>
-                            <p className="text-xs text-emerald-300/70">{formatDate(commission.updated_at)}</p>
+                            <p className="text-sm text-white">Order submitted</p>
+                            <p className="text-xs text-emerald-300/70">{formatDate(commission.created_at)}</p>
                           </div>
                         </li>
-                      )}
-                      {/* Add more activity items as needed */}
-                    </ul>
+                        {commission.status !== 'pending' && (
+                          <li className="flex items-start">
+                            <div className="flex-shrink-0 h-4 w-4 mt-0.5 rounded-full bg-blue-400"></div>
+                            <div className="ml-3">
+                              <p className="text-sm text-white">Status updated to {commission.status}</p>
+                              <p className="text-xs text-emerald-300/70">{formatDate(commission.updated_at)}</p>
+                            </div>
+                          </li>
+                        )}
+                        {/* Add more activity items as needed */}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -563,14 +565,6 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
                 </div>
               </div>
             </div>
-          </div>
-          {/* Messages Tab Content */}
-          <div className={`py-6 ${activeTab === 'messages' ? 'block' : 'hidden'}`}>
-            <MessagesComponent 
-              commissionId={commission.id} 
-              currentUserId={user?.id ?? ''}
-              isAdmin={true}
-            />
           </div>
         </div>
       </motion.div>
