@@ -7,22 +7,47 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ReactLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
+import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
+import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function InfinitePhotoGrid() {
   const gridRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<LenisRef>(null);
+  const logoRef = useRef<SvgLogoRef>(null);
+  const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const loadedImagesCount = useRef(0);
 
   const {
     data: photos,
     isLoading,
     error,
   } = api.instagram.getAllInstagramPhotos.useQuery();
+
+  const handleImageLoad = () => {
+    if (!photos) return;
+    
+    loadedImagesCount.current += 1;
+    
+    // Check if first two images are loaded
+    if (loadedImagesCount.current >= 2 && !imagesLoaded) {
+      setImagesLoaded(true);
+      // Small delay to ensure all images are rendered
+      setTimeout(() => {
+        logoRef.current?.animateIn();
+        // Start subtitle animation slightly after logo animation begins
+        setTimeout(() => {
+          subtitleRef.current?.animateIn();
+        }, 500);
+      }, 100);
+    }
+  };
 
   // Responsive grid configuration
   const gridConfig = useMemo(() => {
@@ -304,6 +329,7 @@ export default function InfinitePhotoGrid() {
                       objectFit: 'cover',
                       transition: 'transform 0.3s ease',
                     }}
+                    onLoad={handleImageLoad}
                     onMouseEnter={(e) => {
                       if (screenSize.width >= 768) { // Only on non-touch devices
                         e.currentTarget.style.transform = 'scale(1.05)';
@@ -330,24 +356,22 @@ export default function InfinitePhotoGrid() {
           
           <div className="cover fixed inset-0 flex items-center justify-center pointer-events-none z-10">
             <div className="text-center text-white px-4">
-              <h2 
-                className="font-bold mb-4"
-                style={{
-                  fontSize: screenSize.width < 768 ? '2.5rem' : '6rem',
-                  lineHeight: screenSize.width < 768 ? '1.1' : '1.2',
-                }}
-              >
-                Calayo Clothing
+              <div className="mb-4">
+                <SvgLogo 
+                  ref={logoRef}
+                  fontSize={screenSize.width < 768 ? '2.5rem' : '6rem'}
+                  letterSpacing="0"
+                />
                 {/* <sup>®</sup> */}
-              </h2>
-              <h3 
+              </div>
+              <AnimatedSubtitle
+                ref={subtitleRef}
+                text="Intentionally yours"
                 className="font-light"
                 style={{
                   fontSize: screenSize.width < 768 ? '1.25rem' : '2rem',
                 }}
-              >
-                Intentionally yours
-              </h3>
+              />
             </div>
           </div>
           
