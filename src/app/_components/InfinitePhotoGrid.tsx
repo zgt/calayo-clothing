@@ -152,7 +152,7 @@ export default function InfinitePhotoGrid() {
     return positions;
   }, [photos, gridConfig]);
 
-  // Handle screen resize
+  // Handle screen resize and orientation change
   useEffect(() => {
     const handleResize = () => {
       setScreenSize({
@@ -161,8 +161,18 @@ export default function InfinitePhotoGrid() {
       });
     };
 
+    const handleOrientationChange = () => {
+      // Delay to ensure dimensions are updated after orientation change
+      setTimeout(handleResize, 100);
+    };
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -178,18 +188,8 @@ export default function InfinitePhotoGrid() {
   useEffect(() => {
     if (!photos || photos.length === 0) return;
 
-    let winsize = { width: window.innerWidth, height: window.innerHeight };
-    
-    const calcWindowSize = () => {
-      winsize = { width: window.innerWidth, height: window.innerHeight };
-    };
-    
-    const handleResize = () => {
-      calcWindowSize();
-    };
-    
-    calcWindowSize();
-    window.addEventListener('resize', handleResize);
+    // Kill any existing ScrollTrigger instances
+    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
 
     // Setup GSAP animations for grid items
     const grid = gridRef.current;
@@ -200,7 +200,7 @@ export default function InfinitePhotoGrid() {
         gsap.timeline()
           .set(grid, {
             perspective: 1000,
-            perspectiveOrigin: `50% ${winsize.height / 2 + (lenisRef.current?.lenis?.scroll ?? 0)}px`
+            perspectiveOrigin: `50% ${screenSize.height / 2 + (lenisRef.current?.lenis?.scroll ?? 0)}px`
           })
           .to(item, {
             ease: 'none',
@@ -214,7 +214,7 @@ export default function InfinitePhotoGrid() {
               scrub: true,
               onUpdate: () => {
                 gsap.set(grid, {
-                  perspectiveOrigin: `50% ${winsize.height / 2 + (lenisRef.current?.lenis?.scroll ?? 0)}px`
+                  perspectiveOrigin: `50% ${screenSize.height / 2 + (lenisRef.current?.lenis?.scroll ?? 0)}px`
                 });
               }
             }
@@ -223,10 +223,9 @@ export default function InfinitePhotoGrid() {
     }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, [photos]);
+  }, [photos, screenSize]);
 
   if (isLoading) {
     return (
