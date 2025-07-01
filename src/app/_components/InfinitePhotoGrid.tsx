@@ -93,6 +93,13 @@ export default function InfinitePhotoGrid() {
     const rowCounts: Record<number, number> = {}; // Track items per row
     const positions: { row: number; col: number }[] = [];
     
+    // Use a seed based on photos length and columns for consistent positioning
+    let seed = totalPhotos * columns;
+    const seededRandom = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    
     // Helper function to check if a position conflicts with existing ones
     const isPositionValid = (row: number, col: number) => {
       // Check if row already has max items
@@ -118,8 +125,8 @@ export default function InfinitePhotoGrid() {
       let validPosition = false;
       
       while (!validPosition && attempts < 1000) {
-        const row = Math.floor(Math.random() * totalRows) + 1;
-        const col = Math.floor(Math.random() * columns) + 1;
+        const row = Math.floor(seededRandom() * totalRows) + 1;
+        const col = Math.floor(seededRandom() * columns) + 1;
         const positionKey = `${row}-${col}`;
         
         if (!usedPositions.has(positionKey) && isPositionValid(row, col)) {
@@ -134,13 +141,13 @@ export default function InfinitePhotoGrid() {
       
       // Fallback if we can't find a valid position after many attempts
       if (!validPosition) {
-        let fallbackRow = Math.floor(Math.random() * totalRows) + 1;
-        let fallbackCol = Math.floor(Math.random() * columns) + 1;
+        let fallbackRow = Math.floor(seededRandom() * totalRows) + 1;
+        let fallbackCol = Math.floor(seededRandom() * columns) + 1;
         
         // Keep trying until we find an unused position with room in the row
         while (usedPositions.has(`${fallbackRow}-${fallbackCol}`) || (rowCounts[fallbackRow] ?? 0) >= maxItemsPerRow) {
-          fallbackRow = Math.floor(Math.random() * totalRows) + 1;
-          fallbackCol = Math.floor(Math.random() * columns) + 1;
+          fallbackRow = Math.floor(seededRandom() * totalRows) + 1;
+          fallbackCol = Math.floor(seededRandom() * columns) + 1;
         }
         
         positions.push({ row: fallbackRow, col: fallbackCol });
@@ -150,15 +157,27 @@ export default function InfinitePhotoGrid() {
     }
     
     return positions;
-  }, [photos, gridConfig]);
+  }, [photos, gridConfig.columns, gridConfig.maxItemsPerRow]);
 
   // Handle screen resize and orientation change
   useEffect(() => {
+    let resizeTimeout: NodeJS.Timeout;
+    
     const handleResize = () => {
-      setScreenSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      // Debounce resize events to prevent excessive rerenders
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+        
+        // Only update if dimensions actually changed significantly
+        if (Math.abs(newWidth - screenSize.width) > 10 || Math.abs(newHeight - screenSize.height) > 10) {
+          setScreenSize({
+            width: newWidth,
+            height: newHeight,
+          });
+        }
+      }, 150);
     };
 
     const handleOrientationChange = () => {
@@ -170,10 +189,11 @@ export default function InfinitePhotoGrid() {
     window.addEventListener('orientationchange', handleOrientationChange);
     
     return () => {
+      clearTimeout(resizeTimeout);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
-  }, []);
+  }, [screenSize.width, screenSize.height]);
 
   useEffect(() => {
     function update(time: number) {
