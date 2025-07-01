@@ -282,7 +282,7 @@ export const instagramRouter = createTRPCRouter({
               if (!existingChildParentIds.has(item.id)) {
                 console.log(`Fetching children for parent ${item.id}`);
                 const childrenIds = await fetchChildrenIds(item.id);
-                console.log(`Found ${childrenIds.length} children IDs for parent ${item.id}`);
+                console.log(`Found ${childrenIds.children.length} children IDs for parent ${item.id}`);
                 
                 const childrenMedia = await fetchChildrenMedia(childrenIds);
                 console.log(`Successfully fetched ${childrenMedia.length} children media items for parent ${item.id}`);
