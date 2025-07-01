@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "sonner";
 import MessagesComponent from "~/app/_components/Messages";
 import { useAuth } from "~/context/auth";
 import { api } from "~/trpc/react";
@@ -79,6 +79,8 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    case 'approved':
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
     case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
@@ -177,7 +179,7 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
     
     updateStatusMutation.mutate({
       id: commission.id,
-      status: newStatus as "Pending" | "In Progress" | "Completed" | "Cancelled",
+      status: newStatus as "Pending" | "Approved" | "In Progress" | "Completed" | "Cancelled",
     });
   };
   
@@ -210,8 +212,6 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
   
   return (
     <div className="space-y-6">
-      <Toaster position="bottom-right" />
-      
       {/* Admin Controls */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -230,10 +230,11 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
               onChange={(e) => setNewStatus(e.target.value)}
               className="w-full rounded-lg border border-purple-700/30 bg-purple-900/50 px-3 py-2 text-purple-100"
             >
-              <option value="pending">Pending</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
               <option value="In Progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
           </div>
           

@@ -9,7 +9,11 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:github.com)",
       "Bash(rg:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(npx:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": []
   }

@@ -70,6 +70,8 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    case 'approved':
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
     case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
@@ -84,7 +86,7 @@ const getStatusBadge = (status: string) => {
 
 // Helper function to get status timeline styling
 const getStatusStep = (currentStatus: string, stepStatus: string) => {
-  const statusOrder = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+  const statusOrder = ['pending', 'approved', 'in progress', 'completed', 'cancelled'];
   const currentIndex = statusOrder.indexOf(currentStatus.toLowerCase());
   const stepIndex = statusOrder.indexOf(stepStatus.toLowerCase());
   
@@ -186,7 +188,7 @@ export default function CommissionDetails({ commission }: CommissionDetailsProps
               <div className="w-full border-t border-emerald-700/30"></div>
             </div>
             <div className="relative flex justify-between">
-              {['Pending', 'In Progress', 'Completed'].map((step) => {
+              {['Pending', 'Approved', 'In Progress', 'Completed'].map((step) => {
                 const status = getStatusStep(commission.status, step);
                 return (
                   <div key={step} className="flex items-center">

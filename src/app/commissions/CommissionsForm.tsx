@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useAuth } from "~/context/auth";
 import { api } from "~/trpc/react";
@@ -228,7 +228,6 @@ export default function CommissionsForm() {
           </form>
         </motion.div>
       </div>
-      <Toaster position="bottom-right" />
     </div>
   );
 }

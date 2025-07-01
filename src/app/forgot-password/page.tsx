@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSupabase } from "~/context/supabase-provider";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

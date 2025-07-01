@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { createClient } from '~/utils/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Database } from '~/types/supabase';

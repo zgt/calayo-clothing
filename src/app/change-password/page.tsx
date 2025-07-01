@@ -5,7 +5,7 @@ import { useAuth } from "~/context/auth";
 import { useSupabase } from "~/context/supabase-provider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");

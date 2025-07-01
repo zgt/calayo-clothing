@@ -43,7 +43,7 @@ const createCommissionSchema = z.object({
 
 const updateCommissionStatusSchema = z.object({
   id: z.string().uuid(),
-  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  status: z.enum(["Pending", "Approved", "In Progress", "Completed", "Cancelled"]),
 });
 
 

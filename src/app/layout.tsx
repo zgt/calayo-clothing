@@ -2,7 +2,7 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "~/components/ui/sonner";
 import Nav from "~/app/_components/Nav";
 import { TRPCReactProvider } from "~/trpc/react";
 import { SupabaseProvider } from "~/context/supabase-provider";
