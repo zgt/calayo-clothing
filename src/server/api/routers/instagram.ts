@@ -326,4 +326,76 @@ export const instagramRouter = createTRPCRouter({
           : null,
     };
   }),
+
+  // Get all instagram photos from UploadThing in a single array
+  getAllInstagramPhotos: publicProcedure.query(async () => {
+    try {
+      const listFilesResponse = await utapi.listFiles();
+
+      if (!listFilesResponse?.files) {
+        return [];
+      }
+
+      const { files } = listFilesResponse;
+
+      const mediaFiles = files.filter((file) => {
+        const fileName = file.name.toLowerCase();
+        const isImageFile =
+          fileName.endsWith(".jpg") ||
+          fileName.endsWith(".jpeg") ||
+          fileName.endsWith(".png") ||
+          fileName.endsWith(".webp");
+        return isImageFile && file.status === "Uploaded";
+      });
+
+      if (mediaFiles.length === 0) {
+        return [];
+      }
+
+      const uploadthingAppId = process.env.UPLOADTHING_APP_ID;
+      if (!uploadthingAppId) {
+        throw new Error("UPLOADTHING_APP_ID environment variable is not set");
+      }
+
+      const allPhotos = mediaFiles
+        .filter((file) => file.name.startsWith("child-")) // Only include child photos
+        .map((file) => {
+          const mediaUrl = `https://${uploadthingAppId}.ufs.sh/f/${file.key}`;
+          const fileName = file.name.toLowerCase();
+          const isVideo =
+            fileName.endsWith(".mp4") ||
+            fileName.endsWith(".mov") ||
+            fileName.endsWith(".webm") ||
+            fileName.endsWith(".avi") ||
+            fileName.endsWith(".mkv");
+
+          let id = "";
+          let parentId = "";
+
+          const nameParts = file.name.substring(6).split("-");
+          if (nameParts.length >= 2) {
+            parentId = nameParts[0] ?? "";
+            id = nameParts[1]?.split(".")[0] ?? "";
+          }
+
+          return {
+            id,
+            parentId,
+            mediaUrl,
+            isParent: false,
+            isVideo,
+            isImage: !isVideo,
+            fileName: file.name,
+            uploadedAt: file.uploadedAt,
+          };
+        });
+
+      return allPhotos.sort((a, b) => 
+        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      );
+    } catch (error) {
+      console.error("Error fetching all instagram photos:", error);
+      return [];
+    }
+  }),
 });
