@@ -35,7 +35,7 @@ export const useMeasurementLoader = ({ setFormData }: UseMeasurementLoaderProps)
       const profileMeasurements = await fetchProfileMeasurements(userId);
       
       if (!profileMeasurements || Object.keys(profileMeasurements).length === 0) {
-        toast("No saved measurements found in your profile");
+        toast.error("No measurements found in your profile. Please add your measurements in your profile first.");
         return;
       }
       
