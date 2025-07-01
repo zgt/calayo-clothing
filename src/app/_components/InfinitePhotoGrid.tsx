@@ -31,7 +31,7 @@ export default function InfinitePhotoGrid() {
     if (width < 480) {
       // Mobile
       return {
-        columns: 2,
+        columns: 3,
         maxItemsPerRow: 1,
         gap: '0.75rem',
         padding: '1rem',
