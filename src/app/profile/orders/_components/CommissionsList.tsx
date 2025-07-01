@@ -69,7 +69,7 @@ export default function CommissionsList({ commissions }: CommissionsListProps) {
     : commissions.filter(commission => commission.status.toLowerCase() === filter.toLowerCase());
   
   return (
-    <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md p-6 shadow-2xl border border-emerald-700/10">
+    <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
       {/* Filter Controls */}
       <div className="mb-6 flex flex-wrap gap-2">
         <button

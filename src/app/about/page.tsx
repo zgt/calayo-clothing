@@ -11,7 +11,7 @@ export default function About() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="max-w-3xl mx-auto"
       >
-        <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
+        <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
           <h1 className="text-4xl font-bold text-white mb-6">About Me</h1>
           
           <div className="prose prose-emerald prose-invert max-w-none">

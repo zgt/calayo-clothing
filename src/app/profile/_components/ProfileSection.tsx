@@ -34,7 +34,7 @@ export default function ProfileSection({ profile, user, measurements }: ProfileS
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
       {/* Left Column - User Info */}
-      <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-4 shadow-2xl border border-emerald-700/20">
+      <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-xs p-4 shadow-2xl border border-emerald-700/20">
         <div className="mb-4 text-center">
           <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-emerald-900/50">
             {profile?.avatar_url ? (
@@ -88,7 +88,7 @@ export default function ProfileSection({ profile, user, measurements }: ProfileS
 
       {/* Center/Right Columns - Measurements & Form */}
       <div className="md:col-span-2">
-        <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+        <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/20">
           <h2 className="mb-4 text-xl font-semibold text-white">Your Measurements</h2>
           
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">

@@ -20,7 +20,7 @@ export default function Nav() {
       : "border-transparent text-emerald-100/80 hover:border-emerald-400/70 hover:text-white";
   
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-emerald-900/30 to-emerald-800/30 backdrop-blur-md shadow-md">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-emerald-900/30 to-emerald-800/30 backdrop-blur-none shadow-md">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         {/* Left side - Logo and Navigation links */}
         <div className="flex items-center space-x-6">
@@ -85,7 +85,7 @@ export default function Nav() {
       </div>
       
       {/* Mobile navigation menu */}
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-emerald-800/30 backdrop-blur-md pb-3`}>
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-emerald-800/30 backdrop-blur-xs pb-3`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link 
             href="/" 

@@ -71,7 +71,7 @@ export default function InfinitePhotoGrid() {
     } else {
       // Large desktop
       return {
-        columns: 7,
+        columns: 5,
         maxItemsPerRow: 2,
         gap: '2rem',
         padding: '2rem',
@@ -274,8 +274,8 @@ export default function InfinitePhotoGrid() {
               display: 'grid',
               gridTemplateColumns: `repeat(${gridConfig.columns}, 1fr)`,
               gridTemplateRows: `repeat(auto, ${gridConfig.rowHeight})`,
-              gap: gridConfig.gap,
-              padding: gridConfig.padding,
+              gap: 0,
+              padding: 0,
               minHeight: gridConfig.minHeight,
               perspective: '1000px',
             }}
@@ -300,7 +300,7 @@ export default function InfinitePhotoGrid() {
                     src={photo.mediaUrl}
                     alt={`Instagram photo ${photo.id}`}
                     fill
-                    sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1440px) 20vw, 14vw"
+                    //sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1440px) 20vw, 14vw"
                     style={{
                       objectFit: 'cover',
                       transition: 'transform 0.3s ease',
@@ -338,7 +338,8 @@ export default function InfinitePhotoGrid() {
                   lineHeight: screenSize.width < 768 ? '1.1' : '1.2',
                 }}
               >
-                Calayo Clothing<sup>®</sup>
+                Calayo Clothing
+                {/* <sup>®</sup> */}
               </h2>
               <h3 
                 className="font-light"

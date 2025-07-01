@@ -58,7 +58,7 @@ function LoadingCommissions() {
       <div className="mb-6 flex items-center justify-between">
         <div className="h-8 w-48 rounded bg-emerald-900/50"></div>
       </div>
-      <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md p-6 shadow-2xl border border-emerald-700/10">
+      <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
         <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (

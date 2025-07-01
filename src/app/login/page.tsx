@@ -33,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page w-full max-w-md mx-auto mt-16">
-      <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
+      <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
         <div className="px-8 py-6 border-b border-emerald-800/30">
           <h2 className="text-center text-3xl font-bold tracking-tight text-white">
             Welcome Back
