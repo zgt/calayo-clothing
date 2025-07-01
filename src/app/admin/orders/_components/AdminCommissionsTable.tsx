@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "sonner";
 import { api } from "~/trpc/react";
 
 type CommissionMeasurements = {
@@ -57,6 +57,8 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    case 'approved':
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
     case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
@@ -85,7 +87,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
   const filteredCommissions = commissions
     .filter(commission => 
       filter === 'all' || 
-      commission.status.toLowerCase() === filter.toLowerCase()
+      commission.status === filter
     )
     .filter(commission => {
       if (!searchTerm) return true;
@@ -139,7 +141,10 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
   // tRPC mutation for updating commission status
   const updateStatusMutation = api.commissions.admin.updateStatus.useMutation({
     onSuccess: () => {
-      toast.success(`Status updated to ${newStatus}`);
+      // Use a unique toast ID to prevent duplicates
+      toast.success(`Status updated to ${newStatus}`, {
+        id: `status-update-${selectedCommission?.id}`,
+      });
       // Reload the page after a brief delay to show updated data
       setTimeout(() => {
         router.refresh();
@@ -148,7 +153,9 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     },
     onError: (error) => {
       console.error('Error updating commission status:', error);
-      toast.error('Failed to update status. Please try again.');
+      toast.error('Failed to update status. Please try again.', {
+        id: `status-update-error-${selectedCommission?.id}`,
+      });
     },
     onSettled: () => {
       setIsUpdating(false);
@@ -156,16 +163,22 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     },
   });
 
+  // Separate mutation for bulk operations (no individual toasts)
+  const bulkUpdateStatusMutation = api.commissions.admin.updateStatus.useMutation();
+
   // Handle status update for a commission
   const handleStatusUpdate = async () => {
     if (!selectedCommission) return;
+    
+    // Prevent double calls
+    if (isUpdating) return;
     
     setIsUpdating(true);
     setUpdateCommissionId(selectedCommission.id);
     
     updateStatusMutation.mutate({
       id: selectedCommission.id,
-      status: newStatus as "Pending" | "In Progress" | "Completed" | "Cancelled",
+      status: newStatus as "Pending" | "Approved" | "In Progress" | "Completed" | "Cancelled",
     });
   };
   
@@ -206,7 +219,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
   
   // Approve all pending commissions
   const approveAllPending = async () => {
-    const pendingCommissions = commissions.filter(c => c.status.toLowerCase() === 'pending');
+    const pendingCommissions = commissions.filter(c => c.status === 'Pending');
     
     if (pendingCommissions.length === 0) {
       toast.error('No pending commissions to approve');
@@ -223,12 +236,12 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
     // Show loading toast
     const loadingToast = toast.loading(`Approving ${pendingCommissions.length} commissions...`);
     
-    // Process each commission using tRPC
+    // Process each commission using tRPC (bulk mutation without individual toasts)
     for (const commission of pendingCommissions) {
       try {
-        await updateStatusMutation.mutateAsync({
+        await bulkUpdateStatusMutation.mutateAsync({
           id: commission.id,
-          status: "In Progress", // Changed from "approved" to match enum
+          status: "Approved", // Changed to use proper "Approved" enum value
         });
         successCount++;
       } catch (error) {
@@ -265,8 +278,6 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
   
   return (
     <div className="space-y-6">
-      <Toaster position="bottom-right" />
-      
       {/* Search and Filter Controls */}
       <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
@@ -299,14 +310,24 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               All
             </button>
             <button
-              onClick={() => setFilter('pending')}
+              onClick={() => setFilter('Pending')}
               className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'pending' 
+                filter === 'Pending' 
                   ? 'bg-amber-700/50 text-white border-amber-500/50' 
                   : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
               } transition-colors`}
             >
               Pending
+            </button>
+            <button
+              onClick={() => setFilter('Approved')}
+              className={`px-3 py-1 text-sm rounded-full border ${
+                filter === 'Approved' 
+                  ? 'bg-blue-700/50 text-white border-blue-500/50' 
+                  : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
+              } transition-colors`}
+            >
+              Approved
             </button>
             <button
               onClick={() => setFilter('In Progress')}
@@ -319,9 +340,9 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               In Progress
             </button>
             <button
-              onClick={() => setFilter('completed')}
+              onClick={() => setFilter('Completed')}
               className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'completed' 
+                filter === 'Completed' 
                   ? 'bg-green-700/50 text-white border-green-500/50' 
                   : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
               } transition-colors`}
@@ -329,9 +350,9 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               Completed
             </button>
             <button
-              onClick={() => setFilter('cancelled')}
+              onClick={() => setFilter('Cancelled')}
               className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'cancelled' 
+                filter === 'Cancelled' 
                   ? 'bg-red-700/50 text-white border-red-500/50' 
                   : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
               } transition-colors`}
@@ -588,7 +609,13 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               <div className="flex justify-between text-sm">
                 <span className="text-purple-300/80">Pending:</span>
                 <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'pending').length}
+                  {commissions.filter(c => c.status === 'Pending').length}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-purple-300/80">Approved:</span>
+                <span className="text-white font-medium">
+                  {commissions.filter(c => c.status === 'Approved').length}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -600,13 +627,13 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               <div className="flex justify-between text-sm">
                 <span className="text-purple-300/80">Completed:</span>
                 <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'completed').length}
+                  {commissions.filter(c => c.status === 'Completed').length}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-purple-300/80">Cancelled:</span>
                 <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'cancelled').length}
+                  {commissions.filter(c => c.status === 'Cancelled').length}
                 </span>
               </div>
             </div>
@@ -700,12 +727,11 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 onChange={(e) => setNewStatus(e.target.value)}
                 className="w-full rounded-lg border border-emerald-700/30 bg-emerald-900/70 px-3 py-2 text-emerald-100 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
                 <option value="In Progress">In Progress</option>
-                <option value="ready">Ready</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
               </select>
             </div>
             

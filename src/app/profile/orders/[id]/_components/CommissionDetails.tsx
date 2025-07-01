@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import MessagesComponent from "~/app/_components/Messages";
+import { Progress } from "~/components/ui/progress";
 
 type CommissionMeasurements = {
   id: string;
@@ -70,6 +71,8 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    case 'approved':
+      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
     case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
@@ -82,9 +85,27 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-// Helper function to get status timeline styling
+// Helper function to calculate progress percentage
+const getProgressPercentage = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 0;
+    case 'approved':
+      return 33;
+    case 'in progress':
+      return 66;
+    case 'completed':
+      return 100;
+    case 'cancelled':
+      return 0;
+    default:
+      return 0;
+  }
+};
+
+// Helper function to get status step styling for labels
 const getStatusStep = (currentStatus: string, stepStatus: string) => {
-  const statusOrder = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+  const statusOrder = ['pending', 'approved', 'in progress', 'completed'];
   const currentIndex = statusOrder.indexOf(currentStatus.toLowerCase());
   const stepIndex = statusOrder.indexOf(stepStatus.toLowerCase());
   
@@ -179,44 +200,36 @@ export default function CommissionDetails({ commission }: CommissionDetailsProps
           </div>
         </div>
         
-        {/* Order Status Timeline */}
+        {/* Order Status Progress */}
         <div className="mb-8">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-emerald-700/30"></div>
-            </div>
-            <div className="relative flex justify-between">
-              {['Pending', 'In Progress', 'Completed'].map((step) => {
+          <div className="space-y-4">
+            {/* Status Labels */}
+            <div className="flex justify-between">
+              {['Pending', 'Approved', 'In Progress', 'Completed'].map((step) => {
                 const status = getStatusStep(commission.status, step);
                 return (
-                  <div key={step} className="flex items-center">
-                    <div 
+                  <div key={step} className="flex flex-col items-center">
+                    <span 
                       className={`
-                        h-5 w-5 rounded-full flex items-center justify-center
-                        ${status === 'complete' ? 'bg-emerald-500' : 
-                          status === 'active' ? 'border-2 border-emerald-500 bg-emerald-900' : 
-                          'border border-emerald-700/50 bg-emerald-900/70'}
-                      `}
-                    >
-                      {status === 'complete' && (
-                        <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="currentColor">
-                          <path d="M3.707 5.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L5 6.586 3.707 5.293z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div 
-                      className={`
-                        mt-0.5 ml-2 min-w-0 flex flex-col
+                        text-xs font-medium
                         ${status === 'complete' ? 'text-emerald-400' : 
                           status === 'active' ? 'text-white' : 
                           'text-emerald-300/50'}
                       `}
                     >
-                      <span className="text-xs font-medium">{step}</span>
-                    </div>
+                      {step}
+                    </span>
                   </div>
                 );
               })}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="relative">
+              <Progress 
+                value={getProgressPercentage(commission.status)} 
+                className="h-3 bg-emerald-900/50 border border-emerald-700/30 [&>div]:bg-gradient-to-r [&>div]:from-emerald-500 [&>div]:to-emerald-400"
+              />
             </div>
           </div>
         </div>

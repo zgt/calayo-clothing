@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSupabase } from "~/context/supabase-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState("");
