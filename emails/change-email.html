@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Email Change - Calayo Clothing</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #0f0f0f; 
+            color: #f0f0f0; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: linear-gradient(135deg, #064e3b 0%, #0f2027 100%); 
+            border-radius: 16px; 
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        }
+        .header { 
+            text-align: center; 
+            padding: 40px 20px 20px; 
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2); 
+        }
+        .logo { 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: #10b981; 
+            margin-bottom: 8px; 
+        }
+        .tagline { 
+            color: #a7f3d0; 
+            font-size: 14px; 
+            margin: 0; 
+        }
+        .content { 
+            padding: 40px 20px; 
+        }
+        .welcome-text { 
+            font-size: 24px; 
+            font-weight: 600; 
+            color: #ffffff; 
+            margin-bottom: 16px; 
+            text-align: center; 
+        }
+        .description { 
+            color: #d1fae5; 
+            line-height: 1.6; 
+            margin-bottom: 32px; 
+            text-align: center; 
+        }
+        .cta-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            color: #ffffff; 
+            text-decoration: none; 
+            padding: 16px 32px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            text-align: center; 
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); 
+            transition: all 0.3s ease; 
+        }
+        .cta-container { 
+            text-align: center; 
+            margin-bottom: 32px; 
+        }
+        .email-info { 
+            background: rgba(16, 185, 129, 0.1); 
+            border-radius: 12px; 
+            padding: 24px; 
+            margin: 24px 0; 
+            text-align: center; 
+        }
+        .email-info h3 { 
+            color: #10b981; 
+            margin-top: 0; 
+            margin-bottom: 16px; 
+            font-size: 18px; 
+        }
+        .email-address { 
+            color: #ffffff; 
+            font-family: 'Monaco', 'Courier New', monospace; 
+            font-size: 16px; 
+            background: rgba(0, 0, 0, 0.3); 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            display: inline-block; 
+            margin: 8px 0; 
+            word-break: break-all; 
+        }
+        .security-note { 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 24px 0; 
+        }
+        .security-note h3 { 
+            color: #fca5a5; 
+            margin-top: 0; 
+            margin-bottom: 12px; 
+            font-size: 16px; 
+            display: flex; 
+            align-items: center; 
+        }
+        .security-note h3:before { 
+            content: "🔒"; 
+            margin-right: 8px; 
+        }
+        .security-note p { 
+            color: #fecaca; 
+            margin: 0; 
+            font-size: 14px; 
+        }
+        .footer { 
+            text-align: center; 
+            padding: 20px; 
+            border-top: 1px solid rgba(16, 185, 129, 0.2); 
+            color: #a7f3d0; 
+            font-size: 14px; 
+        }
+        .footer a { 
+            color: #10b981; 
+            text-decoration: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Calayo Clothing</div>
+            <p class="tagline">Custom Fashion, Crafted for You</p>
+        </div>
+        
+        <div class="content">
+            <h1 class="welcome-text">Confirm Email Change</h1>
+            <p class="description">
+                We received a request to change the email address associated with your Calayo Clothing account.
+            </p>
+            
+            <div class="email-info">
+                <h3>New Email Address:</h3>
+                <div class="email-address">{{ .Email }}</div>
+            </div>
+            
+            <div class="cta-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">Confirm Email Change</a>
+            </div>
+            
+            <div class="security-note">
+                <h3>Important Security Information</h3>
+                <p>If you didn't request this email change, please ignore this email and contact our support team immediately. Your account security is our priority.</p>
+            </div>
+            
+            <p class="description">
+                After confirmation, you'll use this new email address to sign in to your account and receive all future communications from Calayo Clothing.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Questions or concerns? <a href="mailto:support@calayoclothing.com">Contact support</a></p>
+            <p>&copy; 2024 Calayo Clothing. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

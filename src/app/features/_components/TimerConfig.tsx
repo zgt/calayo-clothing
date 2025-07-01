@@ -24,13 +24,15 @@ const DEFAULT_CONFIG: TimerConfig = {
 
 const PRESET_WORKOUTS: TimerConfig[] = [
   {
-    workoutName: 'Emil\'s Sub-max Daily Fingerbrd',
+    workoutName: 'Emil\'s Sub-max Daily Fingerboard',
     exercises: [
       { name: 'Isometric Hang', sets: 1, reps: 6, workDuration: 10, restDuration: 20 },
       { name: 'Isometric Hang: Front 3 Open', sets: 1, reps: 6, workDuration: 10, restDuration: 20 },
       { name: 'Isometric Hang: Front 2 Open', sets: 1, reps: 2, workDuration: 10, restDuration: 20 },
       { name: 'Isometric Hang: Middle 2 Open', sets: 1, reps: 2, workDuration: 10, restDuration: 20 },
       { name: 'Isometric Hang: Front 2 Half Crimp', sets: 1, reps: 2, workDuration: 10, restDuration: 20 },
+      { name: 'Isometric Hang: Middle 2 Half Crimp', sets: 1, reps: 2, workDuration: 10, restDuration: 20 },
+
     ],
   },
   {

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Calayo Clothing</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #0f0f0f; 
+            color: #f0f0f0; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: linear-gradient(135deg, #064e3b 0%, #0f2027 100%); 
+            border-radius: 16px; 
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+        }
+        .header { 
+            text-align: center; 
+            padding: 40px 20px 20px; 
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2); 
+        }
+        .logo { 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: #10b981; 
+            margin-bottom: 8px; 
+        }
+        .tagline { 
+            color: #a7f3d0; 
+            font-size: 14px; 
+            margin: 0; 
+        }
+        .content { 
+            padding: 40px 20px; 
+        }
+        .welcome-text { 
+            font-size: 24px; 
+            font-weight: 600; 
+            color: #ffffff; 
+            margin-bottom: 16px; 
+            text-align: center; 
+        }
+        .description { 
+            color: #d1fae5; 
+            line-height: 1.6; 
+            margin-bottom: 32px; 
+            text-align: center; 
+        }
+        .cta-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            color: #ffffff; 
+            text-decoration: none; 
+            padding: 16px 32px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            text-align: center; 
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4); 
+            transition: all 0.3s ease; 
+        }
+        .cta-container { 
+            text-align: center; 
+            margin-bottom: 32px; 
+        }
+        .footer { 
+            text-align: center; 
+            padding: 20px; 
+            border-top: 1px solid rgba(16, 185, 129, 0.2); 
+            color: #a7f3d0; 
+            font-size: 14px; 
+        }
+        .footer a { 
+            color: #10b981; 
+            text-decoration: none; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Calayo Clothing</div>
+            <p class="tagline">Custom Fashion, Crafted for You</p>
+        </div>
+        
+        <div class="content">
+            <h1 class="welcome-text">Welcome to Calayo!</h1>
+            <p class="description">
+                Thank you for joining our community of fashion enthusiasts. We're excited to help you create 
+                unique, custom clothing pieces that reflect your personal style and vision.
+            </p>
+            
+            <div class="cta-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">Confirm Your Account</a>
+            </div>
+            
+            <p class="description">
+                Once confirmed, you'll be able to request custom commissions, manage your measurements, 
+                and track your orders all in one place.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? <a href="mailto:support@calayoclothing.com">Contact our support team</a></p>
+            <p>&copy; 2024 Calayo Clothing. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
