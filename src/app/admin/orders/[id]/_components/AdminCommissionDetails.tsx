@@ -79,12 +79,9 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    case 'approved':
-      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
+    case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-    case 'ready':
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
     case 'completed':
       return 'bg-green-500/20 text-green-300 border-green-500/30';
     case 'cancelled':
@@ -234,9 +231,7 @@ export default function AdminCommissionDetails({ commission }: AdminCommissionDe
               className="w-full rounded-lg border border-purple-700/30 bg-purple-900/50 px-3 py-2 text-purple-100"
             >
               <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="in progress">In Progress</option>
-              <option value="ready">Ready</option>
+              <option value="In Progress">In Progress</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>

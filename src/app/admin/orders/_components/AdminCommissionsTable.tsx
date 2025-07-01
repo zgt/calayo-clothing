@@ -57,12 +57,9 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    case 'approved':
-      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
+    case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-    case 'ready':
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
     case 'completed':
       return 'bg-green-500/20 text-green-300 border-green-500/30';
     case 'cancelled':
@@ -312,34 +309,14 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               Pending
             </button>
             <button
-              onClick={() => setFilter('approved')}
+              onClick={() => setFilter('In Progress')}
               className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'approved' 
-                  ? 'bg-blue-700/50 text-white border-blue-500/50' 
-                  : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
-              } transition-colors`}
-            >
-              Approved
-            </button>
-            <button
-              onClick={() => setFilter('in progress')}
-              className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'in progress' 
+                filter === 'In Progress' 
                   ? 'bg-purple-700/50 text-white border-purple-500/50' 
                   : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
               } transition-colors`}
             >
               In Progress
-            </button>
-            <button
-              onClick={() => setFilter('ready')}
-              className={`px-3 py-1 text-sm rounded-full border ${
-                filter === 'ready' 
-                  ? 'bg-emerald-700/50 text-white border-emerald-500/50' 
-                  : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
-              } transition-colors`}
-            >
-              Ready
             </button>
             <button
               onClick={() => setFilter('completed')}
@@ -615,21 +592,9 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-purple-300/80">Approved:</span>
-                <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'approved').length}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
                 <span className="text-purple-300/80">In Progress:</span>
                 <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'in progress').length}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-purple-300/80">Ready:</span>
-                <span className="text-white font-medium">
-                  {commissions.filter(c => c.status.toLowerCase() === 'ready').length}
+                  {commissions.filter(c => c.status === 'In Progress').length}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -737,7 +702,7 @@ export default function AdminCommissionsTable({ commissions }: AdminCommissionsT
               >
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
-                <option value="in progress">In Progress</option>
+                <option value="In Progress">In Progress</option>
                 <option value="ready">Ready</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>

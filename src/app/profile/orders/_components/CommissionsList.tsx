@@ -46,9 +46,8 @@ const getStatusBadge = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
       return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    case 'approved':
-      return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
     case 'in progress':
+    case 'In Progress':
       return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
     case 'ready':
       return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
@@ -94,19 +93,9 @@ export default function CommissionsList({ commissions }: CommissionsListProps) {
           Pending
         </button>
         <button
-          onClick={() => setFilter('approved')}
+          onClick={() => setFilter('In Progress')}
           className={`px-3 py-1 text-sm rounded-full border ${
-            filter === 'approved' 
-              ? 'bg-blue-700/50 text-white border-blue-500/50' 
-              : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
-          } transition-colors`}
-        >
-          Approved
-        </button>
-        <button
-          onClick={() => setFilter('in progress')}
-          className={`px-3 py-1 text-sm rounded-full border ${
-            filter === 'in progress' 
+            filter === 'In Progress' 
               ? 'bg-purple-700/50 text-white border-purple-500/50' 
               : 'bg-transparent text-emerald-300 border-emerald-700/30 hover:bg-emerald-800/30'
           } transition-colors`}
