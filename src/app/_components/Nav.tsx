@@ -13,6 +13,9 @@ export default function Nav() {
   // Check if we're on the login page
   const isLoginPage = pathname === "/login";
   
+  // Check if we're on the home page
+  const isHomePage = pathname === "/";
+  
   // Active link style helper
   const active = (path: string) =>
     path === pathname 
@@ -26,14 +29,9 @@ export default function Nav() {
         <div className="flex items-center space-x-6">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image
-              src="/nested_green_Cs.svg"
-              alt="Calayo Clothing Logo"
-              width={32}
-              height={32}
-              className="text-emerald-800"
-            />
-            <span className="ml-2 text-xl font-bold text-white">Calayo Clothing</span>
+            {!isHomePage && (
+              <span className="ml-2 text-xl font-bold text-white">Calayo Clothing</span>
+            )}
           </Link>
 
           {/* Navigation links */}
