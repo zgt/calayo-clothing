@@ -1,136 +1,233 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import ProfileDropdown from "./ProfileDropdown";
+import React, { useEffect, useState, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { type LucideIcon, Home, User, Briefcase, FileText, ChevronDown } from "lucide-react"
+
+interface DropdownItem {
+  name: string
+  url: string
+}
+
+interface NavItem {
+  name: string
+  url: string
+  icon: LucideIcon
+  dropdown?: DropdownItem[]
+}
+
+interface NavBarProps {
+  items: NavItem[]
+  className?: string
+}
+
+// Helper function for utility classes
+function cn(...inputs: (string | undefined | null | boolean)[]) {
+  return inputs.filter(Boolean).join(' ');
+}
+
+export function NavBar({ items, className }: NavBarProps) {
+  const pathname = usePathname()
+  const [activeTab, setActiveTab] = useState("")
+  const [isMobile, setIsMobile] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Set active tab based on current pathname
+  useEffect(() => {
+    const currentItem = items.find(item => {
+      if (item.url === pathname) return true
+      if (item.dropdown) {
+        return item.dropdown.some(dropdownItem => dropdownItem.url === pathname)
+      }
+      return false
+    })
+    if (currentItem) {
+      setActiveTab(currentItem.name)
+    } else {
+      // Handle special case: if no direct match found, clear active tab
+      setActiveTab("")
+    }
+  }, [pathname, items])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleItemClick = (item: NavItem) => {
+    if (item.dropdown) {
+      setOpenDropdown(openDropdown === item.name ? null : item.name)
+    } else {
+      setActiveTab(item.name)
+      setOpenDropdown(null)
+    }
+  }
+
+  return (
+    <div
+      className={cn(
+        "fixed bottom-0 sm:top-0 left-1/2 -translate-x-1/2 z-50 mb-6 sm:pt-6 pointer-events-none w-fit h-fit",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-3 bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg pointer-events-auto">
+        {items.map((item) => {
+          const Icon = item.icon
+          const hasDropdown = item.dropdown && item.dropdown.length > 0
+          const isDropdownOpen = openDropdown === item.name
+          // Only highlight if this is the active tab AND dropdown is not open on another item
+          const isActive = activeTab === item.name && !openDropdown
+          // Highlight dropdown button when it's open OR when on a page that matches dropdown items
+          const isOnDropdownPage = hasDropdown && item.dropdown?.some(dropdownItem => dropdownItem.url === pathname)
+          const isDropdownActive = hasDropdown && (isDropdownOpen || isOnDropdownPage)
+
+          return (
+            <div key={item.name} className="relative" ref={hasDropdown ? dropdownRef : undefined}>
+              {hasDropdown ? (
+                <button
+                  onClick={() => handleItemClick(item)}
+                  className={cn(
+                    "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-1",
+                    "text-emerald-100/80 hover:text-white",
+                    isDropdownActive && "bg-emerald-800/30 text-white",
+                  )}
+                >
+                  <span className="hidden md:inline">{item.name}</span>
+                  <span className="md:hidden">
+                    <Icon size={18} strokeWidth={2.5} />
+                  </span>
+                  <ChevronDown 
+                    size={14} 
+                    className={cn(
+                      "hidden md:inline transition-transform",
+                      isDropdownOpen && "rotate-180"
+                    )} 
+                  />
+                  {isDropdownActive && (
+                    <motion.div
+                      layoutId="lamp"
+                      className="absolute inset-0 w-full bg-emerald-400/10 rounded-full -z-10"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    >
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-400 rounded-t-full">
+                        <div className="absolute w-12 h-6 bg-emerald-400/20 rounded-full blur-md -top-2 -left-2" />
+                        <div className="absolute w-8 h-6 bg-emerald-400/20 rounded-full blur-md -top-1" />
+                        <div className="absolute w-4 h-4 bg-emerald-400/20 rounded-full blur-sm top-0 left-2" />
+                      </div>
+                    </motion.div>
+                  )}
+                </button>
+              ) : (
+                <Link
+                  href={item.url}
+                  onClick={() => handleItemClick(item)}
+                  className={cn(
+                    "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
+                    "text-emerald-100/80 hover:text-white",
+                    isActive && "bg-emerald-800/30 text-white",
+                  )}
+                >
+                  <span className="hidden md:inline">{item.name}</span>
+                  <span className="md:hidden">
+                    <Icon size={18} strokeWidth={2.5} />
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="lamp"
+                      className="absolute inset-0 w-full bg-emerald-400/10 rounded-full -z-10"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    >
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-400 rounded-t-full">
+                        <div className="absolute w-12 h-6 bg-emerald-400/20 rounded-full blur-md -top-2 -left-2" />
+                        <div className="absolute w-8 h-6 bg-emerald-400/20 rounded-full blur-md -top-1" />
+                        <div className="absolute w-4 h-4 bg-emerald-400/20 rounded-full blur-sm top-0 left-2" />
+                      </div>
+                    </motion.div>
+                  )}
+                </Link>
+              )}
+              
+              <AnimatePresence>
+                {hasDropdown && isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30,
+                    }}
+                    className="absolute top-full mt-2 left-1/2 -translate-x-1/2 min-w-[160px] bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg rounded-xl shadow-lg py-2 z-50"
+                  >
+                    {item.dropdown!.map((dropdownItem) => (
+                      <Link
+                        key={dropdownItem.name}
+                        href={dropdownItem.url}
+                        onClick={() => {
+                          setActiveTab(item.name)
+                          setOpenDropdown(null)
+                        }}
+                        className="block px-4 py-2 text-sm text-emerald-100/80 hover:text-white hover:bg-emerald-800/20 transition-colors"
+                      >
+                        {dropdownItem.name}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function Nav() {
-  const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Check if we're on the login page
-  const isLoginPage = pathname === "/login";
-  
-  // Check if we're on the home page
-  const isHomePage = pathname === "/";
-  
-  // Active link style helper
-  const active = (path: string) =>
-    path === pathname 
-      ? "border-emerald-400 text-white font-medium" 
-      : "border-transparent text-emerald-100/80 hover:border-emerald-400/70 hover:text-white";
-  
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-emerald-900/30 to-emerald-800/30 backdrop-blur-none shadow-md">
-      <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        {/* Left side - Logo and Navigation links */}
-        <div className="flex items-center space-x-6">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            {!isHomePage && (
-              <span className="ml-2 text-xl font-bold text-white">Calayo Clothing</span>
-            )}
-          </Link>
+  const navItems: NavItem[] = [
+    { name: 'Home', url: '/', icon: Home },
+    { 
+      name: 'Commissions', 
+      url: '/commissions', 
+      icon: Briefcase,
+      dropdown: [
+        { name: 'Create Commission', url: '/commissions' },
+        { name: 'My Orders', url: '/profile/orders' }
+      ]
+    },
+    { name: 'Features', url: '/features', icon: FileText },
+    { name: 'About', url: '/about', icon: User }
+  ]
 
-          {/* Navigation links */}
-          <ul className="hidden md:flex items-center space-x-6">
-            <li className={`border-b-2 py-2 transition-colors duration-200 ${active("/")}`}>
-              <Link href="/" className="px-1">Home</Link>
-            </li>
-            <li className={`border-b-2 py-2 transition-colors duration-200 ${active("/commissions")}`}>
-              <Link href="/commissions" className="px-1">Commissions</Link>
-            </li>
-            <li className={`border-b-2 py-2 transition-colors duration-200 ${active("/features")}`}>
-              <Link href="/features" className="px-1">Features</Link>
-            </li>
-            <li className={`border-b-2 py-2 transition-colors duration-200 ${active("/about")}`}>
-              <Link href="/about" className="px-1">About me</Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Right side - Profile */}
-        <div className="flex items-center">
-          {!isLoginPage && (
-            <div className="flex items-center">
-              <ProfileDropdown />
-            </div>
-          )}
-          
-          {/* Mobile menu button */}
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="ml-4 md:hidden rounded-lg p-2 text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M4 6h16M4 12h16M4 18h16" 
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-      
-      {/* Mobile navigation menu */}
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-emerald-800/30 backdrop-blur-xs pb-3`}>
-        <div className="px-2 pt-2 pb-3 space-y-1">
-          <Link 
-            href="/" 
-            className={`block px-3 py-2 rounded-md ${
-              pathname === "/" 
-                ? "bg-emerald-700 text-white" 
-                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
-            }`}
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link 
-            href="/commissions" 
-            className={`block px-3 py-2 rounded-md ${
-              pathname === "/commissions" 
-                ? "bg-emerald-700 text-white" 
-                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
-            }`}
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Commissions
-          </Link>
-          <Link 
-            href="/features" 
-            className={`block px-3 py-2 rounded-md ${
-              pathname === "/features" 
-                ? "bg-emerald-700 text-white" 
-                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
-            }`}
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Features
-          </Link>
-          <Link 
-            href="/about" 
-            className={`block px-3 py-2 rounded-md ${
-              pathname === "/about" 
-                ? "bg-emerald-700 text-white" 
-                : "text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
-            }`}
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            About me
-          </Link>
-        </div>
-      </div>
-    </nav>
-  );
+  return <NavBar items={navItems} />
 }

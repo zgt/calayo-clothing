@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "~/components/ui/sonner";
 import Nav from "~/app/_components/Nav";
+import FloatingProfile from "~/app/_components/FloatingProfile";
 import { TRPCReactProvider } from "~/trpc/react";
 import { SupabaseProvider } from "~/context/supabase-provider";
 import { AuthProvider } from "~/context/auth";
@@ -37,6 +38,7 @@ export default function RootLayout({
                 routerConfig={extractRouterConfig(ourFileRouter)}
               />
               <Nav />
+              <FloatingProfile />
               <ShaderGradientBackground />
               <main className="pt-16">
                 {children}
