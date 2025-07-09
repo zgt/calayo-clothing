@@ -189,7 +189,10 @@ export function NavBar({ items, className }: NavBarProps) {
                       stiffness: 300,
                       damping: 30,
                     }}
-                    className="absolute bottom-full mb-2 sm:top-full sm:mt-2 sm:mb-0 left-1/2 -translate-x-1/2 min-w-[160px] bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg rounded-xl shadow-lg py-2 z-50"
+                    className={cn(
+                      "absolute left-1/2 -translate-x-1/2 min-w-[160px] bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg rounded-xl shadow-lg py-2 z-50",
+                      isMobile ? "bottom-full mb-2" : "top-full mt-2"
+                    )}
                   >
                     {item.dropdown!.map((dropdownItem) => (
                       <Link
