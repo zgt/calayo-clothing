@@ -89,7 +89,7 @@ export function NavBar({ items, className }: NavBarProps) {
         className,
       )}
     >
-      <div className="flex items-center gap-3 bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg pointer-events-auto">
+      <div className="flex items-center gap-1 bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg py-1 px-1 rounded-full shadow-lg pointer-events-auto">
         {items.map((item) => {
           const Icon = item.icon
           const hasDropdown = item.dropdown && item.dropdown.length > 0
@@ -106,8 +106,9 @@ export function NavBar({ items, className }: NavBarProps) {
                 <button
                   onClick={() => handleItemClick(item)}
                   className={cn(
-                    "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors flex items-center gap-1",
+                    "relative cursor-pointer text-sm font-semibold px-4 md:px-6 py-2 rounded-full transition-colors flex items-center gap-1",
                     "text-emerald-100/80 hover:text-white",
+                    "md:gap-1",
                     isDropdownActive && "bg-emerald-800/30 text-white",
                   )}
                 >
@@ -118,7 +119,7 @@ export function NavBar({ items, className }: NavBarProps) {
                   <ChevronDown 
                     size={14} 
                     className={cn(
-                      "hidden md:inline transition-transform",
+                      "transition-transform",
                       isDropdownOpen && "rotate-180"
                     )} 
                   />
@@ -133,10 +134,10 @@ export function NavBar({ items, className }: NavBarProps) {
                         damping: 30,
                       }}
                     >
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-400 rounded-t-full">
-                        <div className="absolute w-12 h-6 bg-emerald-400/20 rounded-full blur-md -top-2 -left-2" />
-                        <div className="absolute w-8 h-6 bg-emerald-400/20 rounded-full blur-md -top-1" />
-                        <div className="absolute w-4 h-4 bg-emerald-400/20 rounded-full blur-sm top-0 left-2" />
+                      <div className="absolute -bottom-2 sm:-top-2 left-1/2 -translate-x-1/2 w-10 sm:w-8 h-1 bg-emerald-400 rounded-b-full sm:rounded-t-full sm:rounded-b-none">
+                        <div className="absolute w-14 sm:w-12 h-6 bg-emerald-400/20 rounded-full blur-md -bottom-2 sm:-top-2 -left-2" />
+                        <div className="absolute w-10 sm:w-8 h-6 bg-emerald-400/20 rounded-full blur-md -bottom-1 sm:-top-1" />
+                        <div className="absolute w-6 sm:w-4 h-4 bg-emerald-400/20 rounded-full blur-sm bottom-0 sm:top-0 left-2" />
                       </div>
                     </motion.div>
                   )}
@@ -146,8 +147,9 @@ export function NavBar({ items, className }: NavBarProps) {
                   href={item.url}
                   onClick={() => handleItemClick(item)}
                   className={cn(
-                    "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
+                    "relative cursor-pointer text-sm font-semibold px-4 md:px-6 py-2 rounded-full transition-colors flex items-center gap-1",
                     "text-emerald-100/80 hover:text-white",
+                    "md:gap-1",
                     isActive && "bg-emerald-800/30 text-white",
                   )}
                 >
@@ -166,10 +168,10 @@ export function NavBar({ items, className }: NavBarProps) {
                         damping: 30,
                       }}
                     >
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-400 rounded-t-full">
-                        <div className="absolute w-12 h-6 bg-emerald-400/20 rounded-full blur-md -top-2 -left-2" />
-                        <div className="absolute w-8 h-6 bg-emerald-400/20 rounded-full blur-md -top-1" />
-                        <div className="absolute w-4 h-4 bg-emerald-400/20 rounded-full blur-sm top-0 left-2" />
+                      <div className="absolute -bottom-2 sm:-top-2 left-1/2 -translate-x-1/2 w-10 sm:w-8 h-1 bg-emerald-400 rounded-b-full sm:rounded-t-full sm:rounded-b-none">
+                        <div className="absolute w-14 sm:w-12 h-6 bg-emerald-400/20 rounded-full blur-md -bottom-2 sm:-top-2 -left-2" />
+                        <div className="absolute w-10 sm:w-8 h-6 bg-emerald-400/20 rounded-full blur-md -bottom-1 sm:-top-1" />
+                        <div className="absolute w-6 sm:w-4 h-4 bg-emerald-400/20 rounded-full blur-sm bottom-0 sm:top-0 left-2" />
                       </div>
                     </motion.div>
                   )}
@@ -179,15 +181,15 @@ export function NavBar({ items, className }: NavBarProps) {
               <AnimatePresence>
                 {hasDropdown && isDropdownOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: isMobile ? 10 : -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    exit={{ opacity: 0, y: isMobile ? 10 : -10, scale: 0.95 }}
                     transition={{
                       type: "spring",
                       stiffness: 300,
                       damping: 30,
                     }}
-                    className="absolute top-full mt-2 left-1/2 -translate-x-1/2 min-w-[160px] bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg rounded-xl shadow-lg py-2 z-50"
+                    className="absolute bottom-full mb-2 sm:top-full sm:mt-2 sm:mb-0 left-1/2 -translate-x-1/2 min-w-[160px] bg-emerald-900/20 border border-emerald-800/30 backdrop-blur-lg rounded-xl shadow-lg py-2 z-50"
                   >
                     {item.dropdown!.map((dropdownItem) => (
                       <Link
