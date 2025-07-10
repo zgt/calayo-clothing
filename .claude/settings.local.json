@@ -13,7 +13,12 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(npx:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)"
     ],
     "deny": []
   }
