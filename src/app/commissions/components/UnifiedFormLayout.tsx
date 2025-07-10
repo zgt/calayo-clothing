@@ -65,10 +65,8 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
     const handleGarmentTypeChange = (value: string) => {
       onSelectChange(value, "garmentType");
       if (value) {
-        // Small delay to allow the selection to be visible before expanding
-        setTimeout(() => {
-          onExpand();
-        }, 300);
+        // Immediately trigger expand for testing
+        onExpand();
       }
     };
 
@@ -78,14 +76,18 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
           {/* Form wrapper for all elements */}
           <form onSubmit={onSubmit} className="relative">
             {/* Initial container for centered position */}
-            <div id="initial-position" className="min-h-screen flex items-center justify-center">
-              {/* Main form card - starts centered, will flip to expanded grid */}
-              <div 
+
+            {/* Grid layout for expanded state - hidden initially */}
+            <div id="expanded-grid" className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Commission Request + Additional Details */}
+              <div id="column-1" className="space-y-6">
+                {/* Target position for commission request card after flip */}
+                <div 
                 id="main-form-card"
                 data-flip-id="commission-request-card"
                 className="w-full max-w-md"
               >
-                <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
+                <div id="main-card-gradient" className="h-full bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
                   <div id="card-header" className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-white mb-2">
                       Clothing Commission Request
@@ -137,41 +139,17 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Grid layout for expanded state - hidden initially */}
-            <div id="expanded-grid" className="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0">
-              {/* Left Column - Commission Request + Additional Details */}
-              <div className="space-y-6">
-                {/* Target position for commission request card after flip */}
-                <div 
-                  id="commission-request-target"
-                  className="opacity-0"
-                >
-                  {/* This will be populated by the flipped card */}
-                </div>
                 
-                <div 
-                  id="additional-details-card"
-                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
-                >
-                  <FormTextarea
-                    id="details"
-                    name="details"
-                    label="Additional Details"
-                    value={formData.details}
-                    onChange={onInputChange}
-                    placeholder="Tell us more about your vision..."
-                    error={errors.details}
-                    rows={4}
-                    required
-                  />
-                </div>
+                
               </div>
 
               {/* Center Column - Garment Image Placeholder */}
-              <div className="flex items-center justify-center">
-              <div className="space-y-6">
+              <div className="space-y-6 grid-column-inline-grid">
+              <div 
+                  id="commission-request-target"
+                >
+                  {/* This will be populated by the flipped card */}
+                </div>
 
                 <div 
                   id="garment-preview-card"
@@ -203,6 +181,32 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                     </p>
                   </div>
                 </div>
+                
+                <div 
+                  id="additional-details-card"
+                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
+                >
+                  <FormTextarea
+                    id="details"
+                    name="details"
+                    label="Additional Details"
+                    value={formData.details}
+                    onChange={onInputChange}
+                    placeholder="Tell us more about your vision..."
+                    error={errors.details}
+                    rows={4}
+                    required
+                  />
+                </div>
+
+
+              </div>
+
+              {/* Right Column - Measurement Guide and Measurements */}
+              <div className="space-y-6 grid-column-inline-grid">
+                <div id="measurement-guide-card">
+                  <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
+                </div>
                 <div 
                   id="measurement-navigator-card"
                   className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
@@ -216,34 +220,12 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                     onMeasurementChange={onMeasurementChange}
                   />
                 </div>
-                </div>
-
-
-              </div>
-
-              {/* Right Column - Measurement Guide and Measurements */}
-              <div className="space-y-6">
-                <div id="measurement-guide-card">
-                  <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
-                </div>
-
-               {/* <div 
-                  id="measurement-navigator-card"
-                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
-                >
-                  <MeasurementNavigator
-                    formData={formData}
-                    errors={errors}
-                    onChange={onInputChange}
-                    onLoadMeasurements={onLoadMeasurements}
-                    isLoadingMeasurements={isLoadingMeasurements}
-                    onMeasurementChange={onMeasurementChange}
-                  />
-                </div>  */}
-
-                <div id="submit-button-container">
+                <div id="submit-button-container" className="submit-container">
                   <SubmitButton isLoading={isSubmitting} />
                 </div>
+
+
+                
               </div>
             </div>
 
