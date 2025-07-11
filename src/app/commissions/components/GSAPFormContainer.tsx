@@ -53,18 +53,18 @@ export function GSAPFormContainer({
     const budgetTimelineSection = containerRef.current.querySelector("#budget-timeline-section");
 
     // Set initial states
-    gsap.set([
-      // //expandedGrid,
-      // commissionRequestTarget,
-      additionalDetailsCard,
-      garmentPreviewCard,
-      measurementGuideCard,
-      measurementNavigatorCard,
-      submitButtonContainer,
-      budgetTimelineSection
-    ], {
-      opacity: 0
-    });
+    // gsap.set([
+    //   // //expandedGrid,
+    //   // commissionRequestTarget,
+    //   additionalDetailsCard,
+    //   garmentPreviewCard,
+    //   measurementGuideCard,
+    //   measurementNavigatorCard,
+    //   submitButtonContainer,
+    //   budgetTimelineSection
+    // ], {
+    //   opacity: 0
+    // });
 
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
@@ -139,16 +139,26 @@ export function GSAPFormContainer({
     const submitButtonContainer = containerRef.current.querySelector("#submit-button-container");
     const budgetTimelineSection = containerRef.current.querySelector("#budget-timeline-section");
     const column1 = containerRef.current.querySelector("#column-1");
+    const column3 = containerRef.current.querySelector("#column-3");
+    const budgetTimelineTarget = containerRef.current.querySelector("#budget-timeline-target");
+    const budget = containerRef.current.querySelector("#budget");
+    const timeline = containerRef.current.querySelector("#timeline");
+
+
+
 
 
     // Move the card to the target position and make target visible
-    if (commissionRequestTarget && mainCard && mainCardGradient && expandedGrid && column1) {
+    if (commissionRequestTarget && mainCard && mainCardGradient && expandedGrid && 
+      column1 && budgetTimelineSection && budgetTimelineTarget) {
       // Hide the initial position container
       gsap.set(initialPosition, { display: "none" });
       
       // Show the expanded grid and target
       gsap.set(expandedGrid, { opacity: 1, display: "grid" });
       gsap.set(commissionRequestTarget, { opacity: 1 });
+      
+
       
       // // Move the card to the target position in DOM
 
@@ -164,10 +174,12 @@ export function GSAPFormContainer({
           // mainCardGradient.classList.add("to-emerald-950/100")
         },
         onComplete: () => {
-          
+          gsap.set(column1, {opacity: 1})
+          gsap.set(column3, {opacity: 1})
           column1.appendChild(mainCard)
-          additionalDetailsCard?.appendChild(commissionRequestTarget)
+          commissionRequestTarget.remove()
           gsap.set(budgetTimelineSection, {opacity: 1})
+          budgetTimelineTarget.appendChild(budgetTimelineSection)
           Flip.fit(mainCard, column1, {
             duration: .5,
             absolute: true,
