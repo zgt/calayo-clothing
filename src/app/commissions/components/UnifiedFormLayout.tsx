@@ -191,7 +191,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                   id="garment-preview-card"
                   className="opacity-0 w-full max-w-sm aspect-square"
                 >
-                  <GarmentViewer className="w-full h-full" />
+                  <GarmentViewer className="w-full h-full" garmentType={formData.garmentType} />
                 </div>
                 
                 <div 

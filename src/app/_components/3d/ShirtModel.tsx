@@ -11,7 +11,7 @@ export function ShirtModel() {
 
   // Create grey material once
   const greyMaterial = new THREE.MeshStandardMaterial({
-    color: 'grey-200', // grey-500
+    color: 'grey-300', // grey-500
     roughness: 0.8,
     metalness: 0.1,
   });
@@ -35,7 +35,7 @@ export function ShirtModel() {
   };
 
   return (
-    <group ref={shirtRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -1.1, 0]}>
+    <group ref={shirtRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -1.4, 0]} scale={1.2}>
       {object2 && getGeometry(object2) && (
         <mesh 
           geometry={getGeometry(object2)} 
