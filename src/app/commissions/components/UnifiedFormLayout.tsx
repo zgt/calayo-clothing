@@ -1,14 +1,14 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { FormSelect } from "./FormSelect";
 import { FormTextarea } from "./FormTextarea";
 import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
+import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
 import type { CommissionFormData, MeasurementKey } from "../types";
-import { motion } from "framer-motion";
 
 interface UnifiedFormLayoutProps {
   formData: CommissionFormData;
@@ -23,6 +23,7 @@ interface UnifiedFormLayoutProps {
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
   onExpand: () => void;
 }
+
 
 const budgetOptions = [
   { value: "100-300", label: "$100 - $300" },
@@ -64,14 +65,165 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
     },
     ref
   ) => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+      const checkIsMobile = () => {
+        setIsMobile(window.innerWidth < 1024);
+      };
+      
+      checkIsMobile();
+      window.addEventListener('resize', checkIsMobile);
+      return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
     const handleGarmentTypeChange = (value: string) => {
       onSelectChange(value, "garmentType");
-      if (value) {
-        // Immediately trigger expand for testing
+      if (value && !isMobile) {
         onExpand();
       }
     };
 
+    if (isMobile) {
+      return (
+        <div ref={ref} className="min-h-screen">
+          <div className="mx-auto">
+            {/* Fixed 3D Preview at top */}
+            {formData.garmentType && (
+              <div className="sticky top-0 z-30 h-48 w-full" style={{ backgroundColor: "black" }}>
+                <GarmentViewer 
+                  className="w-full h-full" 
+                  garmentType={formData.garmentType} 
+                  disableInteraction={true}
+                />
+              </div>
+            )}
+
+            {/* Sticky Tabs Form */}
+            <form onSubmit={onSubmit}>
+              <StickyTabs
+                mainNavHeight={formData.garmentType ? "12rem" : "40rem"}
+                rootClassName="bg-transparent"
+                navSpacerClassName="bg-transparent"
+                sectionClassName="bg-transparent"
+              >
+                <StickyTabs.Item title="Garment Type" id="garment-type">
+                  <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md  shadow-2xl p-6 border border-emerald-700/30">
+                    <FormSelect
+                      id="garmentType"
+                      name="garmentType"
+                      label="Garment Type"
+                      value={formData.garmentType}
+                      onChange={handleGarmentTypeChange}
+                      options={garmentOptions}
+                      placeholder="Select garment type"
+                      error={errors.garmentType}
+                      required
+                    />
+                  </div>
+                </StickyTabs.Item>
+
+                <StickyTabs.Item title="Budget & Timeline" id="budget-timeline">
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md shadow-2xl p-6 border border-emerald-700/30">
+                      <div className="space-y-6">
+                        <FormSelect
+                          id="budget"
+                          name="budget"
+                          label="Budget Range"
+                          value={formData.budget}
+                          onChange={(value) => onSelectChange(value, "budget")}
+                          options={budgetOptions}
+                          placeholder="Select budget range"
+                          error={errors.budget}
+                          required
+                        />
+
+                        <FormSelect
+                          id="timeline"
+                          name="timeline"
+                          label="Timeline"
+                          value={formData.timeline}
+                          onChange={(value) => onSelectChange(value, "timeline")}
+                          options={timelineOptions}
+                          placeholder="Select timeline"
+                          error={errors.timeline}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </StickyTabs.Item>
+
+                <StickyTabs.Item title="Additional Details" id="details">
+                  <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md  shadow-2xl p-6 border border-emerald-700/30">
+                    <FormTextarea
+                      id="details"
+                      name="details"
+                      label="Additional Details"
+                      value={formData.details}
+                      onChange={onInputChange}
+                      placeholder="Describe your vision, preferred colors, style, fit, or any special requirements..."
+                      error={errors.details}
+                      rows={6}
+                      required
+                    />
+                  </div>
+                </StickyTabs.Item>
+
+                <StickyTabs.Item title="Measurements" id="measurements">
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md  shadow-2xl p-6 border border-emerald-700/30">
+                      <MeasurementNavigator
+                        formData={formData}
+                        errors={errors}
+                        onChange={onInputChange}
+                        onLoadMeasurements={onLoadMeasurements}
+                        isLoadingMeasurements={isLoadingMeasurements}
+                        onMeasurementChange={onMeasurementChange}
+                      />
+                    </div>
+                    
+                    <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
+                  </div>
+                </StickyTabs.Item>
+
+                <StickyTabs.Item title="Review & Submit" id="review">
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md  shadow-2xl p-6 border border-emerald-700/30">
+                      <div className="space-y-4 mb-8">
+                        <div className="flex justify-between py-3 border-b border-emerald-700/20">
+                          <span className="text-emerald-200">Garment Type:</span>
+                          <span className="text-white font-medium">{formData.garmentType}</span>
+                        </div>
+                        <div className="flex justify-between py-3 border-b border-emerald-700/20">
+                          <span className="text-emerald-200">Budget:</span>
+                          <span className="text-white font-medium">{budgetOptions.find(b => b.value === formData.budget)?.label}</span>
+                        </div>
+                        <div className="flex justify-between py-3 border-b border-emerald-700/20">
+                          <span className="text-emerald-200">Timeline:</span>
+                          <span className="text-white font-medium">{timelineOptions.find(t => t.value === formData.timeline)?.label}</span>
+                        </div>
+                        <div className="py-3">
+                          <span className="text-emerald-200 block mb-2">Details:</span>
+                          <p className="text-white text-sm">{formData.details}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pb-8">
+                      <SubmitButton isLoading={isSubmitting} />
+                    </div>
+                  </div>
+                </StickyTabs.Item>
+              </StickyTabs>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Desktop layout (unchanged)
     return (
       <div ref={ref} className="min-h-screen p-4">
         <div className="max-w-6xl mx-auto">
@@ -115,33 +267,6 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                     {/* Budget and Timeline - hidden initially, shown after expansion */}
                     <div id="budget-timeline-target">
                     </div>
-                    {/* <div id="budget-timeline-section" className="space-y-6 opacity-0">
-                      <FormSelect
-                        id="budget"
-                        name="budget"
-                        label="Budget Range"
-                        value={formData.budget}
-                        onChange={(value) => onSelectChange(value, "budget")}
-                        options={budgetOptions}
-                        placeholder="Select budget range"
-                        error={errors.budget}
-                        required
-                        disabled
-                      />
-
-                      <FormSelect
-                        id="timeline"
-                        name="timeline"
-                        label="Timeline"
-                        value={formData.timeline}
-                        onChange={(value) => onSelectChange(value, "timeline")}
-                        options={timelineOptions}
-                        placeholder="Select timeline"
-                        error={errors.timeline}
-                        required
-                        disabled
-                      />
-                    </div> */}
                   </div>
                 </div>
               </div>
@@ -150,11 +275,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
               </div>
 
               {/* Center Column - Garment Image Placeholder */}
-              <motion.div
-                  initial={{ y: "100%"}}
-                  animate={{ y: 0}}
-                  className="grid-column-inline-grid"
-                >
+              <div className="grid-column-inline-grid">
               <div id="column-2" className="space-y-6 ">
                   <div 
                       id="commission-request-target" className=""
@@ -213,7 +334,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
 
 
               </div>
-              </motion.div>
+              </div>
 
               {/* Right Column - Measurement Guide and Measurements */}
               <div id="column-3" className="space-y-6 grid-column-inline-grid opacity-0">

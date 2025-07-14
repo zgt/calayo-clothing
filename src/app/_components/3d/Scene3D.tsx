@@ -15,9 +15,11 @@ function LoadingFallback() {
 
 interface Scene3DProps {
   garmentType: string;
+  isMobile?: boolean;
+  disableInteraction?: boolean;
 }
 
-export function Scene3D({ garmentType }: Scene3DProps) {
+export function Scene3D({ garmentType, isMobile = false, disableInteraction = false }: Scene3DProps) {
 
 
 
@@ -26,50 +28,69 @@ export function Scene3D({ garmentType }: Scene3DProps) {
       {/* Camera setup */}
       <PerspectiveCamera makeDefault position={[1, 1, 2]} fov={30} />
       
-      {/* Lighting setup - three-point lighting */}
-      {/* Key light (main light) */}
-      <directionalLight
-        position={[5, 5, 5]}
-        intensity={1.2}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      
-      {/* Fill light (softer, opposite side) */}
-      <directionalLight
-        position={[-3, 2, 3]}
-        intensity={0.4}
-        color="#f0f9ff"
-      />
-      
-      {/* Rim light (back light for definition) */}
-      <directionalLight
-        position={[0, -2, -5]}
-        intensity={0.3}
-        color="#e0f2fe"
-      />
-      
-      {/* Ambient light for overall illumination */}
-      <ambientLight intensity={0.2} />
+      {/* Lighting setup - simplified for mobile */}
+      {isMobile ? (
+        // Simplified lighting for mobile performance
+        <>
+          <directionalLight
+            position={[5, 5, 5]}
+            intensity={1.0}
+          />
+          <ambientLight intensity={0.4} />
+        </>
+      ) : (
+        // Full three-point lighting for desktop
+        <>
+          {/* Key light (main light) */}
+          <directionalLight
+            position={[5, 5, 5]}
+            intensity={1.2}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
+          
+          {/* Fill light (softer, opposite side) */}
+          <directionalLight
+            position={[-3, 2, 3]}
+            intensity={0.4}
+            color="#f0f9ff"
+          />
+          
+          {/* Rim light (back light for definition) */}
+          <directionalLight
+            position={[0, -2, -5]}
+            intensity={0.3}
+            color="#e0f2fe"
+          />
+          
+          {/* Ambient light for overall illumination */}
+          <ambientLight intensity={0.2} />
+        </>
+      )}
       
       
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
-        <GarmentModel garmentType={garmentType} />
+        <GarmentModel garmentType={garmentType} isMobile={isMobile} />
       </Suspense>
       
-      {/* Controls */}
+      {/* Controls - adaptive for mobile */}
       <OrbitControls
         enablePan={false}
-        enableZoom={true}
-        enableRotate={true}
-        autoRotate={true}
-        autoRotateSpeed={2}
-        minDistance={2}
-        maxDistance={50}
+        enableZoom={!disableInteraction}
+        enableRotate={!disableInteraction}
+        autoRotate={!disableInteraction}
+        autoRotateSpeed={isMobile ? 1 : 2} // Slower rotation on mobile
+        minDistance={isMobile ? 1.5 : 2}
+        maxDistance={isMobile ? 8 : 50}
         zoom0={100}
         target={[0, 0, 0]}
+        // Mobile-specific touch settings
+        enableDamping={true}
+        dampingFactor={0.05}
+        rotateSpeed={isMobile ? 0.5 : 1}
+        zoomSpeed={isMobile ? 0.5 : 1}
       />
     </>
   );

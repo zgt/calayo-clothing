@@ -39,6 +39,17 @@ export function GSAPFormContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -141,7 +152,7 @@ export function GSAPFormContainer({
   }, [currentMeasurement]);
 
   const handleExpand = () => {
-    if (isExpanded || !containerRef.current) return;
+    if (isExpanded || !containerRef.current || isMobile) return; // Skip GSAP animations on mobile
 
     setIsExpanded(true);
 

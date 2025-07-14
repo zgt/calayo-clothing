@@ -8,11 +8,13 @@ import FloatingProfile from "~/app/_components/FloatingProfile";
 import { TRPCReactProvider } from "~/trpc/react";
 import { SupabaseProvider } from "~/context/supabase-provider";
 import { AuthProvider } from "~/context/auth";
+import { MobileProvider } from "~/context/mobile-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "~/server/uploadthing";
 import ShaderGradientBackground from "./_components/ShaderGradient";
+import MainContent from "./_components/MainContent";
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
@@ -34,17 +36,19 @@ export default function RootLayout({
         <TRPCReactProvider>
           <SupabaseProvider>
             <AuthProvider>
-              <NextSSRPlugin
-                routerConfig={extractRouterConfig(ourFileRouter)}
-              />
-              <Nav />
-              <FloatingProfile />
-              <ShaderGradientBackground />
-              <main className="pt-16">
-                {children}
-              </main>
-              <Toaster />
-              <SpeedInsights />
+              <MobileProvider>
+                <NextSSRPlugin
+                  routerConfig={extractRouterConfig(ourFileRouter)}
+                />
+                <Nav />
+                <FloatingProfile />
+                <ShaderGradientBackground />
+                <MainContent>
+                  {children}
+                </MainContent>
+                <Toaster />
+                <SpeedInsights />
+              </MobileProvider>
             </AuthProvider>
           </SupabaseProvider>
         </TRPCReactProvider>
