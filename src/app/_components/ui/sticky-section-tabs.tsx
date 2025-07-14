@@ -43,7 +43,7 @@ const StickyTabs: React.FC<StickyTabsProps> & { Item: React.FC<StickyTabItemProp
   const stickyHeaderStyle = { top: stickyTopValue };
 
   return (
-    <div className={clsx("overflow-clip", rootClassName)}>
+    <div id="sticky-section" className={clsx("overflow-clip", rootClassName)}>
       <div
         className={clsx(
           "sticky left-0 top-0 z-20 w-full",

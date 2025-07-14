@@ -5,8 +5,9 @@ import { MediaPlayer, MediaProvider } from '@vidstack/react';
 import 'react-inner-image-zoom/lib/styles.min.css';
 import InnerImageZoom from 'react-inner-image-zoom'
 import type { InstaChild } from "./PhotoGrid";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useMobile } from '~/context/mobile-provider';
 
 
 // Individual media item component to manage loading state
@@ -63,21 +64,7 @@ function MediaItem({ file, index, isMobile }: { file: InstaChild; index: number;
 }
 
 export default function PhotoModalGrid(instaChildren: {instaChildren:InstaChild[]}) {
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-      const handleResize = () => {
-        // Define mobile as screens smaller than the sm breakpoint (e.g., 640px)
-        setIsMobile(window.innerWidth < 640);
-      };
-
-      handleResize(); // Check on mount
-      window.addEventListener('resize', handleResize);
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }, []);
+    const { isMobile } = useMobile();
 
     const count = instaChildren.instaChildren.length;
     let gridCols = '';

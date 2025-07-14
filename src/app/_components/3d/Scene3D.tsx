@@ -3,6 +3,7 @@
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { GarmentModel } from './GarmentModel';
 import { Suspense } from 'react';
+import { useMobile } from '~/context/mobile-provider';
 
 function LoadingFallback() {
   return (
@@ -15,11 +16,11 @@ function LoadingFallback() {
 
 interface Scene3DProps {
   garmentType: string;
-  isMobile?: boolean;
   disableInteraction?: boolean;
 }
 
-export function Scene3D({ garmentType, isMobile = false, disableInteraction = false }: Scene3DProps) {
+export function Scene3D({ garmentType, disableInteraction = false }: Scene3DProps) {
+  const { isMobile } = useMobile();
 
 
 
@@ -72,7 +73,7 @@ export function Scene3D({ garmentType, isMobile = false, disableInteraction = fa
       
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
-        <GarmentModel garmentType={garmentType} isMobile={isMobile} />
+        <GarmentModel garmentType={garmentType} />
       </Suspense>
       
       {/* Controls - adaptive for mobile */}

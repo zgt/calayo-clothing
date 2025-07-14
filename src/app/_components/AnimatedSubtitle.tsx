@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { gsap } from "gsap";
+import { useMobile } from "~/context/mobile-provider";
 
 interface AnimatedSubtitleProps {
   text: string;
@@ -20,10 +21,10 @@ const AnimatedSubtitle = forwardRef<AnimatedSubtitleRef, AnimatedSubtitleProps>(
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const { isMobile } = useMobile();
 
   useImperativeHandle(ref, () => ({
     animateIn: () => {
-      const isMobile = window.innerWidth < 768;
       const scatterY = isMobile ? 150 : 200;
       const scatterX = isMobile ? 60 : 100;
       const rotation = isMobile ? 30 : 45;
@@ -49,12 +50,11 @@ const AnimatedSubtitle = forwardRef<AnimatedSubtitleRef, AnimatedSubtitleProps>(
         }
       );
     }
-  }));
+  }), [isMobile]);
 
   useEffect(() => {
     // Set initial scattered state
     if (letterRefs.current.length > 0) {
-      const isMobile = window.innerWidth < 768;
       const scatterY = isMobile ? 150 : 200;
       const scatterX = isMobile ? 60 : 100;
       const rotation = isMobile ? 30 : 45;
@@ -67,7 +67,7 @@ const AnimatedSubtitle = forwardRef<AnimatedSubtitleRef, AnimatedSubtitleProps>(
         opacity: 0
       });
     }
-  }, []);
+  }, [isMobile]);
 
   return (
     <div ref={containerRef} className={className} style={style}>

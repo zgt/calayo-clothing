@@ -4,12 +4,13 @@ import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { Flip } from "gsap/Flip";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
-gsap.registerPlugin(Flip, ScrambleTextPlugin);
+gsap.registerPlugin(Flip, ScrambleTextPlugin, ScrollToPlugin);
 
 interface GSAPFormContainerProps {
   formData: CommissionFormData;
@@ -53,6 +54,8 @@ export function GSAPFormContainer({
 
   useEffect(() => {
     if (!containerRef.current) return;
+    document.body.style.overflow = "hidden"
+
 
     // Set initial states for hidden elements
     const mainCard = containerRef.current.querySelector("#main-form-card");
@@ -136,6 +139,7 @@ export function GSAPFormContainer({
         revealDelay: 0.1,
         speed: 0.1
       }
+      // text: guideItem.title,
     });
 
     // Scramble animation for description
@@ -149,6 +153,16 @@ export function GSAPFormContainer({
       }
     });
   }, [currentMeasurement]);
+
+  const handleMobileGarmentSelect =  () => {
+    if (!containerRef.current) return;
+
+    gsap.to(window , 
+      { duration: 0.5,
+        scrollTo: {y:"#measurements", offsetY:-200}
+    })
+    document.body.style.overflow = "unset"
+  }
 
   const handleExpand = () => {
     if (isExpanded || !containerRef.current || isMobile) return; // Skip GSAP animations on mobile
@@ -278,6 +292,7 @@ export function GSAPFormContainer({
         currentMeasurement={currentMeasurement}
         onMeasurementChange={onMeasurementChange}
         onExpand={handleExpand}
+        onMobileGarmentSelect={handleMobileGarmentSelect}
       />
     </div>
   );

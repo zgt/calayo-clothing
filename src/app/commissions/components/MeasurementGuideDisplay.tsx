@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MEASUREMENT_GUIDE_ITEMS, MEASUREMENT_TIPS } from "../measurementGuideData";
 import type { MeasurementKey } from "../types";
+import { useMobile } from "~/context/mobile-provider";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "~/components/ui/hover-card";
 
 interface MeasurementGuideDisplayProps {
@@ -14,6 +15,7 @@ export function MeasurementGuideDisplay({
   currentMeasurement, 
   className = "" 
 }: MeasurementGuideDisplayProps) {
+  const { isMobile } = useMobile();
   if (!currentMeasurement) {
     return (
       <div className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10 ${className}`}>
@@ -40,11 +42,7 @@ export function MeasurementGuideDisplay({
   return (
     <motion.div
       key={currentMeasurement}
-      // initial={{ opacity: 0, y: 20 }}
-      // animate={{ opacity: 1, y: 0 }}
-      // exit={{ opacity: 0, y: -20 }}
-      // transition={{ duration: 0.3 }}
-      className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10 ${className}`}
+      className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs${!isMobile ? ' rounded-2xl' : ''} shadow-2xl p-6 border border-emerald-700/10 ${className}`}
     >
       <div className="space-y-4">
         {/* Header */}

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
+import { useMobile } from "~/context/mobile-provider";
 
 interface SvgLogoProps {
   className?: string;
@@ -31,10 +32,10 @@ const SvgLogo = forwardRef<SvgLogoRef, SvgLogoProps>(({
 
   const letterRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useMobile();
 
   useImperativeHandle(ref, () => ({
     animateIn: () => {
-      const isMobile = window.innerWidth < 768;
       const scatterX = isMobile ? window.innerWidth * 0.8 : window.innerWidth;
       const scatterY = isMobile ? window.innerHeight * 0.6 : window.innerHeight;
       
@@ -59,12 +60,11 @@ const SvgLogo = forwardRef<SvgLogoRef, SvgLogoProps>(({
         }
       );
     }
-  }));
+  }), [isMobile]);
 
   useEffect(() => {
     // Set initial scattered state
     if (letterRefs.current.length > 0) {
-      const isMobile = window.innerWidth < 768;
       const scatterX = isMobile ? window.innerWidth * 0.8 : window.innerWidth;
       const scatterY = isMobile ? window.innerHeight * 0.6 : window.innerHeight;
       
@@ -76,7 +76,7 @@ const SvgLogo = forwardRef<SvgLogoRef, SvgLogoProps>(({
         opacity: 0
       });
     }
-  }, []);
+  }, [isMobile]);
 
   const renderWord = (wordLetters: string[], wordKey: string, startIndex: number) => (
     <div 

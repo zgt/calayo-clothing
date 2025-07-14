@@ -207,10 +207,10 @@ export function MeasurementNavigator({
           <AnimatePresence mode="wait">
             <motion.div
               key={currentMeasurementIndex}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.2 }}
+              // initial={{ opacity: 0, x: 50 }}
+              // animate={{ opacity: 1, x: 0 }}
+              // exit={{ opacity: 0, x: -50 }}
+              // transition={{ duration: 0.2 }}
               className="bg-emerald-900/15 rounded-xl p-6 border border-emerald-700/40 backdrop-blur-sm"
             >
               <div className="text-center mb-4">
