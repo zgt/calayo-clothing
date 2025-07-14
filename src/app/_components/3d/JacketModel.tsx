@@ -36,7 +36,7 @@ export function JacketModel() {
     .filter((node): node is THREE.Mesh => node !== null);
 
   return (
-    <group ref={jacketRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -0.3, 0]} scale={.07}>
+    <group ref={jacketRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -0.4, 0]} scale={.07}>
       {meshNodes.map((mesh, index) => {
         const geometry = getGeometry(mesh);
         return geometry ? (
