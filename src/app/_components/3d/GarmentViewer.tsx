@@ -3,6 +3,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Scene3D } from './Scene3D';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 // Hook to detect mobile and performance capabilities
 const useDeviceCapabilities = () => {
@@ -15,10 +16,11 @@ const useDeviceCapabilities = () => {
       setIsMobile(width < 1024);
       
       // Detect low-end devices
+      const deviceMemory = 'deviceMemory' in navigator ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory : undefined;
       const isLowEnd = (
         navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2
       ) || (
-        (navigator as any).deviceMemory && (navigator as any).deviceMemory <= 2
+        deviceMemory && deviceMemory <= 2
       ) || (
         navigator.userAgent.includes('Mobile') && width < 768
       );
@@ -61,7 +63,7 @@ export function GarmentViewer({
   }, [forceFallback, isLowEndDevice]);
   
   // Fallback images for different garment types
-  const getFallbackImage = (type: string) => {
+  const getFallbackImage = (type: string): string => {
     const images: Record<string, string> = {
       shirt: '/images/garments/shirt-preview.jpg',
       jacket: '/images/garments/jacket-preview.jpg', 
@@ -70,7 +72,7 @@ export function GarmentViewer({
       skirt: '/images/garments/skirt-preview.jpg',
       other: '/images/garments/generic-preview.jpg'
     };
-    return images[type] || images.other;
+    return images[type] ?? images.other!;
   };
 
   const handleCreated = () => {
@@ -89,10 +91,11 @@ export function GarmentViewer({
       <div className={`relative bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl border border-emerald-700/10 overflow-hidden ${className}`}>
         {garmentType ? (
           <div className="relative w-full h-full">
-            <img
+            <Image
               src={getFallbackImage(garmentType)}
               alt={`${garmentType} preview`}
-              className="w-full h-full object-cover object-center"
+              fill
+              className="object-cover object-center"
               onError={() => {
                 // If image fails to load, show placeholder
                 const img = document.createElement('div');

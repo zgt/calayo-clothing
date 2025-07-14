@@ -104,11 +104,11 @@ export function MeasurementNavigator({
 
   // Touch handlers for swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0]?.clientX || 0);
+    setTouchStart(e.targetTouches[0]?.clientX ?? 0);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0]?.clientX || 0);
+    setTouchEnd(e.targetTouches[0]?.clientX ?? 0);
   };
 
   const handleTouchEnd = () => {

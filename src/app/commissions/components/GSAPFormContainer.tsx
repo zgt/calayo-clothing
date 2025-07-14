@@ -56,7 +56,6 @@ export function GSAPFormContainer({
 
     // Set initial states for hidden elements
     const mainCard = containerRef.current.querySelector("#main-form-card");
-    const expandedGrid = containerRef.current.querySelector("#expanded-grid");
     const commissionRequestTarget = containerRef.current.querySelector("#commission-request-target");
     const additionalDetailsCard = containerRef.current.querySelector("#additional-details-card");
     const garmentPreviewCard = containerRef.current.querySelector("#garment-preview-card");
@@ -79,8 +78,9 @@ export function GSAPFormContainer({
 
     // Cleanup function
     return () => {
-      if (timelineRef.current) {
-        timelineRef.current.kill();
+      const timeline = timelineRef.current;
+      if (timeline) {
+        timeline.kill();
       }
     };
   }, []);
@@ -93,7 +93,6 @@ export function GSAPFormContainer({
       const mainCard = containerRef.current.querySelector("#main-form-card");
       if (!mainCard) return;
 
-      const isMobile = window.innerWidth < 1024;
       
       if (isExpanded) {
         // Adjust positioning for different screen sizes

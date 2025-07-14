@@ -14,7 +14,6 @@ function ResetPasswordForm() {
   const [isCheckingToken, setIsCheckingToken] = useState(true);
   const { supabase } = useSupabase();
   const router = useRouter();
-  const _searchParams = useSearchParams();
 
   useEffect(() => {
     const checkTokenAndSetSession = async () => {

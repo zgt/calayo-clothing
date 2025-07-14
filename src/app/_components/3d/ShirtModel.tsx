@@ -1,7 +1,7 @@
 'use client';
 
 import { useGLTF } from '@react-three/drei';
-import { useEffect, useRef} from 'react';
+import { useRef} from 'react';
 import * as THREE from 'three';
 
 export function ShirtModel() {
