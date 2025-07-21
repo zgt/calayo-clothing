@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export interface Exercise {
   name: string;
@@ -13,8 +13,8 @@ export interface TimerConfig {
   exercises: Exercise[];
 }
 
-export type TimerState = 'idle' | 'running' | 'paused' | 'complete';
-export type TimerPhase = 'work' | 'rest' | 'setBreak';
+export type TimerState = "idle" | "running" | "paused" | "complete";
+export type TimerPhase = "work" | "rest" | "setBreak";
 
 export interface TimerStatus {
   state: TimerState;
@@ -33,15 +33,17 @@ export interface TimerStatus {
 }
 
 export function useIntervalTimer(config: TimerConfig) {
-  const [state, setState] = useState<TimerState>('idle');
-  const [phase, setPhase] = useState<TimerPhase>('work');
+  const [state, setState] = useState<TimerState>("idle");
+  const [phase, setPhase] = useState<TimerPhase>("work");
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [currentRep, setCurrentRep] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(
-    config.exercises.length > 0 ? config.exercises[0]?.workDuration ?? 10 : 10
+    config.exercises.length > 0
+      ? (config.exercises[0]?.workDuration ?? 10)
+      : 10,
   );
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const onPhaseChangeRef = useRef<((phase: TimerPhase) => void) | null>(null);
   const onCompleteRef = useRef<(() => void) | null>(null);
@@ -56,25 +58,29 @@ export function useIntervalTimer(config: TimerConfig) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    setState('idle');
-    setPhase('work');
+    setState("idle");
+    setPhase("work");
     setCurrentExerciseIndex(0);
     setCurrentSet(1);
     setCurrentRep(1);
-    setTimeRemaining(config.exercises.length > 0 ? config.exercises[0]?.workDuration ?? 10 : 10);
+    setTimeRemaining(
+      config.exercises.length > 0
+        ? (config.exercises[0]?.workDuration ?? 10)
+        : 10,
+    );
   }, [config.exercises]);
 
   const start = useCallback(() => {
-    if (state === 'complete') {
+    if (state === "complete") {
       resetTimer();
       return;
     }
-    setState('running');
-    
+    setState("running");
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    
+
     intervalRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -90,7 +96,7 @@ export function useIntervalTimer(config: TimerConfig) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    setState('paused');
+    setState("paused");
   }, []);
 
   const skip = useCallback(() => {
@@ -99,7 +105,7 @@ export function useIntervalTimer(config: TimerConfig) {
 
   // Reset timer when config changes (but only if we're not currently running)
   useEffect(() => {
-    if (state === 'idle') {
+    if (state === "idle") {
       resetTimer();
     }
   }, [config, state, resetTimer]);
@@ -115,47 +121,47 @@ export function useIntervalTimer(config: TimerConfig) {
 
   // Handle phase transitions
   useEffect(() => {
-    if (state === 'running' && timeRemaining === 0) {
+    if (state === "running" && timeRemaining === 0) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
 
-      if (phase === 'work') {
+      if (phase === "work") {
         // Work phase complete
         if (isLastRep && isLastSet && isLastExercise) {
           // Entire workout complete
-          setState('complete');
+          setState("complete");
           onCompleteRef.current?.();
         } else if (isLastRep && isLastSet) {
           // Exercise complete, move to next exercise
-          setCurrentExerciseIndex(prev => prev + 1);
+          setCurrentExerciseIndex((prev) => prev + 1);
           setCurrentSet(1);
           setCurrentRep(1);
-          setPhase('setBreak');
+          setPhase("setBreak");
           setTimeRemaining((currentExercise?.restDuration ?? 20) * 2);
-          onPhaseChangeRef.current?.('setBreak');
+          onPhaseChangeRef.current?.("setBreak");
         } else if (isLastRep) {
           // Set complete, move to next set
-          setPhase('setBreak');
+          setPhase("setBreak");
           setTimeRemaining((currentExercise?.restDuration ?? 20) * 2);
-          setCurrentSet(prev => prev + 1);
+          setCurrentSet((prev) => prev + 1);
           setCurrentRep(1);
-          onPhaseChangeRef.current?.('setBreak');
+          onPhaseChangeRef.current?.("setBreak");
         } else {
           // Rep complete, move to rest
-          setPhase('rest');
+          setPhase("rest");
           setTimeRemaining(currentExercise?.restDuration ?? 20);
-          setCurrentRep(prev => prev + 1);
-          onPhaseChangeRef.current?.('rest');
+          setCurrentRep((prev) => prev + 1);
+          onPhaseChangeRef.current?.("rest");
         }
       } else {
         // Rest phase complete, back to work
-        setPhase('work');
+        setPhase("work");
         setTimeRemaining(currentExercise?.workDuration ?? 10);
-        onPhaseChangeRef.current?.('work');
+        onPhaseChangeRef.current?.("work");
       }
 
-      if (state === 'running') {
+      if (state === "running") {
         // Continue automatically
         intervalRef.current = setInterval(() => {
           setTimeRemaining((prev) => {
@@ -167,11 +173,22 @@ export function useIntervalTimer(config: TimerConfig) {
         }, 1000);
       }
     }
-  }, [state, timeRemaining, phase, isLastRep, isLastSet, isLastExercise, currentExercise]);
+  }, [
+    state,
+    timeRemaining,
+    phase,
+    isLastRep,
+    isLastSet,
+    isLastExercise,
+    currentExercise,
+  ]);
 
-  const setOnPhaseChange = useCallback((callback: (phase: TimerPhase) => void) => {
-    onPhaseChangeRef.current = callback;
-  }, []);
+  const setOnPhaseChange = useCallback(
+    (callback: (phase: TimerPhase) => void) => {
+      onPhaseChangeRef.current = callback;
+    },
+    [],
+  );
 
   const setOnComplete = useCallback((callback: () => void) => {
     onCompleteRef.current = callback;
@@ -190,7 +207,13 @@ export function useIntervalTimer(config: TimerConfig) {
     isLastRep,
     isLastSet,
     isLastExercise,
-    currentExercise: currentExercise ?? { name: 'Default', sets: 1, reps: 1, workDuration: 10, restDuration: 10 },
+    currentExercise: currentExercise ?? {
+      name: "Default",
+      sets: 1,
+      reps: 1,
+      workDuration: 10,
+      restDuration: 10,
+    },
   };
 
   return {

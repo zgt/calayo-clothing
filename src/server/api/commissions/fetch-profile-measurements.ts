@@ -14,38 +14,40 @@ export interface UserMeasurements {
 }
 
 // Cached version for server components
-export const fetchProfileMeasurements = cache(async (userId: string): Promise<UserMeasurements> => {
-  const supabase = createServerComponentClient<Database>({ cookies });
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('measurements')
-    .eq('id', userId)
-    .single();
-    
-  if (error) {
-    console.error("Error fetching measurements:", error);
-    throw error;
-  }
-  
-  return data?.measurements as UserMeasurements ?? {};
-});
+export const fetchProfileMeasurements = cache(
+  async (userId: string): Promise<UserMeasurements> => {
+    const supabase = createServerComponentClient<Database>({ cookies });
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("measurements")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching measurements:", error);
+      throw error;
+    }
+
+    return (data?.measurements as UserMeasurements) ?? {};
+  },
+);
 
 // Non-cached version for API routes
 export async function fetchProfileMeasurementsForAPI(
   userId: string,
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
 ): Promise<UserMeasurements> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('measurements')
-    .eq('id', userId)
+    .from("profiles")
+    .select("measurements")
+    .eq("id", userId)
     .single();
-    
+
   if (error) {
     console.error("Error fetching measurements:", error);
     throw error;
   }
-  
-  return data?.measurements as UserMeasurements ?? {};
+
+  return (data?.measurements as UserMeasurements) ?? {};
 }

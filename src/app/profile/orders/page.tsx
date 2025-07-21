@@ -58,11 +58,14 @@ function LoadingCommissions() {
       <div className="mb-6 flex items-center justify-between">
         <div className="h-8 w-48 rounded bg-emerald-900/50"></div>
       </div>
-      <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
+      <div className="rounded-lg border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs">
         <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 w-full rounded bg-emerald-900/50"></div>
+            <div
+              key={i}
+              className="h-16 w-full rounded bg-emerald-900/50"
+            ></div>
           ))}
         </div>
       </div>
@@ -72,44 +75,58 @@ function LoadingCommissions() {
 
 export default async function OrdersPage() {
   const supabase = await createClient();
-  
+
   // Check if user is authenticated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
-  
+
   // Fetch user commissions
   const { data: commissionsData, error: commissionsError } = await supabase
     .from("commissions")
-    .select(`
+    .select(
+      `
       *,
       commission_measurements(*)
-    `)
+    `,
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .returns<Commission[]>();
-    
+
   if (commissionsError) {
     console.error("Error fetching commissions:", commissionsError);
   }
 
   const commissions = commissionsData ?? [];
-  
+
   return (
     <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingCommissions />}>
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">My Commissions</h1>
-            <a 
+            <a
               href="/commissions"
-              className="inline-flex items-center rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/40 transition-all duration-200"
+              className="inline-flex items-center rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 transition-all duration-200 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-800/40"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2 h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               New Commission
             </a>

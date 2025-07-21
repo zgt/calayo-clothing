@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useGLTF } from '@react-three/drei';
-import { useRef } from 'react';
-import * as THREE from 'three';
+import { useGLTF } from "@react-three/drei";
+import { useRef } from "react";
+import * as THREE from "three";
 
 export function DressModel() {
-  const gltf = useGLTF('/3d-assets/dress/scene.gltf');
+  const gltf = useGLTF("/3d-assets/dress/scene.gltf");
   const { nodes } = gltf;
   const dressRef = useRef<THREE.Group>(null);
 
   // Create grey material once
   const greyMaterial = new THREE.MeshStandardMaterial({
-    color: '#d1d5db', // grey-300
+    color: "#d1d5db", // grey-300
     roughness: 0.5,
     metalness: 0,
   });
@@ -23,7 +23,9 @@ export function DressModel() {
   };
 
   // Helper to safely get geometry
-  const getGeometry = (mesh: THREE.Mesh | null): THREE.BufferGeometry | undefined => {
+  const getGeometry = (
+    mesh: THREE.Mesh | null,
+  ): THREE.BufferGeometry | undefined => {
     if (mesh && mesh.geometry instanceof THREE.BufferGeometry) {
       return mesh.geometry;
     }
@@ -32,7 +34,7 @@ export function DressModel() {
 
   // Get all available mesh nodes from the dress model
   const meshNodes = Object.keys(nodes)
-    .map(name => getMeshNode(name))
+    .map((name) => getMeshNode(name))
     .filter((node): node is THREE.Mesh => node !== null);
 
   return (
@@ -40,7 +42,7 @@ export function DressModel() {
       ref={dressRef}
       dispose={null}
       rotation={[0, 0, 0]}
-      position={[0, -.7, 0]}
+      position={[0, -0.7, 0]}
       scale={0.007}
     >
       {meshNodes.map((mesh, index) => {
@@ -59,4 +61,4 @@ export function DressModel() {
   );
 }
 
-useGLTF.preload('/3d-assets/dress/scene.gltf');
+useGLTF.preload("/3d-assets/dress/scene.gltf");

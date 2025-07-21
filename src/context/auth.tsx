@@ -10,11 +10,18 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: () => boolean;
-  signIn: (email: string, password: string) => Promise<{
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{
     error: Error | null;
     data: { user: User | null; session: Session | null };
   }>;
-  signUp: (email: string, password: string, userData?: Record<string, unknown>) => Promise<{
+  signUp: (
+    email: string,
+    password: string,
+    userData?: Record<string, unknown>,
+  ) => Promise<{
     error: Error | null;
     data: { user: User | null; session: Session | null };
   }>;
@@ -35,13 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get session from Supabase
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-      
+
       // Optional: Redirect to login if on protected page and no session
-      if (!session && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
+      if (
+        !session &&
+        pathname !== "/login" &&
+        pathname !== "/signup" &&
+        pathname !== "/"
+      ) {
         // Uncomment if you want to redirect unauthenticated users
         // router.push("/login");
       }
@@ -50,13 +64,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -72,15 +86,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
-    
+
     if (!response.error && response.data.session) {
       router.push("/"); // Redirect to home on successful login
     }
-    
+
     return response;
   };
 
-  const signUp = async (email: string, password: string, userData?: Record<string, unknown>) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    userData?: Record<string, unknown>,
+  ) => {
     const response = await supabase.auth.signUp({
       email,
       password,
@@ -88,11 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: userData ?? {}, // Add any additional user metadata
       },
     });
-    
+
     if (!response.error && response.data.session) {
       router.push("/"); // Redirect to home on successful sign up
     }
-    
+
     return response;
   };
 
@@ -103,11 +121,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (userData: Record<string, unknown>) => {
     if (!user) throw new Error("No user logged in");
-    
+
     await supabase.auth.updateUser({
       data: userData,
     });
-    
+
     // Update local user state with new metadata
     setUser((prev) => {
       if (!prev) return null;

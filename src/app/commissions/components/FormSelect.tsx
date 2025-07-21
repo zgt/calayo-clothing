@@ -31,9 +31,12 @@ export const FormSelect: React.FC<FormSelectProps> = ({
 }) => {
   return (
     <div>
-      <label htmlFor={id} className="block text-emerald-100 font-medium mb-2 text-sm">
+      <label
+        htmlFor={id}
+        className="mb-2 block text-sm font-medium text-emerald-100"
+      >
         {label}
-        {required && <span className="text-emerald-400 ml-1">*</span>}
+        {required && <span className="ml-1 text-emerald-400">*</span>}
       </label>
       <div className="relative">
         <select
@@ -41,9 +44,9 @@ export const FormSelect: React.FC<FormSelectProps> = ({
           name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full pl-3 pr-10 py-3 bg-emerald-950/50 border ${
+          className={`w-full border bg-emerald-950/50 py-3 pr-10 pl-3 ${
             error ? "border-red-500" : "border-emerald-700/30"
-          } rounded-lg shadow-sm text-emerald-100 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none`}
+          } appearance-none rounded-lg text-emerald-100 shadow-sm transition-all outline-none focus:ring-2 focus:ring-emerald-500/20`}
         >
           <option value="" disabled>
             {placeholder}
@@ -54,7 +57,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
           <svg
             className="h-5 w-5 text-emerald-500"
             xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +73,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
           </svg>
         </div>
       </div>
-      {error && <p className="text-red-400 text-xs mt-1.5 ml-1">{error}</p>}
+      {error && <p className="mt-1.5 ml-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 };

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
@@ -29,12 +29,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
           backdropFilter: "blur(8px)",
           border: "1px solid rgba(16, 185, 129, 0.2)",
           borderRadius: "0.625rem", // matches your --radius
-          fontFamily: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+          fontFamily:
+            "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
         },
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

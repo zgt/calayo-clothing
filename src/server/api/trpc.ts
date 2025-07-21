@@ -25,10 +25,12 @@ import { createClient } from "~/utils/supabase/server";
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const supabase = await createClient();
-  
+
   // Get the session from Supabase
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   return {
     ...opts,
     supabase,
@@ -135,7 +137,7 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
   // Check if user is admin (you can adjust this logic based on your admin check)
   // For now, checking against ADMIN_ID environment variable
   const isAdmin = ctx.session.user.id === process.env.ADMIN_ID;
-  
+
   if (!isAdmin) {
     throw new TRPCError({
       code: "FORBIDDEN",
@@ -164,9 +166,13 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 /**
  * Protected procedure that requires authentication
  */
-export const protectedProcedure = t.procedure.use(timingMiddleware).use(enforceUserIsAuthed);
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsAuthed);
 
 /**
  * Admin procedure that requires admin authentication
  */
-export const adminProcedure = t.procedure.use(timingMiddleware).use(enforceUserIsAdmin);
+export const adminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsAdmin);

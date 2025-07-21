@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface MobileContextType {
   isMobile: boolean;
@@ -24,8 +24,8 @@ export function MobileProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkDevice();
-    window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
   }, []);
 
   return (
@@ -38,7 +38,7 @@ export function MobileProvider({ children }: { children: React.ReactNode }) {
 export function useMobile() {
   const context = useContext(MobileContext);
   if (context === undefined) {
-    throw new Error('useMobile must be used within a MobileProvider');
+    throw new Error("useMobile must be used within a MobileProvider");
   }
   return context;
 }

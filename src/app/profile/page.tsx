@@ -68,7 +68,7 @@ function LoadingProfile() {
         <div className="h-10 w-32 rounded bg-emerald-900/50"></div>
       </div>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
+        <div className="rounded-lg border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs">
           <div className="mb-6 text-center">
             <div className="mx-auto mb-4 h-24 w-24 rounded-full bg-emerald-900/50"></div>
             <div className="mx-auto mb-2 h-6 w-32 rounded bg-emerald-900/50"></div>
@@ -83,12 +83,15 @@ function LoadingProfile() {
             ))}
           </div>
         </div>
-        <div className="md:col-span-2 space-y-6">
-          <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
+        <div className="space-y-6 md:col-span-2">
+          <div className="rounded-lg border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs">
             <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-md border border-emerald-700/30 p-3">
+                <div
+                  key={i}
+                  className="rounded-md border border-emerald-700/30 p-3"
+                >
                   <div className="mb-2 h-4 w-24 rounded bg-emerald-900/50"></div>
                   <div className="space-y-2">
                     {[1, 2, 3, 4].map((j) => (
@@ -102,11 +105,14 @@ function LoadingProfile() {
               ))}
             </div>
           </div>
-          <div className="rounded-lg bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs p-6 shadow-2xl border border-emerald-700/10">
+          <div className="rounded-lg border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs">
             <div className="mb-4 h-6 w-32 rounded bg-emerald-900/50"></div>
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-10 w-full rounded bg-emerald-900/50"></div>
+                <div
+                  key={i}
+                  className="h-10 w-full rounded bg-emerald-900/50"
+                ></div>
               ))}
             </div>
           </div>
@@ -118,55 +124,67 @@ function LoadingProfile() {
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-  
+
   // Check if user is authenticated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
-  
+
   // Fetch user profile
-  const { data: profileData, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = (await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single() as { data: Profile | null; error: SupabaseError | null };
-  
+    .single()) as { data: Profile | null; error: SupabaseError | null };
+
   if (profileError && profileError.code !== "PGRST116") {
     console.error("Error fetching profile:", profileError);
   }
-  
+
   // Fetch user measurements from the new profile_measurements table
-  const { data: measurementsData, error: measurementsError } = await supabase
+  const { data: measurementsData, error: measurementsError } = (await supabase
     .from("profile_measurements")
     .select("*")
     .eq("profile_id", user.id)
-    .single() as { data: ProfileMeasurements | null; error: SupabaseError | null };
-  
+    .single()) as {
+    data: ProfileMeasurements | null;
+    error: SupabaseError | null;
+  };
+
   if (measurementsError && measurementsError.code !== "PGRST116") {
     console.error("Error fetching measurements:", measurementsError);
   }
 
   // Create profile and measurements objects for display
-  const profile: Profile | null = profileData ? {
-    ...profileData,
-    email: user.email ?? "",
-  } : null;
-  
+  const profile: Profile | null = profileData
+    ? {
+        ...profileData,
+        email: user.email ?? "",
+      }
+    : null;
+
   const measurements: ProfileMeasurements | null = measurementsData ?? null;
   console.log(measurements);
-  
+
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingProfile />}>
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">My Profile</h1>
           </div>
 
-          <ProfileSection profile={profile} user={user} measurements={measurements} />
+          <ProfileSection
+            profile={profile}
+            user={user}
+            measurements={measurements}
+          />
         </Suspense>
       </div>
     </main>

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { ShirtModel } from './ShirtModel';
-import { DressModel } from './DressModel';
-import { JacketModel } from './JacketModel';
-import { PantsModel } from './PantsModel';
+import { ShirtModel } from "./ShirtModel";
+import { DressModel } from "./DressModel";
+import { JacketModel } from "./JacketModel";
+import { PantsModel } from "./PantsModel";
 
 interface GarmentModelProps {
   garmentType: string;
@@ -14,8 +14,8 @@ function PlaceholderModel() {
     <group>
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[0.5, 1, 0.3]} />
-        <meshStandardMaterial 
-          color="#6b7280" 
+        <meshStandardMaterial
+          color="#6b7280"
           roughness={0.8}
           metalness={0.1}
           wireframe
@@ -23,8 +23,8 @@ function PlaceholderModel() {
       </mesh>
       <mesh position={[0, 0.7, 0]}>
         <sphereGeometry args={[0.15]} />
-        <meshStandardMaterial 
-          color="#6b7280" 
+        <meshStandardMaterial
+          color="#6b7280"
           roughness={0.8}
           metalness={0.1}
           wireframe
@@ -36,17 +36,17 @@ function PlaceholderModel() {
 
 export function GarmentModel({ garmentType }: GarmentModelProps) {
   switch (garmentType) {
-    case 'shirt':
+    case "shirt":
       return <ShirtModel />;
-    case 'dress':
+    case "dress":
       return <DressModel />;
-    case 'jacket':
+    case "jacket":
       return <JacketModel />;
-    case 'pants':
+    case "pants":
       return <PantsModel />;
-    case 'skirt':
-    case 'other':
-    case '':
+    case "skirt":
+    case "other":
+    case "":
     default:
       return <PlaceholderModel />;
   }

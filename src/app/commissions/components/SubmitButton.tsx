@@ -14,12 +14,12 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
     <button
       type="submit"
       disabled={isLoading || disabled}
-      className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-medium rounded-lg shadow-lg shadow-emerald-900/30 flex items-center justify-center transition-all duration-200 hover:shadow-emerald-800/40 disabled:opacity-70 disabled:cursor-not-allowed"
+      className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-3 font-medium text-white shadow-lg shadow-emerald-900/30 transition-all duration-200 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-800/40 disabled:cursor-not-allowed disabled:opacity-70"
     >
       {isLoading ? (
         <>
           <svg
-            className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+            className="mr-2 -ml-1 h-5 w-5 animate-spin text-white"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -44,7 +44,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
         <>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
+            className="mr-2 h-5 w-5"
             viewBox="0 0 20 20"
             fill="currentColor"
           >

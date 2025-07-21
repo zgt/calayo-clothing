@@ -20,7 +20,9 @@
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
       "WebFetch(domain:threejs.org)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm run format:write:*)",
+      "Bash(npm run format:check:*)"
     ],
     "deny": []
   }

@@ -26,13 +26,17 @@ export const MeasurementInput: React.FC<MeasurementInputProps> = ({
   placeholder,
 }) => {
   const displayValue = value === null ? "" : String(value);
-  const finalPlaceholder = placeholder ?? (type === "number" ? "0.0" : "Description...");
+  const finalPlaceholder =
+    placeholder ?? (type === "number" ? "0.0" : "Description...");
 
   return (
     <div>
-      <label htmlFor={id} className="block text-emerald-200/80 text-xs mb-1 flex">
+      <label
+        htmlFor={id}
+        className="mb-1 block flex text-xs text-emerald-200/80"
+      >
         {label}
-        {required && <span className="text-emerald-400 ml-1">*</span>}
+        {required && <span className="ml-1 text-emerald-400">*</span>}
       </label>
       <input
         id={id}
@@ -43,12 +47,12 @@ export const MeasurementInput: React.FC<MeasurementInputProps> = ({
         value={displayValue}
         onChange={onChange}
         onKeyDown={type === "number" ? handleNumberInput : undefined}
-        className={`w-full pl-3 pr-3 py-2 bg-emerald-950/50 border ${
+        className={`w-full border bg-emerald-950/50 py-2 pr-3 pl-3 ${
           error ? "border-red-500" : "border-emerald-700/30"
-        } rounded-lg shadow-sm text-emerald-100 placeholder:text-emerald-600/50 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all`}
+        } rounded-lg text-emerald-100 shadow-sm transition-all outline-none placeholder:text-emerald-600/50 focus:ring-2 focus:ring-emerald-500/20`}
         placeholder={finalPlaceholder}
       />
-      {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 };
