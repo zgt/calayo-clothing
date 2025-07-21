@@ -21,7 +21,7 @@ export const ourFileRouter = {
         throw new Error("Unauthorized");
       }
       
-      const adminId = process.env.NEXT_PUBLIC_ADMIN_ID;
+      const adminId = process.env.ADMIN_ID;
       if (user.id !== adminId) {
         throw new Error("Admin access required");
       }

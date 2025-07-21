@@ -2,8 +2,8 @@
 
 import type { InstagramMediaItem } from '~/types/instagram';
 
-const userId = process.env.NEXT_PUBLIC_INSTA_USER_ID;
-const accessToken = process.env.NEXT_PUBLIC_INSTA_ACCESS_TOKEN;
+const userId = process.env.INSTA_USER_ID;
+const accessToken = process.env.INSTA_ACCESS_TOKEN;
 
 const instaUrl = `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&fields=media_url,permalink,id`;
 
@@ -21,16 +21,14 @@ interface UserMediaResponse {
 export async function fetchUserMedia(): Promise<InstagramMediaItem[]> {
   // Validate required environment variables
   if (!userId) {
-    throw new Error('NEXT_PUBLIC_INSTA_USER_ID environment variable is not set');
+    throw new Error('INSTA_USER_ID environment variable is not set');
   }
   
   if (!accessToken) {
-    throw new Error('NEXT_PUBLIC_INSTA_ACCESS_TOKEN environment variable is not set');
+    throw new Error('INSTA_ACCESS_TOKEN environment variable is not set');
   }
   
-  console.log('Fetching Instagram user media from URL:', instaUrl);
-  console.log('User ID:', userId);
-  console.log('Access Token (first 10 chars):', accessToken?.substring(0, 10) + '...');
+  // Removed sensitive logging for security
   
   const res = await fetch(instaUrl);
   

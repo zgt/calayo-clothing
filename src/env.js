@@ -12,6 +12,8 @@ export const env = createEnv({
     UPLOADTHING_TOKEN: z.string().min(1).optional(),
     UPLOADTHING_APP_ID: z.string().min(1),
     ADMIN_ID: z.string().min(1),
+    INSTA_USER_ID: z.string().min(1),
+    INSTA_ACCESS_TOKEN: z.string().min(1),
   },
 
   /**
@@ -23,8 +25,6 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
-    NEXT_PUBLIC_INSTA_USER_ID: z.string().min(1),
-    NEXT_PUBLIC_INSTA_ACCESS_TOKEN: z.string().min(1),
   },
 
   /**
@@ -36,12 +36,12 @@ export const env = createEnv({
     UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     ADMIN_ID: process.env.ADMIN_ID,
+    INSTA_USER_ID: process.env.INSTA_USER_ID,
+    INSTA_ACCESS_TOKEN: process.env.INSTA_ACCESS_TOKEN,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    NEXT_PUBLIC_INSTA_USER_ID: process.env.NEXT_PUBLIC_INSTA_USER_ID,
-    NEXT_PUBLIC_INSTA_ACCESS_TOKEN: process.env.NEXT_PUBLIC_INSTA_ACCESS_TOKEN,
     UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
   },
   /**
