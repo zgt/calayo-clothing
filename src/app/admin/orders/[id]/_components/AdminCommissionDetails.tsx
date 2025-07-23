@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import MessagesComponent from "~/app/_components/Messages";
-import { useAuth } from "~/context/better-auth";
+import { useSession } from "~/lib/auth-client";
 import { api } from "~/trpc/react";
 
 type CommissionMeasurements = {
@@ -122,7 +122,8 @@ export default function AdminCommissionDetails({
   const [activeTab, setActiveTab] = useState("details");
   const [isUpdating, setIsUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState(commission.status);
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   // Group measurements by body area
   const upperBodyMeasurements = [

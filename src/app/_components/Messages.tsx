@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { createClient } from "~/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "~/context/better-auth";
+import { useSession } from "~/lib/auth-client";
 import type { Database } from "~/types/supabase";
 import type {
   RealtimePostgresChangesPayload,
@@ -36,7 +36,8 @@ export default function MessagesComponent({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   // Use auth context user ID if currentUserId not provided
   const userId = currentUserId ?? user?.id;

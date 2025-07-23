@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/better-auth";
+import { signUp } from "~/lib/auth-client";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import PasswordStrengthIndicator from "~/app/_components/PasswordStrengthIndicator";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -12,7 +13,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,17 +26,15 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // Include the user's full name in the metadata
-      const userData = {
-        full_name: fullName,
-      };
-
-      const { error } = await signUp(email, password, userData);
-      console.log(error);
+      const { data, error } = await signUp.email({
+        email,
+        password,
+        name: fullName,
+      });
 
       if (error) {
-        toast.error(error.message);
-      } else {
+        toast.error(error.message ?? "Signup failed");
+      } else if (data?.user) {
         toast.success("Account created successfully!");
         router.push("/login");
       }
@@ -120,9 +118,10 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <p className="mt-1 text-xs text-emerald-300/70">
-                Password must be at least 8 characters
-              </p>
+              <PasswordStrengthIndicator 
+                password={password} 
+                className="mt-2" 
+              />
             </div>
 
             <div>

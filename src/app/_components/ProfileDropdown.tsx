@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "~/context/better-auth";
+import { useSession, signOut } from "~/lib/auth-client";
 import SignIn from "./SignIn";
 
 export default function ProfileDropdown() {
-  const { user, signOut } = useAuth();
+  const { data: session } = useSession();
   const router = useRouter();
+
+  const user = session?.user;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -47,7 +49,7 @@ export default function ProfileDropdown() {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: (user as { role?: string }).role, // Type assertion for role field
     };
   };
 

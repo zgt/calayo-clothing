@@ -15,6 +15,12 @@ export const {
   signUp,
   useSession,
   getSession,
+  changePassword,
+  forgetPassword,
+  resetPassword,
   // Magic link methods are now available
   // authClient.signIn.magicLink({ email: "user@example.com" })
 } = authClient;
+
+// Export types for better TypeScript support
+export type { Session, User } from "~/lib/auth";

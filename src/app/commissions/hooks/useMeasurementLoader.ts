@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAuth } from "~/context/better-auth";
+import { useSession } from "~/lib/auth-client";
 import { fetchProfileMeasurements } from "../utils";
 import type { CommissionFormData } from "../types";
 
@@ -13,7 +13,8 @@ interface UseMeasurementLoaderProps {
 export const useMeasurementLoader = ({
   setFormData,
 }: UseMeasurementLoaderProps) => {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
 

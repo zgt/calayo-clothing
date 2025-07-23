@@ -1,31 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/better-auth";
 import Link from "next/link";
 import { toast } from "sonner";
+import { forgetPassword } from "~/lib/auth-client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { forgotPassword } = useAuth();
+  const handleForgotPassword = async (email: string) => {
+    const result = await forgetPassword({
+      email,
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await forgotPassword(email);
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        setIsSubmitted(true);
-        toast.success("Reset link sent to your email!");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred");
+      await handleForgotPassword(email);
+      setIsSubmitted(true);
+      toast.success("Reset link sent to your email!");
+    } catch (error: unknown) {
+      toast.error((error as Error).message ?? "Failed to send reset email");
       console.error("Password reset error:", error);
     } finally {
       setIsLoading(false);

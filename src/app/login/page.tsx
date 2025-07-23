@@ -1,27 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/better-auth";
+import { authClient } from "~/lib/auth-client";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
 
       if (error) {
-        toast.error(error.message);
-      } else {
+        toast.error(error.message ?? "Login failed");
+      } else if (data?.user) {
         toast.success("Logged in successfully!");
+        router.push("/"); // Redirect to home on successful login
       }
     } catch (error) {
       toast.error("An unexpected error occurred");

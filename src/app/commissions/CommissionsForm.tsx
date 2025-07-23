@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAuth } from "~/context/better-auth";
+import { useSession } from "~/lib/auth-client";
 import { api } from "~/trpc/react";
 
 // Import our new components and utilities
@@ -15,7 +15,8 @@ import { getEmptyMeasurements } from "./constants";
 import type { CommissionFormData, MeasurementKey } from "./types";
 
 export default function CommissionsForm() {
-  const { user } = useAuth();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
 
   const [formData, setFormData] = useState<CommissionFormData>({
