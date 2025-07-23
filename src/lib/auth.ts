@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { magicLink } from "better-auth/plugins";
+import { magicLink, admin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { env } from "~/env";
 import { Pool } from "pg";
@@ -24,6 +24,13 @@ export const auth = betterAuth({
       sendMagicLink: async ({ email, url, token }, _request) => {
         await sendMagicLinkEmail({ email, url, token });
       },
+    }),
+    // Enable admin plugin for user management and role-based access control
+    admin({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+      // Configure admin session duration for impersonation
+      impersonationSessionDuration: 60 * 60 * 24, // 1 day
     }),
     nextCookies(),
   ],
