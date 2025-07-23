@@ -5,7 +5,7 @@ import { createClient } from "~/utils/supabase/client";
 
 type ProfileMeasurements = {
   id?: string;
-  profile_id: string;
+  user_id: string;
   // Basic measurements
   chest: number | null;
   waist: number | null;
@@ -207,17 +207,17 @@ export default function MeasurementsForm({
       const { data: existingMeasurements, error: fetchError } = await supabase
         .from("profile_measurements")
         .select("id")
-        .eq("profile_id", userId)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (fetchError && fetchError.code !== "PGRST116") {
         throw fetchError;
       }
 
-      // Add profile_id to the measurements data
+      // Add user_id to the measurements data
       const measurementsData = {
         ...formattedMeasurements,
-        profile_id: userId,
+        user_id: userId,
       };
 
       if (existingMeasurements?.id) {

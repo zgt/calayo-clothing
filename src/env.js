@@ -11,9 +11,11 @@ export const env = createEnv({
     UPLOADTHING_SECRET: z.string().min(1).optional(),
     UPLOADTHING_TOKEN: z.string().min(1).optional(),
     UPLOADTHING_APP_ID: z.string().min(1),
-    ADMIN_ID: z.string().min(1),
     INSTA_USER_ID: z.string().min(1),
     INSTA_ACCESS_TOKEN: z.string().min(1),
+    BETTER_AUTH_SECRET: z.string().min(1),
+    DATABASE_URL: z.string().min(1),
+    RESEND_API_KEY: z.string().min(1),
   },
 
   /**
@@ -24,7 +26,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().optional(),
+    NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url(),
   },
 
   /**
@@ -35,14 +37,15 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
-    ADMIN_ID: process.env.ADMIN_ID,
     INSTA_USER_ID: process.env.INSTA_USER_ID,
     INSTA_ACCESS_TOKEN: process.env.INSTA_ACCESS_TOKEN,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    DATABASE_URL: process.env.DATABASE_URL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

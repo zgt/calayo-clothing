@@ -6,8 +6,7 @@ import { Toaster } from "~/components/ui/sonner";
 import Nav from "~/app/_components/Nav";
 import FloatingProfile from "~/app/_components/FloatingProfile";
 import { TRPCReactProvider } from "~/trpc/react";
-import { SupabaseProvider } from "~/context/supabase-provider";
-import { AuthProvider } from "~/context/auth";
+import { AuthProvider } from "~/context/better-auth";
 import { MobileProvider } from "~/context/mobile-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
@@ -34,21 +33,19 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body>
         <TRPCReactProvider>
-          <SupabaseProvider>
-            <AuthProvider>
-              <MobileProvider>
-                <NextSSRPlugin
-                  routerConfig={extractRouterConfig(ourFileRouter)}
-                />
-                <Nav />
-                <FloatingProfile />
-                <ShaderGradientBackground />
-                <MainContent>{children}</MainContent>
-                <Toaster />
-                <SpeedInsights />
-              </MobileProvider>
-            </AuthProvider>
-          </SupabaseProvider>
+          <AuthProvider>
+            <MobileProvider>
+              <NextSSRPlugin
+                routerConfig={extractRouterConfig(ourFileRouter)}
+              />
+              <Nav />
+              <FloatingProfile />
+              <ShaderGradientBackground />
+              <MainContent>{children}</MainContent>
+              <Toaster />
+              <SpeedInsights />
+            </MobileProvider>
+          </AuthProvider>
         </TRPCReactProvider>
       </body>
     </html>

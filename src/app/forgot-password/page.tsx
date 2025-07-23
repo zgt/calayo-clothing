@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSupabase } from "~/context/supabase-provider";
+import { useAuth } from "~/context/better-auth";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -9,16 +9,14 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { supabase } = useSupabase();
+  const { forgotPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+      const { error } = await forgotPassword(email);
 
       if (error) {
         toast.error(error.message);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import Link from "next/link";
 import { toast } from "sonner";
 

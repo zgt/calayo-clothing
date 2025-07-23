@@ -22,7 +22,16 @@
       "WebFetch(domain:threejs.org)",
       "Bash(pkill:*)",
       "Bash(npm run format:write:*)",
-      "Bash(npm run format:check:*)"
+      "Bash(npm run format:check:*)",
+      "mcp__supabase__search_docs",
+      "WebFetch(domain:www.better-auth.com)",
+      "Bash(SKIP_ENV_VALIDATION=true npx @better-auth/cli generate)",
+      "Bash(rm:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(npm run lint:*)",
+      "Bash(mv:*)",
+      "Bash(npm run check:*)"
     ],
     "deny": []
   }

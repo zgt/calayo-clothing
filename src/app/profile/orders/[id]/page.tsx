@@ -2,6 +2,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "~/utils/supabase/server";
+import { auth } from "~/lib/auth";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import CommissionDetails from "./_components/CommissionDetails";
 
@@ -76,19 +78,19 @@ export type paramsType = Promise<{ id: string }>;
 export default async function CommissionDetailsPage(props: {
   params: paramsType;
 }) {
-  const supabase = await createClient();
   const params = await props.params;
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
+
+  const supabase = await createClient();
 
   // Fetch commission details
   const { data: commission, error: commissionError } = await supabase
@@ -100,7 +102,7 @@ export default async function CommissionDetailsPage(props: {
     `,
     )
     .eq("id", params.id)
-    .eq("user_id", user.id)
+    .eq("user_id", session.user.id)
     .single<Commission>();
 
   if (commissionError) {

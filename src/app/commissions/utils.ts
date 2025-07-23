@@ -1,5 +1,5 @@
 // Utility functions for commission forms
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "~/utils/supabase/client";
 import type {
   UserMeasurements,
   SupabaseError,
@@ -12,12 +12,12 @@ import { REQUIRED_MEASUREMENTS, MEASUREMENT_GROUPS } from "./constants";
 export const fetchProfileMeasurements = async (
   userId: string,
 ): Promise<UserMeasurements> => {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const { data, error } = (await supabase
     .from("profile_measurements")
     .select("*")
-    .eq("profile_id", userId)
+    .eq("user_id", userId)
     .single()) as {
     data: UserMeasurements | null;
     error: SupabaseError | null;

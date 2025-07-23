@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSupabase } from "~/context/supabase-provider";
-import { useRouter } from "next/navigation";
+import { useAuth } from "~/context/better-auth";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -12,18 +12,19 @@ function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isValidToken, setIsValidToken] = useState(false);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
-  const { supabase } = useSupabase();
+  const [token, setToken] = useState<string | null>(null);
+  const { resetPassword } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const checkTokenAndSetSession = async () => {
+    const checkToken = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        // Get token from URL parameters
+        const tokenFromUrl = searchParams.get("token");
 
-        if (error) {
-          console.error("Session error:", error);
-          setIsValidToken(false);
-        } else if (data.session) {
+        if (tokenFromUrl) {
+          setToken(tokenFromUrl);
           setIsValidToken(true);
         } else {
           setIsValidToken(false);
@@ -36,8 +37,8 @@ function ResetPasswordForm() {
       }
     };
 
-    void checkTokenAndSetSession();
-  }, [supabase.auth]);
+    void checkToken();
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,12 +53,15 @@ function ResetPasswordForm() {
       return;
     }
 
+    if (!token) {
+      toast.error("Invalid reset token");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
+      const { error } = await resetPassword(token, password);
 
       if (error) {
         toast.error(error.message);

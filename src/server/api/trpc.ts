@@ -9,6 +9,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { auth, type User } from "~/lib/auth";
 import { createClient } from "~/utils/supabase/server";
 
 /**
@@ -24,18 +25,27 @@ import { createClient } from "~/utils/supabase/server";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const supabase = await createClient();
+  // Get the session from better-auth for authentication
+  let session = null;
+  let user = null;
 
-  // Get the session from Supabase
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  try {
+    session = await auth.api.getSession({
+      headers: opts.headers,
+    });
+    user = session?.user ?? null;
+  } catch (error) {
+    console.error("Error getting session in tRPC context:", error);
+  }
+
+  // Keep Supabase client for database operations during migration
+  const supabase = await createClient();
 
   return {
     ...opts,
-    supabase,
     session,
-    user: session?.user ?? null,
+    user,
+    supabase,
   };
 };
 
@@ -108,7 +118,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * Authentication middleware that enforces the user is authenticated
  */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.session?.user) {
+  if (!ctx.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to access this resource",
@@ -117,7 +127,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   return next({
     ctx: {
       session: ctx.session,
-      user: ctx.session.user,
+      user: ctx.user,
       supabase: ctx.supabase,
     },
   });
@@ -127,16 +137,16 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * Admin authentication middleware that enforces the user is an admin
  */
 const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session?.user) {
+  if (!ctx.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to access this resource",
     });
   }
 
-  // Check if user is admin (you can adjust this logic based on your admin check)
-  // For now, checking against ADMIN_ID environment variable
-  const isAdmin = ctx.session.user.id === process.env.ADMIN_ID;
+  // Check if user is admin using the role field from better-auth user table
+  const user = ctx.user as User;
+  const isAdmin = user.role === "admin";
 
   if (!isAdmin) {
     throw new TRPCError({
@@ -148,7 +158,7 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
   return next({
     ctx: {
       session: ctx.session,
-      user: ctx.session.user,
+      user: ctx.user,
       supabase: ctx.supabase,
     },
   });

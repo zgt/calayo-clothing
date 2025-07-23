@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { createClient } from "~/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "~/context/better-auth";
 import type { Database } from "~/types/supabase";
 import type {
   RealtimePostgresChangesPayload,
@@ -9,8 +10,8 @@ import type {
 } from "@supabase/supabase-js";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"] & {
-  profiles?: {
-    full_name: string | null;
+  user?: {
+    name: string | null;
     email: string | null;
   };
 };
@@ -19,7 +20,7 @@ type MessagePayload = RealtimePostgresChangesPayload<Message>;
 
 interface MessagesComponentProps {
   commissionId: string;
-  currentUserId: string;
+  currentUserId?: string; // Made optional since we'll get it from auth context
   isAdmin?: boolean;
 }
 
@@ -35,6 +36,10 @@ export default function MessagesComponent({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const { user } = useAuth();
+
+  // Use auth context user ID if currentUserId not provided
+  const userId = currentUserId ?? user?.id;
 
   // Function to format date
   const formatDate = (dateString: string) => {
@@ -58,6 +63,8 @@ export default function MessagesComponent({
 
   // Fetch messages
   const fetchMessages = useCallback(async () => {
+    if (!userId) return;
+
     try {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -65,8 +72,8 @@ export default function MessagesComponent({
         .select(
           `
           *,
-          profiles:sender_id (
-            full_name,
+          user:sender_id (
+            name,
             email
           )
         `,
@@ -79,7 +86,7 @@ export default function MessagesComponent({
 
       // Mark messages as read
       const unreadMessages = data?.filter(
-        (msg: Message) => !msg.read && msg.sender_id !== currentUserId,
+        (msg: Message) => !msg.read && msg.sender_id !== userId,
       );
 
       if (unreadMessages?.length) {
@@ -95,10 +102,12 @@ export default function MessagesComponent({
     } finally {
       setIsLoading(false);
     }
-  }, [commissionId, currentUserId, supabase]);
+  }, [commissionId, userId, supabase]);
 
   // Subscribe to new messages
   useEffect(() => {
+    if (!userId) return;
+
     const subscription = supabase
       .channel(`commission_${commissionId}`)
       .on(
@@ -113,7 +122,7 @@ export default function MessagesComponent({
           console.log("payload", payload);
           // Only fetch the new message if it wasn't sent by the current user
           const newMessage = payload.new as Message;
-          if (newMessage.sender_id !== currentUserId) {
+          if (newMessage.sender_id !== userId) {
             void (async () => {
               try {
                 const response = await supabase
@@ -121,8 +130,8 @@ export default function MessagesComponent({
                   .select(
                     `
                     *,
-                    profiles:sender_id (
-                      full_name,
+                    user:sender_id (
+                      name,
                       email
                     )
                   `,
@@ -158,7 +167,7 @@ export default function MessagesComponent({
     return () => {
       void subscription.unsubscribe();
     };
-  }, [commissionId, currentUserId, fetchMessages, supabase]);
+  }, [commissionId, userId, fetchMessages, supabase]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -176,7 +185,7 @@ export default function MessagesComponent({
   const handleSendMessage = async (e: React.MouseEvent) => {
     e.preventDefault();
 
-    if (!newMessage.trim() || isSending) return;
+    if (!newMessage.trim() || isSending || !userId) return;
 
     setIsSending(true);
 
@@ -186,14 +195,14 @@ export default function MessagesComponent({
         .insert({
           id: crypto.randomUUID(),
           commission_id: commissionId,
-          sender_id: currentUserId,
+          sender_id: userId,
           content: newMessage.trim(),
         })
         .select(
           `
           *,
-          profiles:sender_id (
-            full_name,
+          user:sender_id (
+            name,
             email
           )
         `,
@@ -272,20 +281,20 @@ export default function MessagesComponent({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className={`flex ${message.sender_id === currentUserId ? "justify-end" : "justify-start"}`}
+                className={`flex ${message.sender_id === userId ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                    message.sender_id === currentUserId
+                    message.sender_id === userId
                       ? "bg-emerald-600/40 text-white"
                       : "bg-emerald-900/40 text-emerald-100"
                   }`}
                 >
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs font-medium text-emerald-300/80">
-                      {message.sender_id === currentUserId
+                      {message.sender_id === userId
                         ? "You"
-                        : (message.profiles?.full_name ?? "Calayo Clothing")}
+                        : (message.user?.name ?? "Calayo Clothing")}
                     </span>
                     <span className="text-xs text-emerald-300/50">
                       {formatDate(message.created_at)}

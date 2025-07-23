@@ -1,5 +1,4 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "~/utils/supabase/server";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../../types/supabase";
@@ -16,20 +15,20 @@ export interface UserMeasurements {
 // Cached version for server components
 export const fetchProfileMeasurements = cache(
   async (userId: string): Promise<UserMeasurements> => {
-    const supabase = createServerComponentClient<Database>({ cookies });
+    const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("measurements")
-      .eq("id", userId)
+    const response = await supabase
+      .from("profile_measurements")
+      .select("*")
+      .eq("user_id", userId)
       .single();
 
-    if (error) {
-      console.error("Error fetching measurements:", error);
-      throw error;
+    if (response.error) {
+      console.error("Error fetching measurements:", response.error);
+      throw response.error;
     }
 
-    return (data?.measurements as UserMeasurements) ?? {};
+    return response.data ? (response.data as UserMeasurements) : {};
   },
 );
 
@@ -38,16 +37,16 @@ export async function fetchProfileMeasurementsForAPI(
   userId: string,
   supabase: SupabaseClient<Database>,
 ): Promise<UserMeasurements> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("measurements")
-    .eq("id", userId)
+  const response = await supabase
+    .from("profile_measurements")
+    .select("*")
+    .eq("user_id", userId)
     .single();
 
-  if (error) {
-    console.error("Error fetching measurements:", error);
-    throw error;
+  if (response.error) {
+    console.error("Error fetching measurements:", response.error);
+    throw response.error;
   }
 
-  return (data?.measurements as UserMeasurements) ?? {};
+  return response.data ? (response.data as UserMeasurements) : {};
 }

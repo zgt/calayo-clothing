@@ -10,51 +10,57 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      user: {
         Row: {
           id: string;
           email: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
+          name?: string | null;
+          image?: string | null;
+          emailVerified?: boolean | null;
+          createdAt: string;
+          updatedAt: string;
+          email_confirmed_at?: string | null;
+          role: string;
           bio?: string | null;
           website?: string | null;
           location?: string | null;
           phone?: string | null;
-          preferences?: Json | null;
-          created_at: string;
-          updated_at: string;
         };
         Insert: {
           id: string;
           email: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
+          name?: string | null;
+          image?: string | null;
+          emailVerified?: boolean | null;
+          createdAt?: string;
+          updatedAt?: string;
+          email_confirmed_at?: string | null;
+          role?: string;
           bio?: string | null;
           website?: string | null;
           location?: string | null;
           phone?: string | null;
-          preferences?: Json | null;
-          created_at?: string;
-          updated_at?: string;
         };
         Update: {
           id?: string;
           email?: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
+          name?: string | null;
+          image?: string | null;
+          emailVerified?: boolean | null;
+          createdAt?: string;
+          updatedAt?: string;
+          email_confirmed_at?: string | null;
+          role?: string;
           bio?: string | null;
           website?: string | null;
           location?: string | null;
           phone?: string | null;
-          preferences?: Json | null;
-          created_at?: string;
-          updated_at?: string;
         };
       };
       profile_measurements: {
         Row: {
           id: string;
-          profile_id: string;
+          user_id: string;
           chest?: number | null;
           waist?: number | null;
           hips?: number | null;
@@ -87,7 +93,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          profile_id: string;
+          user_id: string;
           chest?: number | null;
           waist?: number | null;
           hips?: number | null;
@@ -120,7 +126,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          profile_id?: string;
+          user_id?: string;
           chest?: number | null;
           waist?: number | null;
           hips?: number | null;
@@ -315,9 +321,9 @@ export interface Database {
   };
 }
 
-// Types for profile and measurements
-export type ProfileWithMeasurements =
-  Database["public"]["Tables"]["profiles"]["Row"] & {
+// Types for user and measurements
+export type UserWithMeasurements =
+  Database["public"]["Tables"]["user"]["Row"] & {
     measurements?: Database["public"]["Tables"]["profile_measurements"]["Row"];
   };
 

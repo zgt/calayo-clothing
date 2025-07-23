@@ -2,22 +2,25 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
+import { headers } from "next/headers";
 import ProfileSection from "./_components/ProfileSection";
 
 type Profile = {
   id: string;
   email: string;
-  full_name?: string | null;
-  avatar_url?: string | null;
+  name?: string | null;
+  image?: string | null;
   bio?: string | null;
   website?: string | null;
   location?: string | null;
   phone?: string | null;
+  role?: string;
 };
 
 export type ProfileMeasurements = {
   id: string;
-  profile_id: string;
+  user_id: string;
   // Basic measurements
   chest: number | null;
   waist: number | null;
@@ -123,22 +126,22 @@ function LoadingProfile() {
 }
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
 
-  // Fetch user profile
+  const user = session.user as User;
+  const supabase = await createClient();
+
+  // Fetch user profile from better-auth user table
   const { data: profileData, error: profileError } = (await supabase
-    .from("profiles")
+    .from("user")
     .select("*")
     .eq("id", user.id)
     .single()) as { data: Profile | null; error: SupabaseError | null };
@@ -151,7 +154,7 @@ export default async function ProfilePage() {
   const { data: measurementsData, error: measurementsError } = (await supabase
     .from("profile_measurements")
     .select("*")
-    .eq("profile_id", user.id)
+    .eq("user_id", user.id)
     .single()) as {
     data: ProfileMeasurements | null;
     error: SupabaseError | null;
@@ -165,12 +168,11 @@ export default async function ProfilePage() {
   const profile: Profile | null = profileData
     ? {
         ...profileData,
-        email: user.email ?? "",
+        email: user.email,
       }
     : null;
 
   const measurements: ProfileMeasurements | null = measurementsData ?? null;
-  console.log(measurements);
 
   return (
     <main className="min-h-screen">

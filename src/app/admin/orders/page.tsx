@@ -1,6 +1,8 @@
 // src/app/admin/orders/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import AdminCommissionsTable from "./_components/AdminCommissionsTable";
 import InstagramSyncButton from "./_components/InstagramSyncButton";
@@ -33,34 +35,33 @@ function LoadingCommissions() {
 }
 
 export default async function AdminOrdersPage() {
-  const supabase = await createClient();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
 
-  // Check if user is admin
-  const adminId = process.env.ADMIN_ID;
-  if (user.id !== adminId) {
+  // Check if user is admin using role field
+  const user = session.user as User;
+  if (user.role !== "admin") {
     // Redirect to home if not admin
     redirect("/");
   }
 
-  // Fetch all commissions and join with user profiles
+  const supabase = await createClient();
+
+  // Fetch all commissions and join with user table
   const { data: commissionsData, error: commissionsError } = await supabase
     .from("commissions")
     .select(
       `
       *,
       commission_measurements(*),
-      profiles:user_id(full_name, email)
+      user:user_id(name, email)
     `,
     )
     .order("created_at", { ascending: false });

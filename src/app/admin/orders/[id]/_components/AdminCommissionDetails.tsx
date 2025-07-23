@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import MessagesComponent from "~/app/_components/Messages";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import { api } from "~/trpc/react";
 
 type CommissionMeasurements = {
@@ -38,8 +38,8 @@ type CommissionMeasurements = {
   posture: string | null;
 };
 
-type Profile = {
-  full_name: string | null;
+type CommissionUser = {
+  name: string | null;
   email: string | null;
 };
 
@@ -54,7 +54,7 @@ type Commission = {
   updated_at: string;
   user_id: string;
   commission_measurements: CommissionMeasurements | null;
-  profiles: Profile;
+  user: CommissionUser;
 };
 
 interface AdminCommissionDetailsProps {
@@ -297,7 +297,7 @@ export default function AdminCommissionDetails({
             <button
               type="button"
               onClick={() =>
-                window.open(`mailto:${commission.profiles.email}`, "_blank")
+                window.open(`mailto:${commission.user.email}`, "_blank")
               }
               className="inline-flex items-center rounded-lg bg-emerald-700 px-4 py-2 text-white transition-colors hover:bg-emerald-600"
             >
@@ -378,13 +378,13 @@ export default function AdminCommissionDetails({
             <div>
               <p className="text-sm text-emerald-200/70">Name:</p>
               <p className="font-medium text-emerald-100">
-                {commission.profiles.full_name ?? "Not provided"}
+                {commission.user.name ?? "Not provided"}
               </p>
             </div>
             <div>
               <p className="text-sm text-emerald-200/70">Email:</p>
               <p className="font-medium text-emerald-100">
-                {commission.profiles.email ?? "Not provided"}
+                {commission.user.email ?? "Not provided"}
               </p>
             </div>
             <div>
