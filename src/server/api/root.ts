@@ -1,6 +1,7 @@
 import { postRouter } from "~/server/api/routers/post";
 import { commissionsRouter } from "~/server/api/routers/commissions";
 import { instagramRouter } from "~/server/api/routers/instagram";
+import { profileRouter } from "~/server/api/routers/profile";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   post: postRouter,
   commissions: commissionsRouter,
   instagram: instagramRouter,
+  profile: profileRouter,
 });
 
 // export type definition of API
