@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "~/lib/auth";
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({
@@ -8,24 +8,9 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Get the session token from the better-auth cookie
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
-
-  let user = null;
-  if (sessionToken) {
-    try {
-      // Validate the session with better-auth
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      user = session?.user ?? null;
-    } catch (error) {
-      console.error("Error validating session in middleware:", error);
-      // Clear invalid session cookie
-      response.cookies.delete("better-auth.session_token");
-    }
-  }
+  // Use better-auth's built-in session cookie helper to check if session exists
+  const sessionCookie = getSessionCookie(request);
+  const user = sessionCookie ? {} : null; // Just check if session exists
 
   // Auth condition for protected routes
   const isAuthRoute =

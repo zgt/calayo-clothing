@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useAuth } from "~/context/better-auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { resetPassword } from "~/lib/auth-client";
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState("");
@@ -13,7 +13,19 @@ function ResetPasswordForm() {
   const [isValidToken, setIsValidToken] = useState(false);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-  const { resetPassword } = useAuth();
+
+  const handleResetPassword = async (token: string, newPassword: string) => {
+    const result = await resetPassword({
+      newPassword,
+      token,
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result;
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -61,16 +73,11 @@ function ResetPasswordForm() {
     setIsLoading(true);
 
     try {
-      const { error } = await resetPassword(token, password);
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Password updated successfully!");
-        router.push("/login");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred");
+      await handleResetPassword(token, password);
+      toast.success("Password updated successfully!");
+      router.push("/login");
+    } catch (error: unknown) {
+      toast.error((error as Error).message ?? "Failed to reset password");
       console.error("Password update error:", error);
     } finally {
       setIsLoading(false);

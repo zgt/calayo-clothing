@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { env } from "~/env";
 import { Pool } from "pg";
 import {
@@ -13,8 +14,10 @@ export const auth = betterAuth({
   database: new Pool({
     connectionString: String(env.DATABASE_URL),
   }),
+
   secret: String(env.BETTER_AUTH_SECRET),
   baseURL: String(env.NEXT_PUBLIC_BETTER_AUTH_URL),
+
   plugins: [
     // Enable magic link authentication (optional - remove if not needed)
     magicLink({
@@ -22,7 +25,9 @@ export const auth = betterAuth({
         await sendMagicLinkEmail({ email, url, token });
       },
     }),
+    nextCookies(),
   ],
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -30,6 +35,7 @@ export const auth = betterAuth({
       await sendPasswordResetEmail({ user, url, token });
     },
   },
+
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
@@ -37,10 +43,12 @@ export const auth = betterAuth({
       await sendVerificationEmail({ user, url, token });
     },
   },
+
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
   },
+
   user: {
     additionalFields: {
       // Add fields that match existing Supabase user structure
@@ -73,6 +81,7 @@ export const auth = betterAuth({
       },
     },
   },
+
   trustedOrigins: [
     "http://localhost:3000",
     "https://localhost:3000",
