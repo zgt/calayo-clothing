@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIntervalTimer, type TimerConfig, type TimerPhase } from './useIntervalTimer';
 import TimerConfiguration from './TimerConfig';
@@ -52,7 +52,7 @@ export default function IntervalTimer() {
     };
   }, []);
 
-  const playBeep = (frequency: number, duration: number, _type: 'work' | 'rest' | 'complete' = 'work') => {
+  const playBeep = useCallback((frequency: number, duration: number, _type: 'work' | 'rest' | 'complete' = 'work') => {
     if (!audioContextRef.current || isMuted || !isAudioEnabled) return;
 
     const oscillator = audioContextRef.current.createOscillator();
@@ -70,7 +70,7 @@ export default function IntervalTimer() {
 
     oscillator.start(audioContextRef.current.currentTime);
     oscillator.stop(audioContextRef.current.currentTime + duration);
-  };
+  }, [isMuted, isAudioEnabled]);
 
   // Set up audio callbacks
   useEffect(() => {
