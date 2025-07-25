@@ -42,6 +42,7 @@ export function GSAPFormContainer({
     if (!containerRef.current) return;
 
     // Set initial states for hidden elements
+    const mainCard = containerRef.current.querySelector("#main-form-card");
     const expandedGrid = containerRef.current.querySelector("#expanded-grid");
     const commissionRequestTarget = containerRef.current.querySelector("#commission-request-target");
     const additionalDetailsCard = containerRef.current.querySelector("#additional-details-card");
@@ -53,8 +54,8 @@ export function GSAPFormContainer({
 
     // Set initial states
     gsap.set([
-      expandedGrid,
-      commissionRequestTarget,
+      // //expandedGrid,
+      // commissionRequestTarget,
       additionalDetailsCard,
       garmentPreviewCard,
       measurementGuideCard,
@@ -65,11 +66,21 @@ export function GSAPFormContainer({
       opacity: 0
     });
 
+    if (commissionRequestTarget && mainCard) {
+      commissionRequestTarget.appendChild(mainCard);
+    }
+
     // Set transform for cards that will slide in
-    gsap.set([additionalDetailsCard, garmentPreviewCard, measurementGuideCard, measurementNavigatorCard, submitButtonContainer], {
-      y: 30,
-      scale: 0.9
-    });
+    // gsap.set([additionalDetailsCard, garmentPreviewCard, measurementGuideCard, measurementNavigatorCard, submitButtonContainer], {
+    //   x: -1000,
+    //   scale: 1
+    // });
+    gsap.set([additionalDetailsCard, garmentPreviewCard], {
+      x:-500
+    })
+    gsap.set([measurementGuideCard,measurementNavigatorCard,submitButtonContainer],{
+      x:-1000
+    })
 
     // Cleanup function
     return () => {
@@ -117,6 +128,7 @@ export function GSAPFormContainer({
 
     // Get all the elements we need to animate
     const mainCard = containerRef.current.querySelector("#main-form-card");
+    const mainCardGradient = containerRef.current.querySelector("#main-card-gradient");
     const commissionRequestTarget = containerRef.current.querySelector("#commission-request-target");
     const expandedGrid = containerRef.current.querySelector("#expanded-grid");
     const initialPosition = containerRef.current.querySelector("#initial-position");
@@ -126,12 +138,11 @@ export function GSAPFormContainer({
     const measurementNavigatorCard = containerRef.current.querySelector("#measurement-navigator-card");
     const submitButtonContainer = containerRef.current.querySelector("#submit-button-container");
     const budgetTimelineSection = containerRef.current.querySelector("#budget-timeline-section");
+    const column1 = containerRef.current.querySelector("#column-1");
 
-    // Capture the initial state for Flip
-    const flipState = Flip.getState(mainCard);
 
     // Move the card to the target position and make target visible
-    if (commissionRequestTarget && mainCard && expandedGrid && initialPosition) {
+    if (commissionRequestTarget && mainCard && mainCardGradient && expandedGrid && column1) {
       // Hide the initial position container
       gsap.set(initialPosition, { display: "none" });
       
@@ -139,105 +150,77 @@ export function GSAPFormContainer({
       gsap.set(expandedGrid, { opacity: 1, display: "grid" });
       gsap.set(commissionRequestTarget, { opacity: 1 });
       
-      // Move the card to the target position in DOM
-      commissionRequestTarget.appendChild(mainCard);
+      // // Move the card to the target position in DOM
 
-      // Animate the flip
-      Flip.from(flipState, {
-        duration: 0.8,
-        ease: "power2.out",
+      Flip.fit(mainCard, expandedGrid, {
+        duration: 0.5,
+        ease: 'power1.inOut',
         absolute: true,
+        maxWidth: 'none',
+        zIndex: '2000',
+        attr: {height:100},
         onStart: () => {
-          // Update styling during flip
-          const cardHeader = mainCard?.querySelector("#card-header");
-          const cardSubtitle = mainCard?.querySelector("#card-subtitle");
-          const cardContent = mainCard?.querySelector(".bg-gradient-to-br");
-          
-          // if (cardHeader) {
-          //   gsap.to(cardHeader, {
-          //     textAlign: "left",
-          //     marginBottom: "1rem",
-          //     duration: 0.4,
-          //     ease: "power2.out"
-          //   });
-          // }
-          
-          // if (cardSubtitle) {
-          //   gsap.to(cardSubtitle, {
-          //     opacity: 0,
-          //     height: 0,
-          //     marginBottom: 0,
-          //     duration: 0.3,
-          //     ease: "power2.out"
-          //   });
-          // }
-          
-          // if (cardContent) {
-          //   gsap.to(cardContent, {
-          //     padding: "1.5rem",
-          //     duration: 0.4,
-          //     ease: "power2.out"
-          //   });
-          // }
-          
-          // // Update heading size
-          // const heading = cardHeader?.querySelector("h2");
-          // if (heading) {
-          //   gsap.to(heading, {
-          //     fontSize: "1.25rem",
-          //     lineHeight: "1.75rem",
-          //     duration: 0.4,
-          //     ease: "power2.out"
-          //   });
-          // }
+          // mainCardGradient.classList.add("from-emerald-900/100")
+          // mainCardGradient.classList.add("to-emerald-950/100")
         },
         onComplete: () => {
-          // Show budget/timeline section after flip
-          gsap.to(budgetTimelineSection, {
-            opacity: 1,
-            duration: 0.5,
-            ease: "power2.out"
-          });
+          
+          column1.appendChild(mainCard)
+          additionalDetailsCard?.appendChild(commissionRequestTarget)
+          gsap.set(budgetTimelineSection, {opacity: 1})
+          Flip.fit(mainCard, column1, {
+            duration: .5,
+            absolute: true,
+            ease: 'power1.inOut',
+            onComplete: () => {
+            //   mainCardGradient.classList.add("from-emerald-900/20")
+            // mainCardGradient.classList.add("to-emerald-950/30")
+            //   mainCardGradient.classList.remove("to-emerald-950/100")
+            //   mainCardGradient.classList.remove("from-emerald-900/100")
+
+            }
+          })
         }
-      });
+      })
+
 
       // Animate other elements in sequence
-      const tl = gsap.timeline({ delay: 0.3 });
+      const tl = gsap.timeline({ delay: 0.5 });
       
       // Additional details card
       tl.to(additionalDetailsCard, {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
-        duration: 0.6,
+        duration: 0.5,
         ease: "power2.out"
       })
       // Garment preview card
       .to(garmentPreviewCard, {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
-        duration: 0.6,
+        duration: 0.5,
         ease: "power2.out"
       }, "")
       // Right column elements
       .to(measurementGuideCard, {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
         duration: 0.5,
         ease: "power2.out"
       }, "")
       .to(measurementNavigatorCard, {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
         duration: 0.5,
         ease: "power2.out"
       }, "")
       .to(submitButtonContainer, {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
         duration: 0.5,
         ease: "power2.out"

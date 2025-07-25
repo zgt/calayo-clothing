@@ -36,7 +36,7 @@ export function MeasurementNavigator({
       ...MEASUREMENT_GROUPS.general,
     ];
 
-    const requiredMeasurements = REQUIRED_MEASUREMENTS[formData.garmentType] || [];
+    const requiredMeasurements = REQUIRED_MEASUREMENTS[formData.garmentType] ?? [];
     
     // Filter to show required measurements first, then others
     const required = allMeasurements.filter(m => requiredMeasurements.includes(m.id));
@@ -103,11 +103,6 @@ export function MeasurementNavigator({
           onClick={onLoadMeasurements}
           isLoading={isLoadingMeasurements}
         />
-      </div>
-
-      {/* Measurement Counter */}
-      <div className="text-center text-emerald-200/70 text-sm">
-        {currentMeasurementIndex + 1} of {relevantMeasurements.length}
       </div>
 
       {/* Navigation and Input */}
@@ -200,12 +195,6 @@ export function MeasurementNavigator({
             whileTap={{ scale: 0.9 }}
           />
         ))}
-      </div>
-
-      {/* Helper Text */}
-      <div className="text-center text-xs text-emerald-300/60 space-y-1">
-        <p>Use arrow keys or buttons to navigate</p>
-        <p>Required measurements are marked with *</p>
       </div>
     </div>
   );
