@@ -9,6 +9,7 @@ import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
 import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
+import { useMobile } from "~/context/mobile-provider";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,6 +18,7 @@ export default function InfinitePhotoGrid() {
   const lenisRef = useRef<LenisRef>(null);
   const logoRef = useRef<SvgLogoRef>(null);
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
+  const { isMobile, isTablet, isDesktop } = useMobile();
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768,
@@ -53,27 +55,29 @@ export default function InfinitePhotoGrid() {
   const gridConfig = useMemo(() => {
     const { width } = screenSize;
     
-    if (width < 480) {
-      // Mobile
-      return {
-        columns: 3,
-        maxItemsPerRow: 1,
-        gap: '0.75rem',
-        padding: '1rem',
-        rowHeight: '25vh',
-        minHeight: '300vh',
-      };
-    } else if (width < 768) {
-      // Large mobile / small tablet
-      return {
-        columns: 3,
-        maxItemsPerRow: 2,
-        gap: '1rem',
-        padding: '1.5rem',
-        rowHeight: '20vh',
-        minHeight: '350vh',
-      };
-    } else if (width < 1024) {
+    if (isMobile) {
+      if (width < 480) {
+        // Small mobile
+        return {
+          columns: 3,
+          maxItemsPerRow: 1,
+          gap: '0.75rem',
+          padding: '1rem',
+          rowHeight: '25vh',
+          minHeight: '300vh',
+        };
+      } else {
+        // Large mobile
+        return {
+          columns: 3,
+          maxItemsPerRow: 2,
+          gap: '1rem',
+          padding: '1.5rem',
+          rowHeight: '20vh',
+          minHeight: '350vh',
+        };
+      }
+    } else if (isTablet) {
       // Tablet
       return {
         columns: 4,
@@ -83,8 +87,30 @@ export default function InfinitePhotoGrid() {
         rowHeight: '18vh',
         minHeight: '400vh',
       };
-    } else if (width < 1440) {
-      // Desktop
+    } else if (isDesktop) {
+      if (width < 1440) {
+        // Desktop
+        return {
+          columns: 5,
+          maxItemsPerRow: 2,
+          gap: '2rem',
+          padding: '2rem',
+          rowHeight: '15vh',
+          minHeight: '400vh',
+        };
+      } else {
+        // Large desktop
+        return {
+          columns: 5,
+          maxItemsPerRow: 2,
+          gap: '2rem',
+          padding: '2rem',
+          rowHeight: '12vh',
+          minHeight: '400vh',
+        };
+      }
+    } else {
+      // Fallback
       return {
         columns: 5,
         maxItemsPerRow: 2,
@@ -93,18 +119,8 @@ export default function InfinitePhotoGrid() {
         rowHeight: '15vh',
         minHeight: '400vh',
       };
-    } else {
-      // Large desktop
-      return {
-        columns: 5,
-        maxItemsPerRow: 2,
-        gap: '2rem',
-        padding: '2rem',
-        rowHeight: '12vh',
-        minHeight: '400vh',
-      };
     }
-  }, [screenSize]);
+  }, [screenSize, isMobile, isTablet, isDesktop]);
 
   // Memoize responsive grid positions ensuring no photos are adjacent
   const photoPositions = useMemo(() => {
@@ -331,12 +347,12 @@ export default function InfinitePhotoGrid() {
                     }}
                     onLoad={handleImageLoad}
                     onMouseEnter={(e) => {
-                      if (screenSize.width >= 768) { // Only on non-touch devices
+                      if (!isMobile) { // Only on non-touch devices
                         e.currentTarget.style.transform = 'scale(1.05)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (screenSize.width >= 768) { // Only on non-touch devices
+                      if (!isMobile) { // Only on non-touch devices
                         e.currentTarget.style.transform = 'scale(1)';
                       }
                     }}
@@ -359,7 +375,7 @@ export default function InfinitePhotoGrid() {
               <div className="mb-4">
                 <SvgLogo 
                   ref={logoRef}
-                  fontSize={screenSize.width < 768 ? '2.5rem' : '6rem'}
+                  fontSize={isMobile ? '2.5rem' : '6rem'}
                   letterSpacing="0"
                 />
                 {/* <sup>®</sup> */}
@@ -369,7 +385,7 @@ export default function InfinitePhotoGrid() {
                 text="Intentionally yours"
                 className="font-light"
                 style={{
-                  fontSize: screenSize.width < 768 ? '1.25rem' : '2rem',
+                  fontSize: isMobile ? '1.25rem' : '2rem',
                 }}
               />
             </div>

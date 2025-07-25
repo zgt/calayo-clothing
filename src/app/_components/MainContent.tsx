@@ -8,7 +8,6 @@ interface MainContentProps {
 
 export default function MainContent({ children }: MainContentProps) {
   const { isMobile } = useMobile();
-  console.log(isMobile)
   
   return (
     <main className={isMobile ? "" : "pt-16"}>

@@ -4,32 +4,28 @@ import { Canvas } from '@react-three/fiber';
 import { Scene3D } from './Scene3D';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useMobile } from '~/context/mobile-provider';
 
-// Hook to detect mobile and performance capabilities
+// Hook to detect device performance capabilities
 const useDeviceCapabilities = () => {
-  const [isMobile, setIsMobile] = useState(false);
   const [isLowEndDevice, setIsLowEndDevice] = useState(false);
+  const { isMobile } = useMobile();
   
   useEffect(() => {
     const checkCapabilities = () => {
-      const width = window.innerWidth;
-      setIsMobile(width < 1024);
-      
       // Detect low-end devices
       const deviceMemory = 'deviceMemory' in navigator ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory : undefined;
       const isLowEnd = (
         (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) ||
         (deviceMemory !== undefined && deviceMemory <= 2) ||
-        (navigator.userAgent.includes('Mobile') && width < 768)
+        (navigator.userAgent.includes('Mobile') && isMobile)
       );
       
       setIsLowEndDevice(Boolean(isLowEnd));
     };
     
     checkCapabilities();
-    window.addEventListener('resize', checkCapabilities);
-    return () => window.removeEventListener('resize', checkCapabilities);
-  }, []);
+  }, [isMobile]);
   
   return { isMobile, isLowEndDevice };
 };
@@ -168,7 +164,6 @@ export function GarmentViewer({
       >
         <Scene3D 
           garmentType={garmentType} 
-          isMobile={isMobile}
           disableInteraction={disableInteraction || isMobile}
         />
         

@@ -22,6 +22,7 @@ interface UnifiedFormLayoutProps {
   currentMeasurement: MeasurementKey | null;
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
   onExpand: () => void;
+  onMobileGarmentSelect: () => void;
 }
 
 
@@ -62,6 +63,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
       currentMeasurement,
       onMeasurementChange,
       onExpand,
+      onMobileGarmentSelect,
     },
     ref
   ) => {
@@ -81,6 +83,9 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
       onSelectChange(value, "garmentType");
       if (value && !isMobile) {
         onExpand();
+      }
+      if(value && isMobile){
+        onMobileGarmentSelect();
       }
     };
 
@@ -102,7 +107,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
             {/* Sticky Tabs Form */}
             <form onSubmit={onSubmit}>
               <StickyTabs
-                mainNavHeight={formData.garmentType ? "12rem" : "40rem"}
+                mainNavHeight={formData.garmentType ? "12rem" : "38rem"}
                 rootClassName="bg-transparent"
                 navSpacerClassName="bg-transparent"
                 sectionClassName="bg-transparent"
@@ -172,7 +177,8 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                 </StickyTabs.Item>
 
                 <StickyTabs.Item title="Measurements" id="measurements">
-                  <div className="space-y-6">
+                  <div className="">
+                  <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
                     <div className="bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 backdrop-blur-md  shadow-2xl p-6 border border-emerald-700/30">
                       <MeasurementNavigator
                         formData={formData}
@@ -184,7 +190,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                       />
                     </div>
                     
-                    <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
+                    
                   </div>
                 </StickyTabs.Item>
 
@@ -338,7 +344,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
 
               {/* Right Column - Measurement Guide and Measurements */}
               <div id="column-3" className="space-y-6 grid-column-inline-grid opacity-0">
-                <div id="measurement-guide-card">
+                <div id="measurement-guide-card" style={{height:'16rem'}}>
                   <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
                 </div>
                 <div 

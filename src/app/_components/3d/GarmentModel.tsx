@@ -7,7 +7,6 @@ import { PantsModel } from './PantsModel';
 
 interface GarmentModelProps {
   garmentType: string;
-  isMobile?: boolean;
 }
 
 function PlaceholderModel() {

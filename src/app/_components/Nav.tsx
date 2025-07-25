@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { type LucideIcon, Home, User, Briefcase, FileText, ChevronDown } from "lucide-react"
+import { useMobile } from "~/context/mobile-provider"
 
 interface DropdownItem {
   name: string
@@ -31,7 +32,7 @@ function cn(...inputs: (string | undefined | null | boolean)[]) {
 export function NavBar({ items, className }: NavBarProps) {
   const pathname = usePathname()
   const [activeTab, setActiveTab] = useState("")
-  const [isMobile, setIsMobile] = useState(false)
+  const { isMobile } = useMobile()
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -52,15 +53,7 @@ export function NavBar({ items, className }: NavBarProps) {
     }
   }, [pathname, items])
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+  // Remove the resize useEffect since useMobile handles this
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
