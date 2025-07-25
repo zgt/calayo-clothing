@@ -7,6 +7,7 @@ import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import { motion } from "framer-motion";
 
 interface UnifiedFormLayoutProps {
   formData: CommissionFormData;
@@ -80,7 +81,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
             {/* Grid layout for expanded state - hidden initially */}
             <div id="expanded-grid" className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Commission Request + Additional Details */}
-              <div id="column-1" className="space-y-6">
+              <div id="column-1" className="space-y-6 opacity-0 grid-column-inline-grid">
                 {/* Target position for commission request card after flip */}
                 <div 
                 id="main-form-card"
@@ -111,7 +112,53 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                     />
 
                     {/* Budget and Timeline - hidden initially, shown after expansion */}
-                    <div id="budget-timeline-section" className="space-y-6 opacity-0">
+                    <div id="budget-timeline-target">
+                    </div>
+                    {/* <div id="budget-timeline-section" className="space-y-6 opacity-0">
+                      <FormSelect
+                        id="budget"
+                        name="budget"
+                        label="Budget Range"
+                        value={formData.budget}
+                        onChange={(value) => onSelectChange(value, "budget")}
+                        options={budgetOptions}
+                        placeholder="Select budget range"
+                        error={errors.budget}
+                        required
+                        disabled
+                      />
+
+                      <FormSelect
+                        id="timeline"
+                        name="timeline"
+                        label="Timeline"
+                        value={formData.timeline}
+                        onChange={(value) => onSelectChange(value, "timeline")}
+                        options={timelineOptions}
+                        placeholder="Select timeline"
+                        error={errors.timeline}
+                        required
+                        disabled
+                      />
+                    </div> */}
+                  </div>
+                </div>
+              </div>
+                
+                
+              </div>
+
+              {/* Center Column - Garment Image Placeholder */}
+              <motion.div
+                  initial={{ y: "100%"}}
+                  animate={{ y: 0}}
+                  className="grid-column-inline-grid"
+                >
+              <div id="column-2" className="space-y-6 ">
+                  <div 
+                      id="commission-request-target" className=""
+                    >
+                      <div id="budget-timeline-section" className="space-y-6 opacity-0">
                       <FormSelect
                         id="budget"
                         name="budget"
@@ -136,24 +183,12 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                         required
                       />
                     </div>
-                  </div>
-                </div>
-              </div>
+                    </div>
                 
-                
-              </div>
-
-              {/* Center Column - Garment Image Placeholder */}
-              <div className="space-y-6 grid-column-inline-grid">
-              <div 
-                  id="commission-request-target"
-                >
-                  {/* This will be populated by the flipped card */}
-                </div>
 
                 <div 
                   id="garment-preview-card"
-                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10 w-full max-w-sm aspect-square flex items-center justify-center"
+                  className="opacity-0 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10 w-full max-w-sm aspect-square flex items-center justify-center"
                 >
                   <div className="text-center">
                     <div className="w-32 h-32 bg-emerald-800/30 rounded-xl mb-4 flex items-center justify-center">
@@ -184,7 +219,7 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
                 
                 <div 
                   id="additional-details-card"
-                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
+                  className="opacity-0 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
                 >
                   <FormTextarea
                     id="details"
@@ -201,9 +236,10 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
 
 
               </div>
+              </motion.div>
 
               {/* Right Column - Measurement Guide and Measurements */}
-              <div className="space-y-6 grid-column-inline-grid">
+              <div id="column-3" className="space-y-6 grid-column-inline-grid opacity-0">
                 <div id="measurement-guide-card">
                   <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
                 </div>
