@@ -1,7 +1,7 @@
 'use client';
 
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { ShirtModel } from './ShirtModel';
+import { GarmentModel } from './GarmentModel';
 import { Suspense } from 'react';
 
 function LoadingFallback() {
@@ -13,7 +13,11 @@ function LoadingFallback() {
   );
 }
 
-export function Scene3D() {
+interface Scene3DProps {
+  garmentType: string;
+}
+
+export function Scene3D({ garmentType }: Scene3DProps) {
 
 
 
@@ -52,7 +56,7 @@ export function Scene3D() {
       
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
-        <ShirtModel />
+        <GarmentModel garmentType={garmentType} />
       </Suspense>
       
       {/* Controls */}
@@ -63,7 +67,7 @@ export function Scene3D() {
         autoRotate={true}
         autoRotateSpeed={2}
         minDistance={2}
-        maxDistance={5}
+        maxDistance={50}
         zoom0={100}
         target={[0, 0, 0]}
       />

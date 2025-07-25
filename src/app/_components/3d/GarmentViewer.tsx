@@ -6,9 +6,10 @@ import { useState } from 'react';
 
 interface GarmentViewerProps {
   className?: string;
+  garmentType?: string;
 }
 
-export function GarmentViewer({ className = '' }: GarmentViewerProps) {
+export function GarmentViewer({ className = '', garmentType = '' }: GarmentViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -62,14 +63,16 @@ export function GarmentViewer({ className = '' }: GarmentViewerProps) {
         className="w-full h-full"
         style={{ background: 'transparent' }}
       >
-        <Scene3D />
+        <Scene3D garmentType={garmentType} />
       </Canvas>
       
       {!isLoading && !hasError && (
         <div className="absolute bottom-4 left-4 right-4">
           <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
             <h3 className="text-lg font-semibold text-white mb-1">
-              Shirt Preview
+              {garmentType ? 
+                `${garmentType.charAt(0).toUpperCase() + garmentType.slice(1)} Preview` 
+                : 'Garment Preview'}
             </h3>
             <p className="text-emerald-200/70 text-xs">
               Drag to rotate • Auto-rotating
