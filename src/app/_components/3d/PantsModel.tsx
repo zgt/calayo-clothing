@@ -40,7 +40,7 @@ export function PantsModel() {
     ref={pantsRef} 
     dispose={null} 
     rotation={[Math.PI / 180 * 270, 0, 0]} 
-    position={[0, .1, 0]}
+    position={[0, 0, 0]}
     scale={.009}
     >
       {meshNodes.map((mesh, index) => {

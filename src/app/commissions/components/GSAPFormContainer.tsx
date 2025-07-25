@@ -3,11 +3,13 @@
 import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { Flip } from "gsap/Flip";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
-gsap.registerPlugin(Flip);
+gsap.registerPlugin(Flip, ScrambleTextPlugin);
 
 interface GSAPFormContainerProps {
   formData: CommissionFormData;
@@ -50,31 +52,13 @@ export function GSAPFormContainer({
     const measurementGuideCard = containerRef.current.querySelector("#measurement-guide-card");
     const measurementNavigatorCard = containerRef.current.querySelector("#measurement-navigator-card");
     const submitButtonContainer = containerRef.current.querySelector("#submit-button-container");
-    const budgetTimelineSection = containerRef.current.querySelector("#budget-timeline-section");
 
-    // Set initial states
-    // gsap.set([
-    //   // //expandedGrid,
-    //   // commissionRequestTarget,
-    //   additionalDetailsCard,
-    //   garmentPreviewCard,
-    //   measurementGuideCard,
-    //   measurementNavigatorCard,
-    //   submitButtonContainer,
-    //   budgetTimelineSection
-    // ], {
-    //   opacity: 0
-    // });
+
+  
 
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
-
-    // Set transform for cards that will slide in
-    // gsap.set([additionalDetailsCard, garmentPreviewCard, measurementGuideCard, measurementNavigatorCard, submitButtonContainer], {
-    //   x: -1000,
-    //   scale: 1
-    // });
     gsap.set([additionalDetailsCard, garmentPreviewCard], {
       x:-500
     })
@@ -120,6 +104,41 @@ export function GSAPFormContainer({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isExpanded]);
+
+  // Handle scramble text animation when measurement changes
+  useEffect(() => {
+    if (!containerRef.current || !currentMeasurement) return;
+
+    const guideItemTitle = containerRef.current.querySelector("#guide-item-title");
+    const guideItemDescription = containerRef.current.querySelector("#guide-item-description");
+    
+    if (!guideItemTitle || !guideItemDescription) return;
+
+    const guideItem = MEASUREMENT_GUIDE_ITEMS[currentMeasurement];
+    if (!guideItem) return;
+
+    // Scramble animation for title
+    gsap.to(guideItemTitle, {
+      duration: 0.8,
+      scrambleText: {
+        text: guideItem.title,
+        chars: "XO!@#$%",
+        revealDelay: 0.1,
+        speed: 0.1
+      }
+    });
+
+    // Scramble animation for description
+    gsap.to(guideItemDescription, {
+      duration: 1.2,
+      scrambleText: {
+        text: guideItem.description,
+        chars: "XO!@#$%",
+        revealDelay: 0.1,
+        speed: 0.1
+      }
+    });
+  }, [currentMeasurement]);
 
   const handleExpand = () => {
     if (isExpanded || !containerRef.current) return;
@@ -169,10 +188,6 @@ export function GSAPFormContainer({
         maxWidth: 'none',
         zIndex: '2000',
         attr: {height:100},
-        onStart: () => {
-          // mainCardGradient.classList.add("from-emerald-900/100")
-          // mainCardGradient.classList.add("to-emerald-950/100")
-        },
         onComplete: () => {
           gsap.set(column1, {opacity: 1})
           gsap.set(column3, {opacity: 1})
@@ -184,13 +199,6 @@ export function GSAPFormContainer({
             duration: .5,
             absolute: true,
             ease: 'power1.inOut',
-            onComplete: () => {
-            //   mainCardGradient.classList.add("from-emerald-900/20")
-            // mainCardGradient.classList.add("to-emerald-950/30")
-            //   mainCardGradient.classList.remove("to-emerald-950/100")
-            //   mainCardGradient.classList.remove("from-emerald-900/100")
-
-            }
           })
         }
       })

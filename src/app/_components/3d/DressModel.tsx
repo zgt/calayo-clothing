@@ -12,8 +12,8 @@ export function DressModel() {
   // Create grey material once
   const greyMaterial = new THREE.MeshStandardMaterial({
     color: '#d1d5db', // grey-300
-    roughness: 0.8,
-    metalness: 0.1,
+    roughness: 0.5,
+    metalness: 0,
   });
 
   // Get mesh nodes safely
@@ -40,7 +40,7 @@ export function DressModel() {
       ref={dressRef}
       dispose={null}
       rotation={[0, 0, 0]}
-      position={[0, -.6, 0]}
+      position={[0, -.7, 0]}
       scale={0.007}
     >
       {meshNodes.map((mesh, index) => {

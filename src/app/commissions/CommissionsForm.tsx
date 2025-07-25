@@ -85,7 +85,9 @@ export default function CommissionsForm() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
+    
     if (name.startsWith("measurements.")) {
+      console.log(name)
       const measurementField = name.split(".")[1] as MeasurementKey;
       setFormData(prev => ({
         ...prev,

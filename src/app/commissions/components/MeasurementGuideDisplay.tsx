@@ -25,6 +25,7 @@ export function MeasurementGuideDisplay({
   }
 
   const guideItem = MEASUREMENT_GUIDE_ITEMS[currentMeasurement];
+  console.log(guideItem)
   
   if (!guideItem) {
     return (
@@ -39,17 +40,17 @@ export function MeasurementGuideDisplay({
   return (
     <motion.div
       key={currentMeasurement}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
+      // initial={{ opacity: 0, y: 20 }}
+      // animate={{ opacity: 1, y: 0 }}
+      // exit={{ opacity: 0, y: -20 }}
+      // transition={{ duration: 0.3 }}
       className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10 ${className}`}
     >
       <div className="space-y-4">
         {/* Header */}
         <div className="border-b border-emerald-700/30 pb-3">
-          <h3 className="text-lg font-semibold text-emerald-200">{guideItem.title}</h3>
-          <p className="mt-2 text-sm text-emerald-200/80">{guideItem.description}</p>
+          <h3 id="guide-item-title" className="text-lg font-semibold text-emerald-200">{guideItem.title}</h3>
+          <p id="guide-item-description" className="mt-2 text-sm text-emerald-200/80">{guideItem.description}</p>
         </div>
 
         {/* Measurement Tips */}

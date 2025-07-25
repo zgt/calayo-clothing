@@ -66,7 +66,7 @@ export function GarmentViewer({ className = '', garmentType = '' }: GarmentViewe
         <Scene3D garmentType={garmentType} />
       </Canvas>
       
-      {!isLoading && !hasError && (
+      {/* {!isLoading && !hasError && (
         <div className="absolute bottom-4 left-4 right-4">
           <div className="bg-black/20 backdrop-blur-sm rounded-lg p-3">
             <h3 className="text-lg font-semibold text-white mb-1">
@@ -74,12 +74,9 @@ export function GarmentViewer({ className = '', garmentType = '' }: GarmentViewe
                 `${garmentType.charAt(0).toUpperCase() + garmentType.slice(1)} Preview` 
                 : 'Garment Preview'}
             </h3>
-            <p className="text-emerald-200/70 text-xs">
-              Drag to rotate • Auto-rotating
-            </p>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

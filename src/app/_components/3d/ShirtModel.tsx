@@ -35,7 +35,7 @@ export function ShirtModel() {
   };
 
   return (
-    <group ref={shirtRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -1.4, 0]} scale={1.2}>
+    <group ref={shirtRef} dispose={null} rotation={[Math.PI / 180 * 270, 0, 0]} position={[0, -1.5, 0]} scale={1.2}>
       {object2 && getGeometry(object2) && (
         <mesh 
           geometry={getGeometry(object2)} 
