@@ -4,15 +4,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import { useAuth } from "~/context/auth";
 import { api } from "~/trpc/react";
 
 // Import our new components and utilities
-import { FormSelect } from "./components/FormSelect";
-import { FormTextarea } from "./components/FormTextarea";
-import { MeasurementsForm } from "./components/MeasurementsForm";
-import { SubmitButton } from "./components/SubmitButton";
+import { GSAPFormContainer } from "./components/GSAPFormContainer";
 import { useMeasurementLoader } from "./hooks/useMeasurementLoader";
 import { validateCommissionForm } from "./utils";
 import { getEmptyMeasurements } from "./constants";
@@ -31,6 +27,7 @@ export default function CommissionsForm() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentMeasurement, setCurrentMeasurement] = useState<MeasurementKey | null>(null);
   
   // Use our custom hook for measurement loading
   const { isLoadingMeasurements, loadMeasurementsFromProfile } = useMeasurementLoader({
@@ -123,111 +120,22 @@ export default function CommissionsForm() {
     }
   };
 
-  // Form options
-  const garmentOptions = [
-    { value: "shirt", label: "Shirt" },
-    { value: "jacket", label: "Jacket" },
-    { value: "pants", label: "Pants" },
-    { value: "dress", label: "Dress" },
-    { value: "skirt", label: "Skirt" },
-    { value: "other", label: "Other" },
-  ];
-
-  const budgetOptions = [
-    { value: "100-300", label: "$100 - $300" },
-    { value: "300-500", label: "$300 - $500" },
-    { value: "500-1000", label: "$500 - $1000" },
-    { value: "1000+", label: "$1000+" },
-  ];
-
-  const timelineOptions = [
-    { value: "1-2weeks", label: "1-2 weeks" },
-    { value: "3-4weeks", label: "3-4 weeks" },
-    { value: "1-2months", label: "1-2 months" },
-    { value: "flexible", label: "Flexible" },
-  ];
+  const handleMeasurementChange = (measurement: MeasurementKey | null) => {
+    setCurrentMeasurement(measurement);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Clothing Commission Request</h2>
-            <p className="text-emerald-200/70">Tell us about your dream garment</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Garment Type */}
-            <FormSelect
-              id="garmentType"
-              name="garmentType"
-              label="Garment Type"
-              value={formData.garmentType}
-              onChange={(value) => handleSelectChange(value, "garmentType")}
-              options={garmentOptions}
-              placeholder="Select garment type"
-              error={errors.garmentType}
-              required
-            />
-
-            {/* Measurements */}
-            <MeasurementsForm
-              formData={formData}
-              errors={errors}
-              onChange={handleInputChange}
-              onLoadMeasurements={loadMeasurementsFromProfile}
-              isLoadingMeasurements={isLoadingMeasurements}
-            />
-
-            {/* Budget Range */}
-            <FormSelect
-              id="budget"
-              name="budget"
-              label="Budget Range"
-              value={formData.budget}
-              onChange={(value) => handleSelectChange(value, "budget")}
-              options={budgetOptions}
-              placeholder="Select budget range"
-              error={errors.budget}
-              required
-            />
-
-            {/* Timeline */}
-            <FormSelect
-              id="timeline"
-              name="timeline"
-              label="Timeline"
-              value={formData.timeline}
-              onChange={(value) => handleSelectChange(value, "timeline")}
-              options={timelineOptions}
-              placeholder="Select timeline"
-              error={errors.timeline}
-              required
-            />
-
-            {/* Additional Details */}
-            <FormTextarea
-              id="details"
-              name="details"
-              label="Additional Details"
-              value={formData.details}
-              onChange={handleInputChange}
-              placeholder="Tell us more about your vision..."
-              error={errors.details}
-              rows={4}
-              required
-            />
-
-            {/* Submit Button */}
-            <SubmitButton isLoading={createCommissionMutation.isPending} />
-          </form>
-        </motion.div>
-      </div>
-    </div>
+    <GSAPFormContainer
+      formData={formData}
+      errors={errors}
+      onInputChange={handleInputChange}
+      onSelectChange={handleSelectChange}
+      onSubmit={handleSubmit}
+      onLoadMeasurements={loadMeasurementsFromProfile}
+      isLoadingMeasurements={isLoadingMeasurements}
+      isSubmitting={createCommissionMutation.isPending}
+      currentMeasurement={currentMeasurement}
+      onMeasurementChange={handleMeasurementChange}
+    />
   );
 }

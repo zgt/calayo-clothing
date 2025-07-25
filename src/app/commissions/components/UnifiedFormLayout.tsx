@@ -1,0 +1,257 @@
+"use client";
+
+import { forwardRef } from "react";
+import { FormSelect } from "./FormSelect";
+import { FormTextarea } from "./FormTextarea";
+import { MeasurementNavigator } from "./MeasurementNavigator";
+import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
+import { SubmitButton } from "./SubmitButton";
+import type { CommissionFormData, MeasurementKey } from "../types";
+
+interface UnifiedFormLayoutProps {
+  formData: CommissionFormData;
+  errors: Record<string, string>;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSelectChange: (value: string, field: keyof CommissionFormData) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onLoadMeasurements: () => void;
+  isLoadingMeasurements: boolean;
+  isSubmitting: boolean;
+  currentMeasurement: MeasurementKey | null;
+  onMeasurementChange: (measurement: MeasurementKey | null) => void;
+  onExpand: () => void;
+}
+
+const budgetOptions = [
+  { value: "100-300", label: "$100 - $300" },
+  { value: "300-500", label: "$300 - $500" },
+  { value: "500-1000", label: "$500 - $1000" },
+  { value: "1000+", label: "$1000+" },
+];
+
+const timelineOptions = [
+  { value: "1-2weeks", label: "1-2 weeks" },
+  { value: "3-4weeks", label: "3-4 weeks" },
+  { value: "1-2months", label: "1-2 months" },
+  { value: "flexible", label: "Flexible" },
+];
+
+const garmentOptions = [
+  { value: "shirt", label: "Shirt" },
+  { value: "jacket", label: "Jacket" },
+  { value: "pants", label: "Pants" },
+  { value: "dress", label: "Dress" },
+  { value: "skirt", label: "Skirt" },
+  { value: "other", label: "Other" },
+];
+
+export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutProps>(
+  (
+    {
+      formData,
+      errors,
+      onInputChange,
+      onSelectChange,
+      onSubmit,
+      onLoadMeasurements,
+      isLoadingMeasurements,
+      isSubmitting,
+      currentMeasurement,
+      onMeasurementChange,
+      onExpand,
+    },
+    ref
+  ) => {
+    const handleGarmentTypeChange = (value: string) => {
+      onSelectChange(value, "garmentType");
+      if (value) {
+        // Small delay to allow the selection to be visible before expanding
+        setTimeout(() => {
+          onExpand();
+        }, 300);
+      }
+    };
+
+    return (
+      <div ref={ref} className="min-h-screen p-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Form wrapper for all elements */}
+          <form onSubmit={onSubmit} className="relative">
+            {/* Initial container for centered position */}
+            <div id="initial-position" className="min-h-screen flex items-center justify-center">
+              {/* Main form card - starts centered, will flip to expanded grid */}
+              <div 
+                id="main-form-card"
+                data-flip-id="commission-request-card"
+                className="w-full max-w-md"
+              >
+                <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
+                  <div id="card-header" className="text-center mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2">
+                      Clothing Commission Request
+                    </h2>
+                    <p id="card-subtitle" className="text-emerald-200/70">
+                      Tell us about your dream garment
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    <FormSelect
+                      id="garmentType"
+                      name="garmentType"
+                      label="Garment Type"
+                      value={formData.garmentType}
+                      onChange={handleGarmentTypeChange}
+                      options={garmentOptions}
+                      placeholder="Select garment type"
+                      error={errors.garmentType}
+                      required
+                    />
+
+                    {/* Budget and Timeline - hidden initially, shown after expansion */}
+                    <div id="budget-timeline-section" className="space-y-6 opacity-0">
+                      <FormSelect
+                        id="budget"
+                        name="budget"
+                        label="Budget Range"
+                        value={formData.budget}
+                        onChange={(value) => onSelectChange(value, "budget")}
+                        options={budgetOptions}
+                        placeholder="Select budget range"
+                        error={errors.budget}
+                        required
+                      />
+
+                      <FormSelect
+                        id="timeline"
+                        name="timeline"
+                        label="Timeline"
+                        value={formData.timeline}
+                        onChange={(value) => onSelectChange(value, "timeline")}
+                        options={timelineOptions}
+                        placeholder="Select timeline"
+                        error={errors.timeline}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid layout for expanded state - hidden initially */}
+            <div id="expanded-grid" className="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0">
+              {/* Left Column - Commission Request + Additional Details */}
+              <div className="space-y-6">
+                {/* Target position for commission request card after flip */}
+                <div 
+                  id="commission-request-target"
+                  className="opacity-0"
+                >
+                  {/* This will be populated by the flipped card */}
+                </div>
+                
+                <div 
+                  id="additional-details-card"
+                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
+                >
+                  <FormTextarea
+                    id="details"
+                    name="details"
+                    label="Additional Details"
+                    value={formData.details}
+                    onChange={onInputChange}
+                    placeholder="Tell us more about your vision..."
+                    error={errors.details}
+                    rows={4}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Center Column - Garment Image Placeholder */}
+              <div className="flex items-center justify-center">
+              <div className="space-y-6">
+
+                <div 
+                  id="garment-preview-card"
+                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10 w-full max-w-sm aspect-square flex items-center justify-center"
+                >
+                  <div className="text-center">
+                    <div className="w-32 h-32 bg-emerald-800/30 rounded-xl mb-4 flex items-center justify-center">
+                      <svg
+                        className="w-16 h-16 text-emerald-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v12a4 4 0 01-4 4H7z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      {formData.garmentType ? 
+                        `${formData.garmentType.charAt(0).toUpperCase() + formData.garmentType.slice(1)} Preview` 
+                        : 'Garment Preview'}
+                    </h3>
+                    <p className="text-emerald-200/70 text-sm">
+                      Visual representation coming soon
+                    </p>
+                  </div>
+                </div>
+                <div 
+                  id="measurement-navigator-card"
+                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
+                >
+                  <MeasurementNavigator
+                    formData={formData}
+                    errors={errors}
+                    onChange={onInputChange}
+                    onLoadMeasurements={onLoadMeasurements}
+                    isLoadingMeasurements={isLoadingMeasurements}
+                    onMeasurementChange={onMeasurementChange}
+                  />
+                </div>
+                </div>
+
+
+              </div>
+
+              {/* Right Column - Measurement Guide and Measurements */}
+              <div className="space-y-6">
+                <div id="measurement-guide-card">
+                  <MeasurementGuideDisplay currentMeasurement={currentMeasurement} />
+                </div>
+
+               {/* <div 
+                  id="measurement-navigator-card"
+                  className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-6 border border-emerald-700/10"
+                >
+                  <MeasurementNavigator
+                    formData={formData}
+                    errors={errors}
+                    onChange={onInputChange}
+                    onLoadMeasurements={onLoadMeasurements}
+                    isLoadingMeasurements={isLoadingMeasurements}
+                    onMeasurementChange={onMeasurementChange}
+                  />
+                </div>  */}
+
+                <div id="submit-button-container">
+                  <SubmitButton isLoading={isSubmitting} />
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    );
+  }
+);
+
+UnifiedFormLayout.displayName = "UnifiedFormLayout";
