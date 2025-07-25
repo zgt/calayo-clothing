@@ -150,7 +150,7 @@ export function GSAPFormContainer({
 
     // Move the card to the target position and make target visible
     if (commissionRequestTarget && mainCard && mainCardGradient && expandedGrid && 
-      column1 && budgetTimelineSection && budgetTimelineTarget) {
+      column1 && budgetTimelineSection && budgetTimelineTarget && budget && timeline) {
       // Hide the initial position container
       gsap.set(initialPosition, { display: "none" });
       

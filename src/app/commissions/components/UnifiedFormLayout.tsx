@@ -6,6 +6,7 @@ import { FormTextarea } from "./FormTextarea";
 import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
+import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import { motion } from "framer-motion";
 
@@ -188,33 +189,9 @@ export const UnifiedFormLayout = forwardRef<HTMLDivElement, UnifiedFormLayoutPro
 
                 <div 
                   id="garment-preview-card"
-                  className="opacity-0 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10 w-full max-w-sm aspect-square flex items-center justify-center"
+                  className="opacity-0 w-full max-w-sm aspect-square"
                 >
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-emerald-800/30 rounded-xl mb-4 flex items-center justify-center">
-                      <svg
-                        className="w-16 h-16 text-emerald-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21a4 4 0 01-4-4V5a4 4 0 014-4h10a4 4 0 014 4v12a4 4 0 01-4 4H7z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      {formData.garmentType ? 
-                        `${formData.garmentType.charAt(0).toUpperCase() + formData.garmentType.slice(1)} Preview` 
-                        : 'Garment Preview'}
-                    </h3>
-                    <p className="text-emerald-200/70 text-sm">
-                      Visual representation coming soon
-                    </p>
-                  </div>
+                  <GarmentViewer className="w-full h-full" />
                 </div>
                 
                 <div 
