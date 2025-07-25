@@ -118,10 +118,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <PasswordStrengthIndicator 
-                password={password} 
-                className="mt-2" 
-              />
+              <PasswordStrengthIndicator password={password} className="mt-2" />
             </div>
 
             <div>

@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the current user from the better-auth session
+    // Get the current user session using better-auth
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -13,16 +13,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ isAdmin: false }, { status: 401 });
     }
 
-    // Check if current user is admin using role from better-auth user table
-    const user = session.user as User;
-    const isAdmin = user.role === "admin";
+    // Check if user role is admin (this works with the admin plugin configuration)
+    // The admin plugin's adminRoles: ["admin"] configuration handles this automatically
+    const isAdmin = session.user.role === "admin";
 
+    // The admin plugin enhances this simple check with additional capabilities
+    // like user management, banning, session control, etc.
     return NextResponse.json({
       isAdmin,
-      userId: user.id, // Optional: include for debugging
+      userId: session.user.id,
+      userRole: session.user.role,
     });
   } catch (error) {
     console.error("Error checking admin status:", error);
-    return NextResponse.json({ isAdmin: false }, { status: 500 });
+    return NextResponse.json(
+      {
+        isAdmin: false,
+        error:
+          process.env.NODE_ENV === "development"
+            ? (error as Error).message
+            : "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }

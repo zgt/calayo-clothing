@@ -1,7 +1,8 @@
 // src/app/admin/orders/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "~/utils/supabase/server";
-import { auth, type User } from "~/lib/auth";
+// Removed unused imports
+import { getAdminSession } from "~/lib/admin-utils";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import AdminCommissionsTable from "./_components/AdminCommissionsTable";
@@ -35,19 +36,16 @@ function LoadingCommissions() {
 }
 
 export default async function AdminOrdersPage() {
-  // Check authentication using Better-Auth
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  // Get admin session using better-auth admin plugin utilities
+  const { session, isAdmin } = await getAdminSession(await headers());
 
   if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
 
-  // Check if user is admin using role field
-  const user = session.user as User;
-  if (user.role !== "admin") {
+  // Check if user has admin permissions using better-auth admin plugin
+  if (!isAdmin) {
     // Redirect to home if not admin
     redirect("/");
   }
