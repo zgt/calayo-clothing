@@ -18,14 +18,12 @@ const useDeviceCapabilities = () => {
       // Detect low-end devices
       const deviceMemory = 'deviceMemory' in navigator ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory : undefined;
       const isLowEnd = (
-        navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2
-      ) || (
-        deviceMemory && deviceMemory <= 2
-      ) || (
-        navigator.userAgent.includes('Mobile') && width < 768
+        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) ||
+        (deviceMemory !== undefined && deviceMemory <= 2) ||
+        (navigator.userAgent.includes('Mobile') && width < 768)
       );
       
-      setIsLowEndDevice(isLowEnd);
+      setIsLowEndDevice(Boolean(isLowEnd));
     };
     
     checkCapabilities();
