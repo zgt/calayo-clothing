@@ -15,23 +15,26 @@ export const ourFileRouter = {
     .middleware(async () => {
       // Verify admin access
       const supabase = await createClient();
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error || !user) {
         throw new Error("Unauthorized");
       }
-      
+
       const adminId = process.env.ADMIN_ID;
       if (user.id !== adminId) {
         throw new Error("Admin access required");
       }
-      
+
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Upload complete for userId:", metadata.userId);
       console.log("File URL:", file.ufsUrl);
-      
+
       return { uploadedBy: metadata.userId };
     }),
 } satisfies FileRouter;

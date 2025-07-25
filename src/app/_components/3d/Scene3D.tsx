@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { GarmentModel } from './GarmentModel';
-import { Suspense } from 'react';
-import { useMobile } from '~/context/mobile-provider';
+import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { GarmentModel } from "./GarmentModel";
+import { Suspense } from "react";
+import { useMobile } from "~/context/mobile-provider";
 
 function LoadingFallback() {
   return (
@@ -19,24 +19,22 @@ interface Scene3DProps {
   disableInteraction?: boolean;
 }
 
-export function Scene3D({ garmentType, disableInteraction = false }: Scene3DProps) {
+export function Scene3D({
+  garmentType,
+  disableInteraction = false,
+}: Scene3DProps) {
   const { isMobile } = useMobile();
-
-
 
   return (
     <>
       {/* Camera setup */}
       <PerspectiveCamera makeDefault position={[1, 1, 2]} fov={30} />
-      
+
       {/* Lighting setup - simplified for mobile */}
       {isMobile ? (
         // Simplified lighting for mobile performance
         <>
-          <directionalLight
-            position={[5, 5, 5]}
-            intensity={1.0}
-          />
+          <directionalLight position={[5, 5, 5]} intensity={1.0} />
           <ambientLight intensity={0.4} />
         </>
       ) : (
@@ -50,32 +48,31 @@ export function Scene3D({ garmentType, disableInteraction = false }: Scene3DProp
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
           />
-          
+
           {/* Fill light (softer, opposite side) */}
           <directionalLight
             position={[-3, 2, 3]}
             intensity={0.4}
             color="#f0f9ff"
           />
-          
+
           {/* Rim light (back light for definition) */}
           <directionalLight
             position={[0, -2, -5]}
             intensity={0.3}
             color="#e0f2fe"
           />
-          
+
           {/* Ambient light for overall illumination */}
           <ambientLight intensity={0.2} />
         </>
       )}
-      
-      
+
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
         <GarmentModel garmentType={garmentType} />
       </Suspense>
-      
+
       {/* Controls - adaptive for mobile */}
       <OrbitControls
         enablePan={false}

@@ -71,7 +71,7 @@ export type SupabaseError = {
   code?: string;
 };
 
-export type MeasurementKey = keyof CommissionFormData['measurements'];
+export type MeasurementKey = keyof CommissionFormData["measurements"];
 
 export interface MeasurementField {
   id: string;

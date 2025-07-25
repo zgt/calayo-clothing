@@ -15,7 +15,9 @@ gsap.registerPlugin(Flip, ScrambleTextPlugin, ScrollToPlugin);
 interface GSAPFormContainerProps {
   formData: CommissionFormData;
   errors: Record<string, string>;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
   onSelectChange: (value: string, field: keyof CommissionFormData) => void;
   onSubmit: (e: React.FormEvent) => void;
   onLoadMeasurements: () => void;
@@ -41,49 +43,62 @@ export function GSAPFormContainer({
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    document.body.style.overflow = "hidden"
-
+    document.body.style.overflow = "hidden";
 
     // Set initial states for hidden elements
     const mainCard = containerRef.current.querySelector("#main-form-card");
-    const commissionRequestTarget = containerRef.current.querySelector("#commission-request-target");
-    const additionalDetailsCard = containerRef.current.querySelector("#additional-details-card");
-    const garmentPreviewCard = containerRef.current.querySelector("#garment-preview-card");
-    const measurementGuideCard = containerRef.current.querySelector("#measurement-guide-card");
-    const measurementNavigatorCard = containerRef.current.querySelector("#measurement-navigator-card");
-    const submitButtonContainer = containerRef.current.querySelector("#submit-button-container");
-
-
-  
+    const commissionRequestTarget = containerRef.current.querySelector(
+      "#commission-request-target",
+    );
+    const additionalDetailsCard = containerRef.current.querySelector(
+      "#additional-details-card",
+    );
+    const garmentPreviewCard = containerRef.current.querySelector(
+      "#garment-preview-card",
+    );
+    const measurementGuideCard = containerRef.current.querySelector(
+      "#measurement-guide-card",
+    );
+    const measurementNavigatorCard = containerRef.current.querySelector(
+      "#measurement-navigator-card",
+    );
+    const submitButtonContainer = containerRef.current.querySelector(
+      "#submit-button-container",
+    );
 
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
     gsap.set([additionalDetailsCard, garmentPreviewCard], {
-      x:-500
-    })
-    gsap.set([measurementGuideCard,measurementNavigatorCard,submitButtonContainer],{
-      x:-1000
-    })
+      x: -500,
+    });
+    gsap.set(
+      [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
+      {
+        x: -1000,
+      },
+    );
+
+    // Capture timeline ref for cleanup
+    const currentTimeline = timelineRef.current;
 
     // Cleanup function
     return () => {
-      const timeline = timelineRef.current;
-      if (timeline) {
-        timeline.kill();
+      if (currentTimeline) {
+        currentTimeline.kill();
       }
     };
   }, []);
@@ -96,7 +111,6 @@ export function GSAPFormContainer({
       const mainCard = containerRef.current.querySelector("#main-form-card");
       if (!mainCard) return;
 
-      
       if (isExpanded) {
         // Adjust positioning for different screen sizes
         gsap.set(mainCard, {
@@ -114,17 +128,20 @@ export function GSAPFormContainer({
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [isExpanded]);
 
   // Handle scramble text animation when measurement changes
   useEffect(() => {
     if (!containerRef.current || !currentMeasurement) return;
 
-    const guideItemTitle = containerRef.current.querySelector("#guide-item-title");
-    const guideItemDescription = containerRef.current.querySelector("#guide-item-description");
-    
+    const guideItemTitle =
+      containerRef.current.querySelector("#guide-item-title");
+    const guideItemDescription = containerRef.current.querySelector(
+      "#guide-item-description",
+    );
+
     if (!guideItemTitle || !guideItemDescription) return;
 
     const guideItem = MEASUREMENT_GUIDE_ITEMS[currentMeasurement];
@@ -137,8 +154,8 @@ export function GSAPFormContainer({
         text: guideItem.title,
         chars: "XO!@#$%",
         revealDelay: 0.1,
-        speed: 0.1
-      }
+        speed: 0.1,
+      },
       // text: guideItem.title,
     });
 
@@ -149,20 +166,20 @@ export function GSAPFormContainer({
         text: guideItem.description,
         chars: "XO!@#$%",
         revealDelay: 0.1,
-        speed: 0.1
-      }
+        speed: 0.1,
+      },
     });
   }, [currentMeasurement]);
 
-  const handleMobileGarmentSelect =  () => {
+  const handleMobileGarmentSelect = () => {
     if (!containerRef.current) return;
 
-    gsap.to(window , 
-      { duration: 0.5,
-        scrollTo: {y:"#measurements", offsetY:-200}
-    })
-    document.body.style.overflow = "unset"
-  }
+    gsap.to(window, {
+      duration: 0.5,
+      scrollTo: { y: "#measurements", offsetY: -200 },
+    });
+    document.body.style.overflow = "unset";
+  };
 
   const handleExpand = () => {
     if (isExpanded || !containerRef.current || isMobile) return; // Skip GSAP animations on mobile
@@ -171,104 +188,141 @@ export function GSAPFormContainer({
 
     // Get all the elements we need to animate
     const mainCard = containerRef.current.querySelector("#main-form-card");
-    const mainCardGradient = containerRef.current.querySelector("#main-card-gradient");
-    const commissionRequestTarget = containerRef.current.querySelector("#commission-request-target");
+    const mainCardGradient = containerRef.current.querySelector(
+      "#main-card-gradient",
+    );
+    const commissionRequestTarget = containerRef.current.querySelector(
+      "#commission-request-target",
+    );
     const expandedGrid = containerRef.current.querySelector("#expanded-grid");
-    const initialPosition = containerRef.current.querySelector("#initial-position");
-    const additionalDetailsCard = containerRef.current.querySelector("#additional-details-card");
-    const garmentPreviewCard = containerRef.current.querySelector("#garment-preview-card");
-    const measurementGuideCard = containerRef.current.querySelector("#measurement-guide-card");
-    const measurementNavigatorCard = containerRef.current.querySelector("#measurement-navigator-card");
-    const submitButtonContainer = containerRef.current.querySelector("#submit-button-container");
-    const budgetTimelineSection = containerRef.current.querySelector("#budget-timeline-section");
+    const initialPosition =
+      containerRef.current.querySelector("#initial-position");
+    const additionalDetailsCard = containerRef.current.querySelector(
+      "#additional-details-card",
+    );
+    const garmentPreviewCard = containerRef.current.querySelector(
+      "#garment-preview-card",
+    );
+    const measurementGuideCard = containerRef.current.querySelector(
+      "#measurement-guide-card",
+    );
+    const measurementNavigatorCard = containerRef.current.querySelector(
+      "#measurement-navigator-card",
+    );
+    const submitButtonContainer = containerRef.current.querySelector(
+      "#submit-button-container",
+    );
+    const budgetTimelineSection = containerRef.current.querySelector(
+      "#budget-timeline-section",
+    );
     const column1 = containerRef.current.querySelector("#column-1");
     const column3 = containerRef.current.querySelector("#column-3");
-    const budgetTimelineTarget = containerRef.current.querySelector("#budget-timeline-target");
+    const budgetTimelineTarget = containerRef.current.querySelector(
+      "#budget-timeline-target",
+    );
     const budget = containerRef.current.querySelector("#budget");
     const timeline = containerRef.current.querySelector("#timeline");
 
-
-
-
-
     // Move the card to the target position and make target visible
-    if (commissionRequestTarget && mainCard && mainCardGradient && expandedGrid && 
-      column1 && budgetTimelineSection && budgetTimelineTarget && budget && timeline) {
+    if (
+      commissionRequestTarget &&
+      mainCard &&
+      mainCardGradient &&
+      expandedGrid &&
+      column1 &&
+      budgetTimelineSection &&
+      budgetTimelineTarget &&
+      budget &&
+      timeline
+    ) {
       // Hide the initial position container
       gsap.set(initialPosition, { display: "none" });
-      
+
       // Show the expanded grid and target
       gsap.set(expandedGrid, { opacity: 1, display: "grid" });
       gsap.set(commissionRequestTarget, { opacity: 1 });
-      
 
-      
       // // Move the card to the target position in DOM
 
       Flip.fit(mainCard, expandedGrid, {
         duration: 0.5,
-        ease: 'power1.inOut',
+        ease: "power1.inOut",
         absolute: true,
-        maxWidth: 'none',
-        zIndex: '2000',
-        attr: {height:100},
+        maxWidth: "none",
+        zIndex: "2000",
+        attr: { height: 100 },
         onComplete: () => {
-          gsap.set(column1, {opacity: 1})
-          gsap.set(column3, {opacity: 1})
-          column1.appendChild(mainCard)
-          commissionRequestTarget.remove()
-          gsap.set(budgetTimelineSection, {opacity: 1})
-          budgetTimelineTarget.appendChild(budgetTimelineSection)
+          gsap.set(column1, { opacity: 1 });
+          gsap.set(column3, { opacity: 1 });
+          column1.appendChild(mainCard);
+          commissionRequestTarget.remove();
+          gsap.set(budgetTimelineSection, { opacity: 1 });
+          budgetTimelineTarget.appendChild(budgetTimelineSection);
           Flip.fit(mainCard, column1, {
-            duration: .5,
+            duration: 0.5,
             absolute: true,
-            ease: 'power1.inOut',
-          })
-        }
-      })
-
+            ease: "power1.inOut",
+          });
+        },
+      });
 
       // Animate other elements in sequence
       const tl = gsap.timeline({ delay: 0.5 });
-      
+
       // Additional details card
       tl.to(additionalDetailsCard, {
         opacity: 1,
         x: 0,
         scale: 1,
         duration: 0.5,
-        ease: "power2.out"
+        ease: "power2.out",
       })
-      // Garment preview card
-      .to(garmentPreviewCard, {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "")
-      // Right column elements
-      .to(measurementGuideCard, {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "")
-      .to(measurementNavigatorCard, {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "")
-      .to(submitButtonContainer, {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "");
+        // Garment preview card
+        .to(
+          garmentPreviewCard,
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        )
+        // Right column elements
+        .to(
+          measurementGuideCard,
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        )
+        .to(
+          measurementNavigatorCard,
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        )
+        .to(
+          submitButtonContainer,
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        );
     }
   };
 

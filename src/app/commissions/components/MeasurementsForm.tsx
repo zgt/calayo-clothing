@@ -27,8 +27,8 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-3">
-        <label className="block text-emerald-100 font-medium text-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <label className="block text-sm font-medium text-emerald-100">
           Measurements (inches)
         </label>
         <LoadMeasurementsButton
@@ -36,9 +36,9 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
           isLoading={isLoadingMeasurements}
         />
       </div>
-      
+
       {/* Upper Body Measurements - Show for shirts, jackets, dresses */}
-      {['shirt', 'jacket', 'dress', 'other'].includes(formData.garmentType) && (
+      {["shirt", "jacket", "dress", "other"].includes(formData.garmentType) && (
         <MeasurementSection
           title="Upper Body"
           measurements={MEASUREMENT_GROUPS.upper}
@@ -48,9 +48,9 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
           onChange={onChange}
         />
       )}
-      
+
       {/* Lower Body Measurements - Show for pants, skirts, dresses */}
-      {['pants', 'skirt', 'dress', 'other'].includes(formData.garmentType) && (
+      {["pants", "skirt", "dress", "other"].includes(formData.garmentType) && (
         <MeasurementSection
           title="Lower Body"
           measurements={MEASUREMENT_GROUPS.lower}
@@ -60,7 +60,7 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
           onChange={onChange}
         />
       )}
-      
+
       {/* General Body Measurements - Always show */}
       <MeasurementSection
         title="General Information"
@@ -73,10 +73,16 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
 
       {/* Small notice about measurement loading */}
       <div className="mt-6 text-center text-xs text-emerald-300/60">
-        <p>You can load your saved measurements from your profile using the &ldquo;Load from Profile&rdquo; button.</p>
+        <p>
+          You can load your saved measurements from your profile using the
+          &ldquo;Load from Profile&rdquo; button.
+        </p>
         <p className="mt-1">
           Need to update your profile measurements?{" "}
-          <Link href="/profile/measurements" className="text-emerald-400 hover:underline">
+          <Link
+            href="/profile/measurements"
+            className="text-emerald-400 hover:underline"
+          >
             Go to Profile Measurements
           </Link>
         </p>

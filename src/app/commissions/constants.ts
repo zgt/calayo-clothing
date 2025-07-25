@@ -3,11 +3,11 @@ import type { MeasurementGroups, CommissionFormData } from "./types";
 
 // Required measurements by garment type
 export const REQUIRED_MEASUREMENTS: Record<string, string[]> = {
-  shirt: ['chest', 'shoulders', 'sleeve_length'],
-  jacket: ['chest', 'shoulders', 'sleeve_length', 'bicep'],
-  pants: ['waist', 'hips', 'inseam', 'length', 'rise'],
-  dress: ['chest', 'waist', 'hips', 'length', 'shoulders'],
-  skirt: ['waist', 'hips', 'length'],
+  shirt: ["chest", "shoulders", "sleeve_length"],
+  jacket: ["chest", "shoulders", "sleeve_length", "bicep"],
+  pants: ["waist", "hips", "inseam", "length", "rise"],
+  dress: ["chest", "waist", "hips", "length", "shoulders"],
+  skirt: ["waist", "hips", "length"],
   other: [],
 };
 
@@ -43,11 +43,11 @@ export const MEASUREMENT_GROUPS: MeasurementGroups = {
     { id: "torso_length", label: "Torso Length" },
     { id: "shoulder_slope", label: "Shoulder Slope" },
     { id: "posture", label: "Posture" },
-  ]
+  ],
 };
 
 // Default empty measurements with all fields initialized to null
-export const getEmptyMeasurements = (): CommissionFormData['measurements'] => ({
+export const getEmptyMeasurements = (): CommissionFormData["measurements"] => ({
   chest: null,
   waist: null,
   hips: null,

@@ -43,9 +43,7 @@ export default function RootLayout({
                 <Nav />
                 <FloatingProfile />
                 <ShaderGradientBackground />
-                <MainContent>
-                  {children}
-                </MainContent>
+                <MainContent>{children}</MainContent>
                 <Toaster />
                 <SpeedInsights />
               </MobileProvider>

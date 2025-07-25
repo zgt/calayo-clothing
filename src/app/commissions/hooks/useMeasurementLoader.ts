@@ -10,7 +10,9 @@ interface UseMeasurementLoaderProps {
   setFormData: React.Dispatch<React.SetStateAction<CommissionFormData>>;
 }
 
-export const useMeasurementLoader = ({ setFormData }: UseMeasurementLoaderProps) => {
+export const useMeasurementLoader = ({
+  setFormData,
+}: UseMeasurementLoaderProps) => {
   const { user } = useAuth();
   const router = useRouter();
   const [isLoadingMeasurements, setIsLoadingMeasurements] = useState(false);
@@ -21,33 +23,38 @@ export const useMeasurementLoader = ({ setFormData }: UseMeasurementLoaderProps)
       router.push("/login");
       return;
     }
-    
+
     const userId = user.id;
-    
+
     if (!userId) {
       toast.error("User ID not found");
       return;
     }
-    
+
     setIsLoadingMeasurements(true);
-    
+
     try {
       const profileMeasurements = await fetchProfileMeasurements(userId);
-      
-      if (!profileMeasurements || Object.keys(profileMeasurements).length === 0) {
-        toast.error("No measurements found in your profile. Please add your measurements in your profile first.");
+
+      if (
+        !profileMeasurements ||
+        Object.keys(profileMeasurements).length === 0
+      ) {
+        toast.error(
+          "No measurements found in your profile. Please add your measurements in your profile first.",
+        );
         return;
       }
-      
+
       // Update form with measurements from profile
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         measurements: {
           ...prev.measurements,
-          ...profileMeasurements
-        }
+          ...profileMeasurements,
+        },
       }));
-      
+
       toast.success("Your saved measurements have been loaded");
     } catch (error) {
       console.error("Error loading measurements:", error);

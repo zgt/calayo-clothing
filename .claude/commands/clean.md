@@ -1,0 +1,1 @@
+Fix all ESLint, TypeScript, and Prettier issues in the entire codebase

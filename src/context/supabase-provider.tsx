@@ -14,31 +14,27 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [supabase] = useState(() => createClient());
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.access_token !== undefined) {
-          // Optional: Update session cookie if you need server-side auth
-          void fetch("/api/auth", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ event, session }),
-          });
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.access_token !== undefined) {
+        // Optional: Update session cookie if you need server-side auth
+        void fetch("/api/auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ event, session }),
+        });
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, [supabase]);
 
-  return (
-    <Context.Provider value={{ supabase }}>
-      {children}
-    </Context.Provider>
-  );
+  return <Context.Provider value={{ supabase }}>{children}</Context.Provider>;
 }
 
 export const useSupabase = () => {

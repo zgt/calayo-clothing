@@ -48,20 +48,23 @@ interface MeasurementsFormProps {
 }
 
 // Helper component for measurement inputs
-function MeasurementInput({ 
-  label, 
-  name, 
-  value, 
-  onChange 
-}: { 
-  label: string; 
-  name: string; 
-  value: string | number; 
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+function MeasurementInput({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-emerald-200">
+      <label
+        htmlFor={name}
+        className="block text-sm font-medium text-emerald-200"
+      >
         {label} (inches)
       </label>
       <div className="relative mt-1">
@@ -72,7 +75,7 @@ function MeasurementInput({
           name={name}
           value={value}
           onChange={onChange}
-          className="block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 placeholder:text-emerald-600/50 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+          className="block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm transition-all placeholder:text-emerald-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
           placeholder="0.0"
         />
       </div>
@@ -81,20 +84,23 @@ function MeasurementInput({
 }
 
 // Helper component for text inputs (like posture)
-function TextInput({ 
-  label, 
-  name, 
-  value, 
-  onChange 
-}: { 
-  label: string; 
-  name: string; 
-  value: string; 
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+function TextInput({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-emerald-200">
+      <label
+        htmlFor={name}
+        className="block text-sm font-medium text-emerald-200"
+      >
         {label}
       </label>
       <div className="relative mt-1">
@@ -104,16 +110,19 @@ function TextInput({
           name={name}
           value={value}
           onChange={onChange}
-          className="block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 placeholder:text-emerald-600/50 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+          className="block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm transition-all placeholder:text-emerald-600/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
         />
       </div>
     </div>
   );
 }
 
-export default function MeasurementsForm({ measurements, userId }: MeasurementsFormProps) {
+export default function MeasurementsForm({
+  measurements,
+  userId,
+}: MeasurementsFormProps) {
   const supabase = createClient();
-  
+
   // Initialize measurements from profile or empty
   const [formData, setFormData] = useState({
     // Basic measurements
@@ -150,44 +159,49 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
     size_preference: measurements?.size_preference ?? "",
     fit_preference: measurements?.fit_preference ?? "",
   });
-  
+
   const [activeTab, setActiveTab] = useState("basic");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
-  
+
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage({ text: "", type: "" });
-    
+
     // Convert empty strings to null and strings to numbers where appropriate
-    const formattedMeasurements = Object.entries(formData).reduce((acc, [key, value]) => {
-      // Handle empty strings
-      if (value === "") {
-        acc[key] = null;
-      } 
-      // Convert numeric values to numbers
-      else if (
-        key !== "fit_preference" && 
-        key !== "posture" && 
-        key !== "size_preference"
-      ) {
-        acc[key] = parseFloat(value as string);
-      } 
-      // Keep string values as strings
-      else {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as Record<string, number | string | null>);
-    
+    const formattedMeasurements = Object.entries(formData).reduce(
+      (acc, [key, value]) => {
+        // Handle empty strings
+        if (value === "") {
+          acc[key] = null;
+        }
+        // Convert numeric values to numbers
+        else if (
+          key !== "fit_preference" &&
+          key !== "posture" &&
+          key !== "size_preference"
+        ) {
+          acc[key] = parseFloat(value as string);
+        }
+        // Keep string values as strings
+        else {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, number | string | null>,
+    );
+
     try {
       // Check if measurements already exist for this profile
       const { data: existingMeasurements, error: fetchError } = await supabase
@@ -195,47 +209,47 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
         .select("id")
         .eq("profile_id", userId)
         .maybeSingle();
-        
+
       if (fetchError && fetchError.code !== "PGRST116") {
         throw fetchError;
       }
-      
+
       // Add profile_id to the measurements data
       const measurementsData = {
         ...formattedMeasurements,
         profile_id: userId,
       };
-      
+
       if (existingMeasurements?.id) {
         // Update existing measurements
         const { error: updateError } = await supabase
           .from("profile_measurements")
           .update(measurementsData)
           .eq("id", existingMeasurements.id);
-          
+
         if (updateError) throw updateError;
       } else {
         // Insert new measurements
         const { error: insertError } = await supabase
           .from("profile_measurements")
           .insert(measurementsData);
-          
+
         if (insertError) throw insertError;
       }
-      
+
       setMessage({
         text: "Measurements updated successfully!",
-        type: "success"
+        type: "success",
       });
     } catch (error) {
       console.error("Error updating measurements:", error);
       setMessage({
         text: "Failed to update measurements. Please try again.",
-        type: "error"
+        type: "error",
       });
     } finally {
       setIsLoading(false);
-      
+
       // Clear success message after 3 seconds
       if (message.type === "success") {
         setTimeout(() => {
@@ -244,7 +258,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
       }
     }
   };
-  
+
   // Function to reset form data based on current measurements or empty values
   const resetForm = () => {
     if (measurements) {
@@ -286,34 +300,58 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
     } else {
       // Reset to empty values if no measurements
       setFormData({
-        chest: "", waist: "", hips: "", length: "", inseam: "", shoulders: "",
-        neck: "", sleeve_length: "", bicep: "", forearm: "", wrist: "", 
-        armhole_depth: "", back_width: "", front_chest_width: "",
-        thigh: "", knee: "", calf: "", ankle: "", rise: "", outseam: "",
-        height: "", weight: "", torso_length: "", shoulder_slope: "", posture: "",
-        size_preference: "", fit_preference: "",
+        chest: "",
+        waist: "",
+        hips: "",
+        length: "",
+        inseam: "",
+        shoulders: "",
+        neck: "",
+        sleeve_length: "",
+        bicep: "",
+        forearm: "",
+        wrist: "",
+        armhole_depth: "",
+        back_width: "",
+        front_chest_width: "",
+        thigh: "",
+        knee: "",
+        calf: "",
+        ankle: "",
+        rise: "",
+        outseam: "",
+        height: "",
+        weight: "",
+        torso_length: "",
+        shoulder_slope: "",
+        posture: "",
+        size_preference: "",
+        fit_preference: "",
       });
     }
     setMessage({ text: "", type: "" });
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       {message.text && (
-        <div 
+        <div
           className={`mb-4 rounded-md p-3 ${
-            message.type === "success" 
-              ? "bg-emerald-900/50 text-emerald-200 border border-emerald-700/30" 
-              : "bg-red-900/50 text-red-200 border border-red-700/30"
+            message.type === "success"
+              ? "border border-emerald-700/30 bg-emerald-900/50 text-emerald-200"
+              : "border border-red-700/30 bg-red-900/50 text-red-200"
           }`}
         >
           {message.text}
         </div>
       )}
-      
+
       {/* Tab Navigation */}
       <div className="mb-6 border-b border-emerald-700/30">
-        <nav className="-mb-px flex flex-wrap space-x-2 sm:space-x-8" aria-label="Tabs">
+        <nav
+          className="-mb-px flex flex-wrap space-x-2 sm:space-x-8"
+          aria-label="Tabs"
+        >
           <button
             type="button"
             onClick={() => setActiveTab("basic")}
@@ -321,8 +359,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "basic"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Basic
           </button>
@@ -333,8 +370,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "upper"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Upper Body
           </button>
@@ -345,8 +381,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "lower"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Lower Body
           </button>
@@ -357,8 +392,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "fullbody"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Full Body
           </button>
@@ -369,8 +403,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "formal"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Formal Wear
           </button>
@@ -381,14 +414,13 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               activeTab === "preferences"
                 ? "border-emerald-500 text-emerald-400"
                 : "border-transparent text-emerald-200/70 hover:border-emerald-700/50 hover:text-emerald-200"
-            }
-            whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors`}
+            } border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors`}
           >
             Preferences
           </button>
         </nav>
       </div>
-      
+
       {/* Basic Measurements Tab */}
       <div className={activeTab === "basic" ? "block" : "hidden"}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -430,7 +462,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           />
         </div>
       </div>
-      
+
       {/* Upper Body Measurements Tab */}
       <div className={activeTab === "upper" ? "block" : "hidden"}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -484,7 +516,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           />
         </div>
       </div>
-      
+
       {/* Lower Body Measurements Tab */}
       <div className={activeTab === "lower" ? "block" : "hidden"}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -526,7 +558,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           />
         </div>
       </div>
-      
+
       {/* Full Body Measurements Tab */}
       <div className={activeTab === "fullbody" ? "block" : "hidden"}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -544,7 +576,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           />
         </div>
       </div>
-      
+
       {/* Formal Wear Measurements Tab */}
       <div className={activeTab === "formal" ? "block" : "hidden"}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -567,32 +599,48 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
             onChange={handleChange}
           />
         </div>
-        
-        <div className="mt-4 rounded-md bg-emerald-900/50 p-4 border border-emerald-700/30">
+
+        <div className="mt-4 rounded-md border border-emerald-700/30 bg-emerald-900/50 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-emerald-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-emerald-200">Formal wear tip:</h3>
+              <h3 className="text-sm font-medium text-emerald-200">
+                Formal wear tip:
+              </h3>
               <div className="mt-2 text-sm text-emerald-200/70">
                 <p>
-                  For posture, use descriptive terms like &quot;Average&quot;, &quot;Erect&quot;, &quot;Stooped&quot;, or &quot;Forward Head&quot;.
-                  These details help our tailors create formal wear that fits your natural stance perfectly.
+                  For posture, use descriptive terms like &quot;Average&quot;,
+                  &quot;Erect&quot;, &quot;Stooped&quot;, or &quot;Forward
+                  Head&quot;. These details help our tailors create formal wear
+                  that fits your natural stance perfectly.
                 </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Fit Preferences Tab */}
       <div className={activeTab === "preferences" ? "block" : "hidden"}>
         <div className="space-y-4">
           <div>
-            <label htmlFor="fit_preference" className="block text-sm font-medium text-emerald-200">
+            <label
+              htmlFor="fit_preference"
+              className="block text-sm font-medium text-emerald-200"
+            >
               Preferred Fit
             </label>
             <select
@@ -600,7 +648,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               name="fit_preference"
               value={formData.fit_preference}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
             >
               <option value="">Select a fit preference</option>
               <option value="Slim">Slim</option>
@@ -609,9 +657,12 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               <option value="Oversized">Oversized</option>
             </select>
           </div>
-          
+
           <div>
-            <label htmlFor="size_preference" className="block text-sm font-medium text-emerald-200">
+            <label
+              htmlFor="size_preference"
+              className="block text-sm font-medium text-emerald-200"
+            >
               Size Preference
             </label>
             <select
@@ -619,7 +670,7 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               name="size_preference"
               value={formData.size_preference}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              className="mt-1 block w-full rounded-lg border border-emerald-700/30 bg-emerald-950/50 px-3 py-2 text-emerald-100 shadow-sm transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
             >
               <option value="">Select your typical size preference</option>
               <option value="XS">XS - Extra Small</option>
@@ -630,21 +681,33 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
               <option value="XXL">XXL - Double Extra Large</option>
             </select>
           </div>
-          
-          <div className="rounded-md bg-emerald-900/50 p-4 border border-emerald-700/30">
+
+          <div className="rounded-md border border-emerald-700/30 bg-emerald-900/50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-emerald-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-emerald-200">Important note</h3>
+                <h3 className="text-sm font-medium text-emerald-200">
+                  Important note
+                </h3>
                 <div className="mt-2 text-sm text-emerald-200/70">
                   <p>
-                    Your fit and size preferences help us customize garments to your liking.
-                    These are in addition to your exact measurements and help our designers
-                    understand your personal style preferences.
+                    Your fit and size preferences help us customize garments to
+                    your liking. These are in addition to your exact
+                    measurements and help our designers understand your personal
+                    style preferences.
                   </p>
                 </div>
               </div>
@@ -652,33 +715,58 @@ export default function MeasurementsForm({ measurements, userId }: MeasurementsF
           </div>
         </div>
       </div>
-      
+
       {/* Form Buttons */}
       <div className="mt-6 flex justify-end space-x-3">
         <button
           type="button"
           onClick={resetForm}
-          className="rounded-lg border border-emerald-700/30 bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 focus:ring-offset-emerald-950/50 transition-all"
+          className="rounded-lg border border-emerald-700/30 bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 transition-all hover:bg-emerald-800/50 focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 focus:ring-offset-emerald-950/50 focus:outline-none"
         >
           Reset
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 focus:ring-offset-emerald-950/50 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="inline-flex items-center rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-900/30 transition-all duration-200 hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-800/40 focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-2 focus:ring-offset-emerald-950/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="mr-2 -ml-1 h-5 w-5 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Saving...
             </>
           ) : (
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2 h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
               Save Measurements
             </>

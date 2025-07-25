@@ -13,26 +13,31 @@ const getModalStyle = (imageCount: number) => ({
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: imageCount <= 2 ? {
-    xs: "90%",
-    sm: "70%",
-    md: "60%",
-    lg: "50%",
-    xl: "40%",
-  } : imageCount <= 4 ? {
-    xs: "95%",
-    sm: "85%",
-    md: "75%",
-    lg: "65%",
-    xl: "55%",
-  } : {
-    // 5+ images - use much more screen space
-    xs: "98%",
-    sm: "95%",
-    md: "90%",
-    lg: "85%",
-    xl: "80%",
-  },
+  width:
+    imageCount <= 2
+      ? {
+          xs: "90%",
+          sm: "70%",
+          md: "60%",
+          lg: "50%",
+          xl: "40%",
+        }
+      : imageCount <= 4
+        ? {
+            xs: "95%",
+            sm: "85%",
+            md: "75%",
+            lg: "65%",
+            xl: "55%",
+          }
+        : {
+            // 5+ images - use much more screen space
+            xs: "98%",
+            sm: "95%",
+            md: "90%",
+            lg: "85%",
+            xl: "80%",
+          },
   maxHeight: "95vh",
   overflowY: "auto",
   bgcolor: "bg-gradient-to-br from-emerald-900/30 to-emerald-950/80",
@@ -69,7 +74,6 @@ export default function PhotoGrid() {
 
   return (
     <main className="relative min-h-screen w-full">
-
       {/* Responsive container */}
       <div className="mx-auto -mt-40 w-[95%] px-2 py-4 sm:-mt-60 sm:w-[85%] sm:px-4 sm:py-8 md:-mt-80 md:w-[75%] lg:w-[80%]">
         {isLoading ? (
@@ -109,43 +113,47 @@ export default function PhotoGrid() {
           >
             {(() => {
               const count = fetchedItems.length;
-              let gridCols = '';
-              let gapClass = '';
-              let containerClass = '';
-              
+              let gridCols = "";
+              let gapClass = "";
+              let containerClass = "";
+
               // Dynamic grid layout based on image count for better responsiveness
               if (count === 1) {
-                gridCols = 'grid-cols-1';
-                gapClass = 'gap-4 sm:gap-6';
-                containerClass = 'max-w-md mx-auto';
+                gridCols = "grid-cols-1";
+                gapClass = "gap-4 sm:gap-6";
+                containerClass = "max-w-md mx-auto";
               } else if (count === 2) {
-                gridCols = 'grid-cols-1 sm:grid-cols-2';
-                gapClass = 'gap-3 sm:gap-4';
-                containerClass = 'max-w-2xl mx-auto';
+                gridCols = "grid-cols-1 sm:grid-cols-2";
+                gapClass = "gap-3 sm:gap-4";
+                containerClass = "max-w-2xl mx-auto";
               } else if (count === 3) {
-                gridCols = 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
-                gapClass = 'gap-3 sm:gap-4';
-                containerClass = 'max-w-4xl mx-auto';
+                gridCols = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+                gapClass = "gap-3 sm:gap-4";
+                containerClass = "max-w-4xl mx-auto";
               } else if (count === 4) {
-                gridCols = 'grid-cols-2 md:grid-cols-4';
-                gapClass = 'gap-2 sm:gap-3';
-                containerClass = 'max-w-5xl mx-auto';
+                gridCols = "grid-cols-2 md:grid-cols-4";
+                gapClass = "gap-2 sm:gap-3";
+                containerClass = "max-w-5xl mx-auto";
               } else if (count <= 6) {
-                gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6';
-                gapClass = 'gap-2 sm:gap-3';
-                containerClass = '';
+                gridCols =
+                  "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
+                gapClass = "gap-2 sm:gap-3";
+                containerClass = "";
               } else if (count <= 8) {
-                gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4';
-                gapClass = 'gap-2 sm:gap-3';
-                containerClass = '';
+                gridCols = "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+                gapClass = "gap-2 sm:gap-3";
+                containerClass = "";
               } else {
-                gridCols = 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5';
-                gapClass = 'gap-2 sm:gap-3';
-                containerClass = '';
+                gridCols =
+                  "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
+                gapClass = "gap-2 sm:gap-3";
+                containerClass = "";
               }
-              
+
               return (
-                <div className={`grid ${gridCols} ${gapClass} ${containerClass}`}>
+                <div
+                  className={`grid ${gridCols} ${gapClass} ${containerClass}`}
+                >
                   {fetchedItems.map((item: InstaItem, index: number) => (
                     <motion.div
                       key={item.parentId}

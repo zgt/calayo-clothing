@@ -53,56 +53,67 @@ type SupabaseError = {
 
 export default async function MeasurementsPage() {
   const supabase = await createClient();
-  
+
   // Check if user is authenticated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
-  
+
   // Fetch user profile measurements
-  const { data: measurements, error: measurementsError } = await supabase
+  const { data: measurements, error: measurementsError } = (await supabase
     .from("profile_measurements")
     .select("*")
     .eq("profile_id", user.id)
-    .single() as { data: ProfileMeasurements | null; error: SupabaseError | null };
-  
+    .single()) as {
+    data: ProfileMeasurements | null;
+    error: SupabaseError | null;
+  };
+
   if (measurementsError && measurementsError.code !== "PGRST116") {
     console.error("Error fetching measurements:", measurementsError);
   }
 
   // Create measurements object
   const profileMeasurements: ProfileMeasurements | null = measurements ?? null;
-  
+
   return (
-    <main className="min-h-screen ">
+    <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">My Measurements</h1>
-          <Link 
-            href="/profile" 
-            className="rounded-md bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 border border-emerald-700/30"
+          <Link
+            href="/profile"
+            className="rounded-md border border-emerald-700/30 bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50"
           >
             Back to Profile
           </Link>
         </div>
-        
+
         <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-lg border border-emerald-700/20 bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 p-6 shadow-2xl backdrop-blur-sm">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-white">Update Your Measurements</h2>
+                <h2 className="text-xl font-semibold text-white">
+                  Update Your Measurements
+                </h2>
                 <p className="mt-1 text-sm text-emerald-200/70">
-                  Accurate measurements help us create perfectly fitting garments for you.
-                  Enter your measurements in inches.
+                  Accurate measurements help us create perfectly fitting
+                  garments for you. Enter your measurements in inches.
                 </p>
               </div>
-              
-              <MeasurementsForm measurements={profileMeasurements} userId={user.id} />
+
+              <MeasurementsForm
+                measurements={profileMeasurements}
+                userId={user.id}
+              />
             </div>
-            
+
             <MeasurementGuide />
           </div>
         </div>

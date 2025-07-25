@@ -16,12 +16,12 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -29,9 +29,9 @@ export default function SignupPage() {
       const userData = {
         full_name: fullName,
       };
-      
+
       const { error } = await signUp(email, password, userData);
-      
+
       if (error) {
         toast.error(error.message);
       } else {
@@ -47,9 +47,9 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="auth-page w-full max-w-md mx-auto mt-16">
-      <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs rounded-2xl shadow-2xl p-8 border border-emerald-700/10">
-        <div className="px-8 py-6 border-b border-emerald-800/30">
+    <div className="auth-page mx-auto mt-16 w-full max-w-md">
+      <div className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-8 shadow-2xl backdrop-blur-xs">
+        <div className="border-b border-emerald-800/30 px-8 py-6">
           <h2 className="text-center text-3xl font-bold tracking-tight text-white">
             Create an Account
           </h2>
@@ -57,11 +57,14 @@ export default function SignupPage() {
             Join the Calayo community
           </p>
         </div>
-        
-        <form className="px-8 py-6 space-y-6" onSubmit={handleSubmit}>
+
+        <form className="space-y-6 px-8 py-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="full-name" className="block text-sm font-medium text-emerald-200 mb-1">
+              <label
+                htmlFor="full-name"
+                className="mb-1 block text-sm font-medium text-emerald-200"
+              >
                 Full name
               </label>
               <input
@@ -70,15 +73,18 @@ export default function SignupPage() {
                 type="text"
                 autoComplete="name"
                 required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
+                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 px-3 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none sm:text-sm"
                 placeholder="Your full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-emerald-200 mb-1">
+              <label
+                htmlFor="email-address"
+                className="mb-1 block text-sm font-medium text-emerald-200"
+              >
                 Email address
               </label>
               <input
@@ -87,15 +93,18 @@ export default function SignupPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
+                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 px-3 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none sm:text-sm"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-emerald-200 mb-1">
+              <label
+                htmlFor="password"
+                className="mb-1 block text-sm font-medium text-emerald-200"
+              >
                 Password
               </label>
               <input
@@ -104,7 +113,7 @@ export default function SignupPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
+                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 px-3 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none sm:text-sm"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -113,9 +122,12 @@ export default function SignupPage() {
                 Password must be at least 8 characters
               </p>
             </div>
-            
+
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-emerald-200 mb-1">
+              <label
+                htmlFor="confirm-password"
+                className="mb-1 block text-sm font-medium text-emerald-200"
+              >
                 Confirm password
               </label>
               <input
@@ -124,7 +136,7 @@ export default function SignupPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 py-2 px-3 text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent sm:text-sm"
+                className="relative block w-full rounded-md border border-emerald-700/50 bg-emerald-950/50 px-3 py-2 text-gray-100 placeholder:text-gray-500 focus:border-transparent focus:ring-2 focus:ring-emerald-500 focus:outline-none sm:text-sm"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -140,13 +152,22 @@ export default function SignupPage() {
               required
               className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
             />
-            <label htmlFor="terms" className="ml-2 block text-sm text-emerald-200">
+            <label
+              htmlFor="terms"
+              className="ml-2 block text-sm text-emerald-200"
+            >
               I agree to the{" "}
-              <Link href="/terms" className="font-medium text-emerald-400 hover:text-emerald-300">
+              <Link
+                href="/terms"
+                className="font-medium text-emerald-400 hover:text-emerald-300"
+              >
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="font-medium text-emerald-400 hover:text-emerald-300">
+              <Link
+                href="/privacy"
+                className="font-medium text-emerald-400 hover:text-emerald-300"
+              >
                 Privacy Policy
               </Link>
             </label>
@@ -156,13 +177,29 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md bg-gradient-to-r from-emerald-500 to-teal-600 py-2 px-3 text-sm font-semibold text-white hover:from-emerald-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-200"
+              className="group relative flex w-full justify-center rounded-md bg-gradient-to-r from-emerald-500 to-teal-600 px-3 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:from-emerald-600 hover:to-teal-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Creating account...
                 </>
@@ -172,10 +209,13 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <div className="text-center mt-6">
+          <div className="mt-6 text-center">
             <p className="text-sm text-emerald-200">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
+              <Link
+                href="/login"
+                className="font-medium text-emerald-400 hover:text-emerald-300"
+              >
                 Sign in
               </Link>
             </p>

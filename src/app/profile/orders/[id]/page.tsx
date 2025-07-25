@@ -60,7 +60,7 @@ function LoadingDetails() {
         <div className="h-8 w-48 rounded bg-emerald-900/50"></div>
         <div className="h-8 w-24 rounded bg-emerald-900/50"></div>
       </div>
-      <div className="rounded-lg bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 backdrop-blur-sm p-6 shadow-2xl border border-emerald-700/20">
+      <div className="rounded-lg border border-emerald-700/20 bg-gradient-to-br from-emerald-900/30 to-emerald-950/80 p-6 shadow-2xl backdrop-blur-sm">
         <div className="mb-4 h-6 w-48 rounded bg-emerald-900/50"></div>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -73,51 +73,58 @@ function LoadingDetails() {
 }
 export type paramsType = Promise<{ id: string }>;
 
-export default async function CommissionDetailsPage( props : { params: paramsType }) {
+export default async function CommissionDetailsPage(props: {
+  params: paramsType;
+}) {
   const supabase = await createClient();
   const params = await props.params;
 
-  
-  
   // Check if user is authenticated
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
-  
+
   // Fetch commission details
   const { data: commission, error: commissionError } = await supabase
     .from("commissions")
-    .select(`
+    .select(
+      `
       *,
       commission_measurements(*)
-    `)
+    `,
+    )
     .eq("id", params.id)
     .eq("user_id", user.id)
     .single<Commission>();
-    
+
   if (commissionError) {
     console.error("Error fetching commission:", commissionError);
     // Redirect to orders page if commission not found
     redirect("/profile/orders");
   }
-  
+
   if (!commission) {
     // Redirect to orders page if commission not found
     redirect("/profile/orders");
   }
-  
+
   return (
     <main className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingDetails />}>
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">Commission Details</h1>
+            <h1 className="text-3xl font-bold text-white">
+              Commission Details
+            </h1>
             <Link
               href="/profile/orders"
-              className="rounded-md bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 border border-emerald-700/30"
+              className="rounded-md border border-emerald-700/30 bg-emerald-900/50 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50"
             >
               Back to Commissions
             </Link>

@@ -135,7 +135,7 @@ export const instagramRouter = createTRPCRouter({
   // Admin-only endpoint to sync Instagram photos to UploadThing
   syncInstagramPhotos: adminProcedure.mutation(async () => {
     console.log("Starting Instagram photo sync process");
-    
+
     try {
       // Fetch existing files from UploadThing
       console.log("Fetching existing files from UploadThing");
@@ -143,18 +143,28 @@ export const instagramRouter = createTRPCRouter({
       try {
         existingFilesResponse = await utapi.listFiles();
         const existingFiles = existingFilesResponse?.files || [];
-        console.log(`Found ${existingFiles.length} existing files in UploadThing`);
+        console.log(
+          `Found ${existingFiles.length} existing files in UploadThing`,
+        );
       } catch (error) {
-        console.error("Failed to fetch existing files from UploadThing:", error);
-        console.error("UploadThing API error details:", error instanceof Error ? error.message : String(error));
-        throw new Error(`Failed to fetch existing files: ${error instanceof Error ? error.message : "Unknown error"}`);
+        console.error(
+          "Failed to fetch existing files from UploadThing:",
+          error,
+        );
+        console.error(
+          "UploadThing API error details:",
+          error instanceof Error ? error.message : String(error),
+        );
+        throw new Error(
+          `Failed to fetch existing files: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
       const existingFiles = existingFilesResponse?.files || [];
-      
+
       // Create sets of existing parent and child IDs for quick lookup
       const existingParentIds = new Set<string>();
       const existingChildParentIds = new Set<string>();
-      
+
       existingFiles.forEach((file) => {
         if (file.name.startsWith("parent-")) {
           const parentId = file.name.substring(7).split(".")[0];
@@ -172,18 +182,27 @@ export const instagramRouter = createTRPCRouter({
         }
       });
 
-      console.log(`Found ${existingParentIds.size} existing parent photos and ${existingChildParentIds.size} parent IDs with children`);
+      console.log(
+        `Found ${existingParentIds.size} existing parent photos and ${existingChildParentIds.size} parent IDs with children`,
+      );
 
       // Fetch Instagram media
       console.log("Fetching Instagram media from API");
       let instagramMedia;
       try {
         instagramMedia = await fetchUserMedia();
-        console.log(`Successfully fetched ${instagramMedia.length} Instagram media items`);
+        console.log(
+          `Successfully fetched ${instagramMedia.length} Instagram media items`,
+        );
       } catch (error) {
         console.error("Failed to fetch Instagram media:", error);
-        console.error("Instagram API error details:", error instanceof Error ? error.message : String(error));
-        throw new Error(`Failed to fetch Instagram media: ${error instanceof Error ? error.message : "Unknown error"}`);
+        console.error(
+          "Instagram API error details:",
+          error instanceof Error ? error.message : String(error),
+        );
+        throw new Error(
+          `Failed to fetch Instagram media: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
 
       // Filter out items that already exist
@@ -192,7 +211,9 @@ export const instagramRouter = createTRPCRouter({
         return !existingParentIds.has(item.id);
       });
 
-      console.log(`Found ${instagramMedia.length} Instagram photos, ${existingParentIds.size} already exist, uploading ${newInstagramMedia.length} new photos`);
+      console.log(
+        `Found ${instagramMedia.length} Instagram photos, ${existingParentIds.size} already exist, uploading ${newInstagramMedia.length} new photos`,
+      );
 
       const uploadPromises = newInstagramMedia
         .slice(0, 10) // Limit to first 10 for testing
@@ -200,16 +221,22 @@ export const instagramRouter = createTRPCRouter({
           console.log(`Processing Instagram media item: ${item.id}`);
           try {
             // Fetch parent photo
-            console.log(`Fetching parent photo for item ${item.id} from: ${item.media_url}`);
+            console.log(
+              `Fetching parent photo for item ${item.id} from: ${item.media_url}`,
+            );
             const parentResponse = await fetch(item.media_url);
             if (!parentResponse.ok) {
-              console.error(`Failed to fetch parent image for ${item.id}: HTTP ${parentResponse.status} - ${parentResponse.statusText}`);
+              console.error(
+                `Failed to fetch parent image for ${item.id}: HTTP ${parentResponse.status} - ${parentResponse.statusText}`,
+              );
               throw new Error(
                 `Failed to fetch parent image: ${parentResponse.status}`,
               );
             }
             const parentBlob = await parentResponse.blob();
-            console.log(`Successfully fetched parent photo for ${item.id}, size: ${parentBlob.size} bytes, type: ${parentBlob.type}`);
+            console.log(
+              `Successfully fetched parent photo for ${item.id}, size: ${parentBlob.size} bytes, type: ${parentBlob.type}`,
+            );
 
             // Determine proper file extension based on blob type
             const parentMimeType = parentBlob.type;
@@ -252,18 +279,30 @@ export const instagramRouter = createTRPCRouter({
             try {
               parentUpload = await utapi.uploadFiles(parentFile);
             } catch (error) {
-              console.error(`Failed to upload parent photo for ${item.id} to UploadThing:`, error);
-              console.error(`Upload error details:`, error instanceof Error ? error.message : String(error));
-              throw new Error(`Failed to upload parent photo: ${error instanceof Error ? error.message : "Upload failed"}`);
+              console.error(
+                `Failed to upload parent photo for ${item.id} to UploadThing:`,
+                error,
+              );
+              console.error(
+                `Upload error details:`,
+                error instanceof Error ? error.message : String(error),
+              );
+              throw new Error(
+                `Failed to upload parent photo: ${error instanceof Error ? error.message : "Upload failed"}`,
+              );
             }
 
             if (!parentUpload.data) {
-              console.error(`Failed to upload parent photo for ${item.id}: Upload returned no data`);
+              console.error(
+                `Failed to upload parent photo for ${item.id}: Upload returned no data`,
+              );
               console.error(`Upload response:`, parentUpload);
               throw new Error("Failed to upload parent photo");
             }
-            
-            console.log(`Successfully uploaded parent photo for ${item.id} to: ${parentUpload.data.ufsUrl}`);
+
+            console.log(
+              `Successfully uploaded parent photo for ${item.id} to: ${parentUpload.data.ufsUrl}`,
+            );
 
             // Store parent photo info
             const parentPhoto: StoredPhoto = {
@@ -282,104 +321,140 @@ export const instagramRouter = createTRPCRouter({
               if (!existingChildParentIds.has(item.id)) {
                 console.log(`Fetching children for parent ${item.id}`);
                 const childrenIds = await fetchChildrenIds(item.id);
-                console.log(`Found ${childrenIds.children.length} children IDs for parent ${item.id}`);
-                
+                console.log(
+                  `Found ${childrenIds.children.length} children IDs for parent ${item.id}`,
+                );
+
                 const childrenMedia = await fetchChildrenMedia(childrenIds);
-                console.log(`Successfully fetched ${childrenMedia.length} children media items for parent ${item.id}`);
+                console.log(
+                  `Successfully fetched ${childrenMedia.length} children media items for parent ${item.id}`,
+                );
 
                 for (const child of childrenMedia) {
-                try {
-                  console.log(`Processing child media from URL: ${child.mediaUrl}`);
-                  const childResponse = await fetch(child.mediaUrl);
-                  if (!childResponse.ok) {
-                    console.error(`Failed to fetch child media: HTTP ${childResponse.status} - ${childResponse.statusText}`);
-                    continue;
-                  }
-
-                  const childBlob = await childResponse.blob();
-                  console.log(`Successfully fetched child media, size: ${childBlob.size} bytes, type: ${childBlob.type}`);
-
-                  // Determine proper file extension based on blob type
-                  const mimeType = childBlob.type;
-                  let fileExtension = ".jpg"; // default
-
-                  if (mimeType.startsWith("video/")) {
-                    if (mimeType.includes("mp4")) fileExtension = ".mp4";
-                    else if (mimeType.includes("webm")) fileExtension = ".webm";
-                    else if (
-                      mimeType.includes("quicktime") ||
-                      mimeType.includes("mov")
-                    )
-                      fileExtension = ".mov";
-                    else fileExtension = ".mp4"; // default video extension
-                  } else if (mimeType.startsWith("image/")) {
-                    if (mimeType.includes("png")) fileExtension = ".png";
-                    else if (mimeType.includes("webp")) fileExtension = ".webp";
-                    else if (
-                      mimeType.includes("jpeg") ||
-                      mimeType.includes("jpg")
-                    )
-                      fileExtension = ".jpg";
-                    else fileExtension = ".jpg"; // default image extension
-                  }
-
-                  // Convert blob to File for UploadThing
-                  const childFile = new File(
-                    [childBlob],
-                    `child-${item.id}-${Date.now()}${fileExtension}`,
-                    {
-                      type: childBlob.type || "image/jpeg",
-                    },
-                  );
-
-                  // Upload child photo to UploadThing
-                  console.log(`Uploading child photo to UploadThing`);
-                  let childUpload;
                   try {
-                    childUpload = await utapi.uploadFiles(childFile);
-                  } catch (error) {
-                    console.error(`Failed to upload child photo to UploadThing:`, error);
-                    console.error(`Child upload error details:`, error instanceof Error ? error.message : String(error));
-                    continue; // Skip this child and continue with the next one
-                  }
+                    console.log(
+                      `Processing child media from URL: ${child.mediaUrl}`,
+                    );
+                    const childResponse = await fetch(child.mediaUrl);
+                    if (!childResponse.ok) {
+                      console.error(
+                        `Failed to fetch child media: HTTP ${childResponse.status} - ${childResponse.statusText}`,
+                      );
+                      continue;
+                    }
 
-                  if (childUpload.data) {
-                    console.log(`Successfully uploaded child photo to: ${childUpload.data.ufsUrl}`);
-                    childPhotos.push({
-                      id: `${item.id}-${Date.now()}-${Math.random()}`,
-                      parentId: item.id,
-                      uploadthingUrl: childUpload.data.ufsUrl,
-                      originalUrl: child.mediaUrl,
-                      isParent: false,
-                      customId: item.id,
-                      createdAt: new Date(),
-                    });
-                  } else {
-                    console.error(`Failed to upload child photo: Upload returned no data`);
-                    console.error(`Child upload response:`, childUpload);
+                    const childBlob = await childResponse.blob();
+                    console.log(
+                      `Successfully fetched child media, size: ${childBlob.size} bytes, type: ${childBlob.type}`,
+                    );
+
+                    // Determine proper file extension based on blob type
+                    const mimeType = childBlob.type;
+                    let fileExtension = ".jpg"; // default
+
+                    if (mimeType.startsWith("video/")) {
+                      if (mimeType.includes("mp4")) fileExtension = ".mp4";
+                      else if (mimeType.includes("webm"))
+                        fileExtension = ".webm";
+                      else if (
+                        mimeType.includes("quicktime") ||
+                        mimeType.includes("mov")
+                      )
+                        fileExtension = ".mov";
+                      else fileExtension = ".mp4"; // default video extension
+                    } else if (mimeType.startsWith("image/")) {
+                      if (mimeType.includes("png")) fileExtension = ".png";
+                      else if (mimeType.includes("webp"))
+                        fileExtension = ".webp";
+                      else if (
+                        mimeType.includes("jpeg") ||
+                        mimeType.includes("jpg")
+                      )
+                        fileExtension = ".jpg";
+                      else fileExtension = ".jpg"; // default image extension
+                    }
+
+                    // Convert blob to File for UploadThing
+                    const childFile = new File(
+                      [childBlob],
+                      `child-${item.id}-${Date.now()}${fileExtension}`,
+                      {
+                        type: childBlob.type || "image/jpeg",
+                      },
+                    );
+
+                    // Upload child photo to UploadThing
+                    console.log(`Uploading child photo to UploadThing`);
+                    let childUpload;
+                    try {
+                      childUpload = await utapi.uploadFiles(childFile);
+                    } catch (error) {
+                      console.error(
+                        `Failed to upload child photo to UploadThing:`,
+                        error,
+                      );
+                      console.error(
+                        `Child upload error details:`,
+                        error instanceof Error ? error.message : String(error),
+                      );
+                      continue; // Skip this child and continue with the next one
+                    }
+
+                    if (childUpload.data) {
+                      console.log(
+                        `Successfully uploaded child photo to: ${childUpload.data.ufsUrl}`,
+                      );
+                      childPhotos.push({
+                        id: `${item.id}-${Date.now()}-${Math.random()}`,
+                        parentId: item.id,
+                        uploadthingUrl: childUpload.data.ufsUrl,
+                        originalUrl: child.mediaUrl,
+                        isParent: false,
+                        customId: item.id,
+                        createdAt: new Date(),
+                      });
+                    } else {
+                      console.error(
+                        `Failed to upload child photo: Upload returned no data`,
+                      );
+                      console.error(`Child upload response:`, childUpload);
+                    }
+                  } catch (error) {
+                    console.error(
+                      `Error processing child photo for parent ${item.id}:`,
+                      error,
+                    );
+                    console.error(`Child media URL: ${child.mediaUrl}`);
+                    console.error(
+                      `Error details:`,
+                      error instanceof Error ? error.message : String(error),
+                    );
                   }
-                } catch (error) {
-                  console.error(`Error processing child photo for parent ${item.id}:`, error);
-                  console.error(`Child media URL: ${child.mediaUrl}`);
-                  console.error(`Error details:`, error instanceof Error ? error.message : String(error));
-                }
                 }
               } else {
                 console.log(`Skipping children for ${item.id} - already exist`);
               }
             } catch (error) {
               console.error(`Error fetching children for ${item.id}:`, error);
-              console.error(`Children fetch error details:`, error instanceof Error ? error.message : String(error));
+              console.error(
+                `Children fetch error details:`,
+                error instanceof Error ? error.message : String(error),
+              );
             }
 
-            console.log(`Completed processing item ${item.id}: 1 parent, ${childPhotos.length} children`);
+            console.log(
+              `Completed processing item ${item.id}: 1 parent, ${childPhotos.length} children`,
+            );
             return {
               parent: parentPhoto,
               children: childPhotos,
             };
           } catch (error) {
             console.error(`Error processing item ${item.id}:`, error);
-            console.error(`Item processing error details:`, error instanceof Error ? error.message : String(error));
+            console.error(
+              `Item processing error details:`,
+              error instanceof Error ? error.message : String(error),
+            );
             console.error(`Item media URL: ${item.media_url}`);
             return null;
           }
@@ -390,7 +465,9 @@ export const instagramRouter = createTRPCRouter({
       const validResults = results.filter(Boolean);
       const failedResults = results.length - validResults.length;
 
-      console.log(`Upload results: ${validResults.length} successful, ${failedResults} failed`);
+      console.log(
+        `Upload results: ${validResults.length} successful, ${failedResults} failed`,
+      );
 
       // Store all photos
       storedPhotos = [];
@@ -417,9 +494,15 @@ export const instagramRouter = createTRPCRouter({
       return finalStats;
     } catch (error) {
       console.error("Error syncing Instagram photos:", error);
-      console.error("Sync error details:", error instanceof Error ? error.message : String(error));
-      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
-      
+      console.error(
+        "Sync error details:",
+        error instanceof Error ? error.message : String(error),
+      );
+      console.error(
+        "Error stack:",
+        error instanceof Error ? error.stack : "No stack trace",
+      );
+
       throw new Error(
         `Failed to sync Instagram photos: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -508,8 +591,9 @@ export const instagramRouter = createTRPCRouter({
           };
         });
 
-      return allPhotos.sort((a, b) => 
-        new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      return allPhotos.sort(
+        (a, b) =>
+          new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
       );
     } catch (error) {
       console.error("Error fetching all instagram photos:", error);

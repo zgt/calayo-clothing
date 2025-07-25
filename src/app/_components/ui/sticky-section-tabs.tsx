@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import React, { Children, isValidElement } from 'react';
-import clsx from 'clsx';
+import React, { Children, isValidElement } from "react";
+import clsx from "clsx";
 
 interface StickyTabItemProps {
   title: string;
@@ -26,9 +26,11 @@ interface StickyTabsProps {
   contentLayoutClassName?: string;
 }
 
-const StickyTabs: React.FC<StickyTabsProps> & { Item: React.FC<StickyTabItemProps> } = ({
+const StickyTabs: React.FC<StickyTabsProps> & {
+  Item: React.FC<StickyTabItemProps>;
+} = ({
   children,
-  mainNavHeight = '4rem',
+  mainNavHeight = "4rem",
   rootClassName = "bg-transparent",
   navSpacerClassName = "bg-transparent",
   sectionClassName = "bg-transparent",
@@ -45,18 +47,17 @@ const StickyTabs: React.FC<StickyTabsProps> & { Item: React.FC<StickyTabItemProp
   return (
     <div id="sticky-section" className={clsx("overflow-clip", rootClassName)}>
       <div
-        className={clsx(
-          "sticky left-0 top-0 z-20 w-full",
-          navSpacerClassName
-        )}
+        className={clsx("sticky top-0 left-0 z-20 w-full", navSpacerClassName)}
         style={navHeightStyle}
         aria-hidden="true"
       />
 
       {Children.map(children, (child) => {
         if (!isValidElement(child) || child.type !== StickyTabItem) {
-          if (process.env.NODE_ENV === 'development' && child != null) {
-            console.warn('StickyTabs component expects <StickyTabs.Item> components as direct children.');
+          if (process.env.NODE_ENV === "development" && child != null) {
+            console.warn(
+              "StickyTabs component expects <StickyTabs.Item> components as direct children.",
+            );
           }
           return null;
         }
@@ -67,32 +68,25 @@ const StickyTabs: React.FC<StickyTabsProps> & { Item: React.FC<StickyTabItemProp
         return (
           <section
             key={id}
-            className={clsx(
-              "relative overflow-clip",
-              sectionClassName
-            )}
+            className={clsx("relative overflow-clip", sectionClassName)}
           >
             <div
               className={clsx(
                 "sticky z-10 -mt-px flex flex-col",
-                stickyHeaderContainerClassName
+                stickyHeaderContainerClassName,
               )}
               style={stickyHeaderStyle}
             >
               <div className={clsx(headerContentWrapperClassName)}>
                 <div className={clsx(headerContentLayoutClassName)}>
                   <div className="flex items-center justify-between">
-                    <h2 className={clsx(titleClassName)}>
-                      {title}
-                    </h2>
+                    <h2 className={clsx(titleClassName)}>{title}</h2>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div >
-              {itemContent}
-            </div>
+            <div>{itemContent}</div>
           </section>
         );
       })}

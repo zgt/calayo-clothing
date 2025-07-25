@@ -2,7 +2,11 @@
 import React from "react";
 import { MeasurementInput } from "./MeasurementInput";
 import { shouldShowMeasurement, isMeasurementRequired } from "../utils";
-import type { MeasurementField, CommissionFormData, MeasurementKey } from "../types";
+import type {
+  MeasurementField,
+  CommissionFormData,
+  MeasurementKey,
+} from "../types";
 
 interface MeasurementSectionProps {
   title: string;
@@ -21,7 +25,9 @@ export const MeasurementSection: React.FC<MeasurementSectionProps> = ({
   errors,
   onChange,
 }) => {
-  const visibleMeasurements = measurements.filter(m => shouldShowMeasurement(m.id, garmentType));
+  const visibleMeasurements = measurements.filter((m) =>
+    shouldShowMeasurement(m.id, garmentType),
+  );
 
   if (visibleMeasurements.length === 0) {
     return null;
@@ -29,15 +35,17 @@ export const MeasurementSection: React.FC<MeasurementSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <h3 className="text-emerald-100 text-sm font-medium mb-2">{title}</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {visibleMeasurements.map(measurement => (
+      <h3 className="mb-2 text-sm font-medium text-emerald-100">{title}</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {visibleMeasurements.map((measurement) => (
           <MeasurementInput
             key={measurement.id}
             id={measurement.id}
             name={`measurements.${measurement.id}`}
             label={measurement.label}
-            value={formData.measurements[measurement.id as MeasurementKey] ?? ""}
+            value={
+              formData.measurements[measurement.id as MeasurementKey] ?? ""
+            }
             onChange={onChange}
             error={errors[`measurements.${measurement.id}`]}
             required={isMeasurementRequired(measurement.id, garmentType)}

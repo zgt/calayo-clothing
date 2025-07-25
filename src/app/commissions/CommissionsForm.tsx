@@ -17,7 +17,7 @@ import type { CommissionFormData, MeasurementKey } from "./types";
 export default function CommissionsForm() {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState<CommissionFormData>({
     garmentType: "",
     measurements: getEmptyMeasurements(),
@@ -27,12 +27,14 @@ export default function CommissionsForm() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [currentMeasurement, setCurrentMeasurement] = useState<MeasurementKey | null>(null);
-  
+  const [currentMeasurement, setCurrentMeasurement] =
+    useState<MeasurementKey | null>(null);
+
   // Use our custom hook for measurement loading
-  const { isLoadingMeasurements, loadMeasurementsFromProfile } = useMeasurementLoader({
-    setFormData,
-  });
+  const { isLoadingMeasurements, loadMeasurementsFromProfile } =
+    useMeasurementLoader({
+      setFormData,
+    });
 
   // tRPC mutation for creating commission
   const createCommissionMutation = api.commissions.create.useMutation({
@@ -50,28 +52,30 @@ export default function CommissionsForm() {
       router.push("/profile/orders");
     },
     onError: (error) => {
-      toast.error(error.message || "An error occurred while submitting your request.");
+      toast.error(
+        error.message || "An error occurred while submitting your request.",
+      );
     },
   });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form
     const formErrors = validateCommissionForm(formData);
     setErrors(formErrors);
-    
+
     if (Object.keys(formErrors).length > 0) {
       return;
     }
-    
+
     // Check if user is authenticated before submitting
     if (!user) {
       toast.error("You must be logged in to submit a commission request");
       router.push("/login");
       return;
     }
-    
+
     // Use tRPC mutation to submit commission
     createCommissionMutation.mutate({
       garmentType: formData.garmentType,
@@ -82,42 +86,49 @@ export default function CommissionsForm() {
     });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    
-    
+
     if (name.startsWith("measurements.")) {
-      console.log(name)
+      console.log(name);
       const measurementField = name.split(".")[1] as MeasurementKey;
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         measurements: {
           ...prev.measurements,
-          [measurementField]: value === "" ? null : 
-                             measurementField === "posture" ? value : 
-                             parseFloat(value) || null
-        }
+          [measurementField]:
+            value === ""
+              ? null
+              : measurementField === "posture"
+                ? value
+                : parseFloat(value) || null,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
-  const handleSelectChange = (value: string, field: keyof CommissionFormData) => {
+  const handleSelectChange = (
+    value: string,
+    field: keyof CommissionFormData,
+  ) => {
     if (field === "garmentType") {
       // Reset measurements when garment type changes
       setFormData({
         ...formData,
         garmentType: value,
-        measurements: getEmptyMeasurements()
+        measurements: getEmptyMeasurements(),
       });
     } else {
       setFormData({
         ...formData,
-        [field]: value
+        [field]: value,
       });
     }
   };

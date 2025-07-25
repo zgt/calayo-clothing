@@ -15,12 +15,12 @@ export const LoadMeasurementsButton: React.FC<LoadMeasurementsButtonProps> = ({
       type="button"
       onClick={onClick}
       disabled={isLoading}
-      className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors flex items-center disabled:opacity-50"
+      className="flex items-center text-sm font-medium text-emerald-400 transition-colors hover:text-emerald-300 disabled:opacity-50"
     >
       {!isLoading ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 mr-1.5"
+          className="mr-1.5 h-4 w-4"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -32,7 +32,7 @@ export const LoadMeasurementsButton: React.FC<LoadMeasurementsButtonProps> = ({
         </svg>
       ) : (
         <svg
-          className="animate-spin h-4 w-4 mr-1.5"
+          className="mr-1.5 h-4 w-4 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
