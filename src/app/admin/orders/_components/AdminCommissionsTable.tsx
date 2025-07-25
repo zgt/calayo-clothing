@@ -16,8 +16,8 @@ type CommissionMeasurements = {
   // Additional measurements fields omitted for brevity
 };
 
-type Profile = {
-  full_name: string | null;
+type CommissionUser = {
+  name: string | null;
   email: string | null;
 };
 
@@ -32,7 +32,7 @@ type Commission = {
   updated_at: string;
   user_id: string;
   commission_measurements: CommissionMeasurements | null;
-  profiles: Profile;
+  user: CommissionUser;
 };
 
 interface AdminCommissionsTableProps {
@@ -96,9 +96,8 @@ export default function AdminCommissionsTable({
 
       const searchLower = searchTerm.toLowerCase();
       return (
-        (commission.profiles?.full_name?.toLowerCase().includes(searchLower) ??
-          false) ||
-        (commission.profiles?.email?.toLowerCase().includes(searchLower) ??
+        (commission.user?.name?.toLowerCase().includes(searchLower) ?? false) ||
+        (commission.user?.email?.toLowerCase().includes(searchLower) ??
           false) ||
         commission.garment_type.toLowerCase().includes(searchLower) ||
         commission.id.toLowerCase().includes(searchLower)
@@ -214,8 +213,8 @@ export default function AdminCommissionsTable({
       ...filteredCommissions.map((commission) =>
         [
           commission.id,
-          commission.profiles?.full_name ?? "Unknown",
-          commission.profiles?.email ?? "Unknown",
+          commission.user?.name ?? "Unknown",
+          commission.user?.email ?? "Unknown",
           commission.garment_type,
           commission.budget,
           commission.timeline,
@@ -463,10 +462,10 @@ export default function AdminCommissionsTable({
                 <div className="hidden grid-cols-12 items-center gap-4 md:grid">
                   <div className="col-span-3">
                     <div className="font-medium text-white">
-                      {commission.profiles?.full_name ?? "Unknown"}
+                      {commission.user?.name ?? "Unknown"}
                     </div>
                     <div className="truncate text-sm text-emerald-200/70">
-                      {commission.profiles?.email ?? "No email"}
+                      {commission.user?.email ?? "No email"}
                     </div>
                   </div>
                   <div className="col-span-1 text-white capitalize">
@@ -553,7 +552,7 @@ export default function AdminCommissionsTable({
                     <button
                       onClick={() =>
                         window.open(
-                          `mailto:${commission.profiles?.email}`,
+                          `mailto:${commission.user?.email}`,
                           "_blank",
                         )
                       }
@@ -578,10 +577,10 @@ export default function AdminCommissionsTable({
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium text-white">
-                        {commission.profiles?.full_name ?? "Unknown Customer"}
+                        {commission.user?.name ?? "Unknown Customer"}
                       </h3>
                       <p className="text-sm text-emerald-200/70">
-                        {commission.profiles?.email ?? "No email"}
+                        {commission.user?.email ?? "No email"}
                       </p>
                     </div>
                     <span
@@ -657,7 +656,7 @@ export default function AdminCommissionsTable({
                     <button
                       onClick={() =>
                         window.open(
-                          `mailto:${commission.profiles?.email}`,
+                          `mailto:${commission.user?.email}`,
                           "_blank",
                         )
                       }
@@ -920,7 +919,7 @@ export default function AdminCommissionsTable({
               <p className="mb-2 text-emerald-200">
                 <span className="font-medium">Commission:</span>{" "}
                 {selectedCommission.garment_type} for{" "}
-                {selectedCommission.profiles?.full_name ?? "Unknown"}
+                {selectedCommission.user?.name ?? "Unknown"}
               </p>
               <p className="text-emerald-200">
                 <span className="font-medium">Current Status:</span>

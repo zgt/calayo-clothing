@@ -1,6 +1,7 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UTApi } from "uploadthing/server";
-import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
+import { headers } from "next/headers";
 
 // Initialize UploadThing API with server token
 export const utapi = new UTApi({
@@ -13,27 +14,24 @@ const f = createUploadthing();
 export const ourFileRouter = {
   instagramUploader: f({ image: { maxFileSize: "16MB", maxFileCount: 50 } })
     .middleware(async () => {
-      // Verify admin access
-      const supabase = await createClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      // Verify admin access using Better-Auth
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
 
-      if (error || !user) {
+      if (!session?.user) {
         throw new Error("Unauthorized");
       }
 
-      const adminId = process.env.ADMIN_ID;
-      if (user.id !== adminId) {
+      const user = session.user as User;
+      if (user.role !== "admin") {
         throw new Error("Admin access required");
       }
 
       return { userId: user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ metadata }) => {
       console.log("Upload complete for userId:", metadata.userId);
-      console.log("File URL:", file.ufsUrl);
 
       return { uploadedBy: metadata.userId };
     }),

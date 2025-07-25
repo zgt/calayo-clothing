@@ -2,6 +2,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import AdminCommissionDetails from "./_components/AdminCommissionDetails";
 
@@ -40,8 +42,8 @@ type CommissionMeasurements = {
   posture: string | null;
 };
 
-type Profile = {
-  full_name: string | null;
+type CommissionUser = {
+  name: string | null;
   email: string | null;
 };
 
@@ -56,7 +58,7 @@ type Commission = {
   updated_at: string;
   user_id: string;
   commission_measurements: CommissionMeasurements | null;
-  profiles: Profile;
+  user: CommissionUser;
 };
 
 // Simple loading skeleton
@@ -84,26 +86,26 @@ export type paramsType = Promise<{ id: string }>;
 export default async function AdminCommissionDetailsPage(props: {
   params: paramsType;
 }) {
-  const supabase = await createClient();
   const params = await props.params;
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
 
-  // Check if user is admin
-  const adminId = process.env.ADMIN_ID;
-  if (user.id !== adminId) {
+  // Check if user is admin using role field
+  const user = session.user as User;
+  if (user.role !== "admin") {
     // Redirect to home if not admin
     redirect("/");
   }
+
+  const supabase = await createClient();
 
   // Fetch commission details
   const { data: commission, error: commissionError } = await supabase
@@ -112,7 +114,7 @@ export default async function AdminCommissionDetailsPage(props: {
       `
       *,
       commission_measurements(*),
-      profiles:user_id(full_name, email)
+      user:user_id(name, email)
     `,
     )
     .eq("id", params.id)

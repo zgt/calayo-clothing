@@ -5,7 +5,7 @@ A custom clothing commission platform built with the T3 Stack, enabling customer
 ## Features
 
 - **Custom Commission Requests**: Users can submit detailed requests for custom clothing designs
-- **User Authentication**: Secure authentication system with user profiles and measurements
+- **User Authentication**: Secure Better-Auth system with user profiles and measurements
 - **Admin Order Management**: Comprehensive admin interface for managing commissions and orders
 - **Instagram Integration**: Media fetching and display from Instagram
 - **Responsive Design**: Mobile-friendly interface built with TailwindCSS and Material-UI
@@ -14,7 +14,8 @@ A custom clothing commission platform built with the T3 Stack, enabling customer
 
 - **Framework**: [Next.js 15](https://nextjs.org) with App Router
 - **API**: [tRPC](https://trpc.io) for type-safe endpoints
-- **Database & Auth**: [Supabase](https://supabase.com)
+- **Database**: [Supabase](https://supabase.com) (PostgreSQL)
+- **Authentication**: [Better-Auth](https://better-auth.com) for secure user management
 - **Styling**: [TailwindCSS](https://tailwindcss.com) + [Material-UI](https://mui.com)
 - **Type Safety**: [TypeScript](https://typescriptlang.org) + [Zod](https://zod.dev)
 
@@ -23,7 +24,8 @@ A custom clothing commission platform built with the T3 Stack, enabling customer
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Supabase account for database and authentication
+- Supabase account for database
+- Better-Auth configured for authentication
 
 ### Environment Setup
 
@@ -32,7 +34,8 @@ Create a `.env.local` file in the root directory:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-ADMIN_ID=your_admin_user_id
+BETTER_AUTH_SECRET=your_better_auth_secret
+DATABASE_URL=your_database_url
 ```
 
 ### Installation

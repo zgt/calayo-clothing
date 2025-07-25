@@ -1,14 +1,14 @@
 "use client";
 
 // src/app/profile/_components/ProfileForm.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "~/utils/supabase/client";
 
-type Profile = {
+type User = {
   id: string;
   email: string;
-  full_name?: string | null;
-  avatar_url?: string | null;
+  name?: string | null;
+  image?: string | null;
   bio?: string | null;
   website?: string | null;
   location?: string | null;
@@ -16,29 +16,40 @@ type Profile = {
   [key: string]: unknown; // For other potential fields
 };
 
-type User = {
+type UserAuth = {
   id: string;
   email?: string;
 };
 
 interface ProfileFormProps {
-  profile: Profile | null;
   user: User;
+  userAuth: UserAuth;
 }
 
-export default function ProfileForm({ profile, user }: ProfileFormProps) {
+export default function ProfileForm({ user, userAuth }: ProfileFormProps) {
   const supabase = createClient();
 
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name ?? "",
-    location: profile?.location ?? "",
-    phone: profile?.phone ?? "",
-    website: profile?.website ?? "",
-    bio: profile?.bio ?? "",
+    full_name: user?.name ?? "",
+    location: user?.location ?? "",
+    phone: user?.phone ?? "",
+    website: user?.website ?? "",
+    bio: user?.bio ?? "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (message.type === "success") {
+      const timer = setTimeout(() => {
+        setMessage({ text: "", type: "" });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [message.type]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -53,26 +64,21 @@ export default function ProfileForm({ profile, user }: ProfileFormProps) {
     setMessage({ text: "", type: "" });
 
     try {
-      // If profile doesn't exist yet, create it
-      if (!profile) {
-        const { error } = await supabase.from("profiles").insert([
-          {
-            id: user.id,
-            email: user.email,
-            ...formData,
-          },
-        ]);
+      // Update user profile (Better Auth manages user creation)
+      const userData = {
+        name: formData.full_name,
+        bio: formData.bio,
+        website: formData.website,
+        location: formData.location,
+        phone: formData.phone,
+      };
 
-        if (error) throw error;
-      } else {
-        // Otherwise update the existing profile
-        const { error } = await supabase
-          .from("profiles")
-          .update(formData)
-          .eq("id", user.id);
+      const { error } = await supabase
+        .from("user")
+        .update(userData)
+        .eq("id", userAuth.id);
 
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       setMessage({
         text: "Profile updated successfully!",
@@ -86,13 +92,6 @@ export default function ProfileForm({ profile, user }: ProfileFormProps) {
       });
     } finally {
       setIsLoading(false);
-
-      // Clear success message after 3 seconds
-      if (message.type === "success") {
-        setTimeout(() => {
-          setMessage({ text: "", type: "" });
-        }, 3000);
-      }
     }
   };
 

@@ -1,31 +1,21 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Get the current user from the better-auth session
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
 
-    // Get the current user from the session
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
+    if (!session?.user) {
       return NextResponse.json({ isAdmin: false }, { status: 401 });
     }
 
-    // Get admin ID from server environment (not exposed to client)
-    const adminId = process.env.ADMIN_ID;
-
-    if (!adminId) {
-      console.error("ADMIN_ID environment variable not set");
-      return NextResponse.json({ isAdmin: false }, { status: 500 });
-    }
-
-    // Check if current user is admin
-    const isAdmin = user.id === adminId;
+    // Check if current user is admin using role from better-auth user table
+    const user = session.user as User;
+    const isAdmin = user.role === "admin";
 
     return NextResponse.json({
       isAdmin,

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import { api } from "~/trpc/react";
 
 // Import our new components and utilities

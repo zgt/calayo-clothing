@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/auth";
-import { useSupabase } from "~/context/supabase-provider";
+import { useAuth } from "~/context/better-auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -12,8 +11,7 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, isAuthenticated } = useAuth();
-  const { supabase } = useSupabase();
+  const { isAuthenticated, changePassword } = useAuth();
   const router = useRouter();
 
   if (!isAuthenticated()) {
@@ -36,31 +34,13 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    if (!user?.email) {
-      toast.error("User email not found");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      });
+      const { error } = await changePassword(currentPassword, newPassword);
 
-      if (signInError) {
-        toast.error("Current password is incorrect");
-        setIsLoading(false);
-        return;
-      }
-
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (updateError) {
-        toast.error(updateError.message);
+      if (error) {
+        toast.error(error.message);
       } else {
         toast.success("Password updated successfully!");
         setCurrentPassword("");

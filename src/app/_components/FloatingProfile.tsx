@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import SignIn from "./SignIn";
 
 export default function FloatingProfile() {
@@ -45,7 +45,7 @@ export default function FloatingProfile() {
 
     return {
       id: user.id,
-      name: user.user_metadata?.full_name as string | undefined,
+      name: user.name,
       email: user.email,
       role: user.role,
     };
@@ -112,7 +112,9 @@ export default function FloatingProfile() {
         aria-haspopup="true"
       >
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 font-medium text-white shadow-lg">
-          {user.email?.charAt(0).toUpperCase() ?? "U"}
+          {user?.name?.charAt(0).toUpperCase() ??
+            user?.email?.charAt(0).toUpperCase() ??
+            "U"}
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"

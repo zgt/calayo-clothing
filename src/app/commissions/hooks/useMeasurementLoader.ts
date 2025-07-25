@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import { fetchProfileMeasurements } from "../utils";
 import type { CommissionFormData } from "../types";
 

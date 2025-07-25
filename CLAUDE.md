@@ -40,7 +40,7 @@ This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, 
 - Managed through `@t3-oss/env-nextjs` in `src/env.js`
 - Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Required: `NEXT_PUBLIC_INSTA_USER_ID`, `NEXT_PUBLIC_INSTA_ACCESS_TOKEN` (for Instagram API)
-- Server-only: `ADMIN_ID` (for admin user verification), `UPLOADTHING_APP_ID`
+- Server-only: `UPLOADTHING_APP_ID`
 - Optional: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `UPLOADTHING_SECRET`, `UPLOADTHING_TOKEN`
 - **Note**: Create `.env.local` file with these variables before running dev/build commands
 

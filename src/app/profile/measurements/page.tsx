@@ -2,12 +2,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "~/utils/supabase/server";
+import { auth, type User } from "~/lib/auth";
+import { headers } from "next/headers";
 import MeasurementsForm from "./_components/MeasurementsForm";
 import MeasurementGuide from "./_components/MeasurementGuide";
 
 type ProfileMeasurements = {
   id: string;
-  profile_id: string;
+  user_id: string;
   // Basic measurements
   chest: number | null;
   waist: number | null;
@@ -52,24 +54,24 @@ type SupabaseError = {
 };
 
 export default async function MeasurementsPage() {
-  const supabase = await createClient();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
+
+  const user = session.user as User;
+  const supabase = await createClient();
 
   // Fetch user profile measurements
   const { data: measurements, error: measurementsError } = (await supabase
     .from("profile_measurements")
     .select("*")
-    .eq("profile_id", user.id)
+    .eq("user_id", user.id)
     .single()) as {
     data: ProfileMeasurements | null;
     error: SupabaseError | null;

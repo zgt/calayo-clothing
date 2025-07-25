@@ -1,6 +1,8 @@
 // src/app/profile/orders/page.tsx
 import { redirect } from "next/navigation";
 import { createClient } from "~/utils/supabase/server";
+import { auth } from "~/lib/auth";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import CommissionsList from "./_components/CommissionsList";
 
@@ -74,18 +76,17 @@ function LoadingCommissions() {
 }
 
 export default async function OrdersPage() {
-  const supabase = await createClient();
+  // Check authentication using Better-Auth
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // Check if user is authenticated
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!session?.user) {
     // Redirect to login if not authenticated
     redirect("/login");
   }
+
+  const supabase = await createClient();
 
   // Fetch user commissions
   const { data: commissionsData, error: commissionsError } = await supabase
@@ -96,7 +97,7 @@ export default async function OrdersPage() {
       commission_measurements(*)
     `,
     )
-    .eq("user_id", user.id)
+    .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })
     .returns<Commission[]>();
 

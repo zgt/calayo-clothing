@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "~/context/auth";
+import { useAuth } from "~/context/better-auth";
 import Link from "next/link";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +32,13 @@ export default function SignupPage() {
       };
 
       const { error } = await signUp(email, password, userData);
+      console.log(error);
 
       if (error) {
         toast.error(error.message);
       } else {
         toast.success("Account created successfully!");
-        redirect("/login");
+        router.push("/login");
       }
     } catch (error) {
       toast.error("An unexpected error occurred");

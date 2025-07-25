@@ -1,41 +1,31 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { auth } from "~/lib/auth";
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options: _options }) =>
-            request.cookies.set(name, value),
-          );
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
+  // Get the session token from the better-auth cookie
+  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  if (sessionToken) {
+    try {
+      // Validate the session with better-auth
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
+
+      user = session?.user ?? null;
+    } catch (error) {
+      console.error("Error validating session in middleware:", error);
+      // Clear invalid session cookie
+      response.cookies.delete("better-auth.session_token");
+    }
+  }
 
   // Auth condition for protected routes
   const isAuthRoute =

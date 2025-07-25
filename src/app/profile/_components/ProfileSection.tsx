@@ -9,7 +9,7 @@ import type { ProfileMeasurements } from "../page";
 type Profile = {
   id: string;
   email: string;
-  full_name?: string | null;
+  name?: string | null;
   avatar_url?: string | null;
   bio?: string | null;
   website?: string | null;
@@ -44,19 +44,19 @@ export default function ProfileSection({
             {profile?.avatar_url ? (
               <Image
                 src={profile.avatar_url}
-                alt={`${profile.full_name ?? "User"}'s avatar`}
+                alt={`${profile.name ?? "User"}'s avatar`}
                 className="h-full w-full object-cover"
                 width={80}
                 height={80}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-2xl text-emerald-200">
-                {profile?.full_name?.charAt(0) ?? user.email?.charAt(0)}
+                {profile?.name?.charAt(0) ?? user.email?.charAt(0)}
               </div>
             )}
           </div>
           <h2 className="text-xl font-semibold text-white">
-            {profile?.full_name ?? "New User"}
+            {profile?.name ?? "New User"}
           </h2>
           <p className="text-sm text-emerald-200/70">{user.email}</p>
         </div>
@@ -208,7 +208,7 @@ export default function ProfileSection({
             <h2 className="mb-4 text-xl font-semibold text-white">
               Edit Profile
             </h2>
-            <ProfileForm profile={profile} user={user} />
+            {profile && <ProfileForm user={profile} userAuth={user} />}
           </div>
         )}
       </div>

@@ -46,7 +46,7 @@ const createCommissionSchema = z.object({
 });
 
 const updateCommissionStatusSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1, "Commission ID is required"),
   status: z.enum([
     "Pending",
     "Approved",
@@ -80,7 +80,7 @@ export const commissionsRouter = createTRPCRouter({
           budget: input.budget,
           timeline: input.timeline,
           details: input.details,
-          user_id: user.id,
+          user_id: (user as any).id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -110,7 +110,7 @@ export const commissionsRouter = createTRPCRouter({
         const measurementsId = crypto.randomUUID();
 
         const measurementsFields = Object.entries(input.measurements || {})
-          .filter(([key]) => key !== "profile_id" && key !== "id")
+          .filter(([key]) => key !== "user_id" && key !== "id")
           .reduce(
             (acc, [key, value]) => {
               const measurementKey = key as MeasurementKey;
@@ -186,7 +186,7 @@ export const commissionsRouter = createTRPCRouter({
           commission_measurements (*)
         `,
       )
-      .eq("user_id", user.id)
+      .eq("user_id", (user as any).id)
       .order("created_at", { ascending: false })) as {
       data: any[] | null;
       error: any;
@@ -204,7 +204,7 @@ export const commissionsRouter = createTRPCRouter({
 
   // Get commission by ID (user can only access their own)
   getById: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string().min(1, "Commission ID is required") }))
     .query(async ({ input, ctx }) => {
       const { supabase, user } = ctx;
 
@@ -217,7 +217,7 @@ export const commissionsRouter = createTRPCRouter({
         `,
         )
         .eq("id", input.id)
-        .eq("user_id", user.id)
+        .eq("user_id", (user as any).id)
         .single()) as { data: any | null; error: any };
 
       if (error) {
@@ -244,7 +244,7 @@ export const commissionsRouter = createTRPCRouter({
           `
             *,
             commission_measurements (*),
-            profiles (first_name, last_name, email)
+            user (name, email)
           `,
         )
         .order("created_at", { ascending: false })) as {
@@ -294,7 +294,7 @@ export const commissionsRouter = createTRPCRouter({
 
     // Get commission by ID (admin can access any)
     getById: adminProcedure
-      .input(z.object({ id: z.string().uuid() }))
+      .input(z.object({ id: z.string().min(1, "Commission ID is required") }))
       .query(async ({ input, ctx }) => {
         const { supabase } = ctx;
 
@@ -304,7 +304,7 @@ export const commissionsRouter = createTRPCRouter({
             `
             *,
             commission_measurements (*),
-            profiles (first_name, last_name, email)
+            user (name, email)
           `,
           )
           .eq("id", input.id)
