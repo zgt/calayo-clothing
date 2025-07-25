@@ -2,7 +2,7 @@
 
 import type { InstaChild, InstagramMediaResponse } from '~/types/instagram';
 
-const accessToken = process.env.NEXT_PUBLIC_INSTA_ACCESS_TOKEN;
+const accessToken = process.env.INSTA_ACCESS_TOKEN;
 
 interface ChildrenMedia {
   mediaId: string;

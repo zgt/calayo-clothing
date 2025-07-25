@@ -94,7 +94,7 @@ export default async function AdminCommissionDetailsPage( props : { params: para
   }
   
   // Check if user is admin
-  const adminId = process.env.NEXT_PUBLIC_ADMIN_ID;
+  const adminId = process.env.ADMIN_ID;
   if (user.id !== adminId) {
     // Redirect to home if not admin
     redirect("/");
