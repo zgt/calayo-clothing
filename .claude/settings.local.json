@@ -35,7 +35,8 @@
       "Bash(curl:*)",
       "Bash(taskkill:*)",
       "Bash(powershell:*)",
-      "Bash(wmic process where:*)"
+      "Bash(wmic process where:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
