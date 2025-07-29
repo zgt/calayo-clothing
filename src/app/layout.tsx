@@ -13,6 +13,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "~/server/uploadthing";
 import ShaderGradientBackground from "./_components/ShaderGradient";
 import MainContent from "./_components/MainContent";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body>
         <TRPCReactProvider>
           <MobileProvider>
+            <Analytics />
             <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
             <Nav />
             <FloatingProfile />

@@ -55,7 +55,9 @@ export default function InlineEditField({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     onChange(e.target.value);
   };
 
@@ -106,14 +108,14 @@ export default function InlineEditField({
     return (
       <div className={`space-y-2 ${className}`}>
         {renderInput()}
-        
+
         {/* Character counter for textarea */}
         {fieldType === "textarea" && maxLength && (
-          <div className="text-xs text-emerald-400/70 text-right">
+          <div className="text-right text-xs text-emerald-400/70">
             {value.length}/{maxLength}
           </div>
         )}
-        
+
         {/* Error message */}
         {error && (
           <div className="text-xs text-red-400" role="alert">
@@ -129,20 +131,13 @@ export default function InlineEditField({
       <button
         onClick={handleEdit}
         disabled={isLoading}
-        className={`
-          group text-left w-full transition-all duration-200 
-          hover:bg-emerald-900/20 rounded-md p-1 -m-1
-          focus:outline-none focus:ring-2 focus:ring-emerald-500/20
-          disabled:cursor-not-allowed disabled:opacity-50
-          ${displayClassName}
-        `}
+        className={`group -m-1 w-full rounded-md p-1 text-left transition-all duration-200 hover:bg-emerald-900/20 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${displayClassName} `}
         aria-label={`Edit ${label}. Current value: ${displayValue}`}
       >
         <div className="flex items-center justify-between">
-          <span className={`
-            ${showAsEmpty ? "text-emerald-200/50 italic" : "text-white"}
-            ${fieldType === "textarea" ? "whitespace-pre-wrap" : ""}
-          `}>
+          <span
+            className={` ${showAsEmpty ? "text-emerald-200/50 italic" : "text-white"} ${fieldType === "textarea" ? "whitespace-pre-wrap" : ""} `}
+          >
             {displayValue}
           </span>
           <svg

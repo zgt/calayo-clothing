@@ -17,14 +17,49 @@ export default function IntervalTimer() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
   const defaultConfig = {
-    workoutName: "Default Workout",
+    workoutName: "Emil's Sub-max Daily Fingerboard",
     exercises: [
       {
-        name: "Default Exercise",
+        name: "Isometric Hang",
         sets: 1,
-        reps: 1,
+        reps: 6,
         workDuration: 10,
-        restDuration: 10,
+        restDuration: 20,
+      },
+      {
+        name: "Isometric Hang: Front 3 Open",
+        sets: 1,
+        reps: 6,
+        workDuration: 10,
+        restDuration: 20,
+      },
+      {
+        name: "Isometric Hang: Front 2 Open",
+        sets: 1,
+        reps: 2,
+        workDuration: 10,
+        restDuration: 20,
+      },
+      {
+        name: "Isometric Hang: Middle 2 Open",
+        sets: 1,
+        reps: 2,
+        workDuration: 10,
+        restDuration: 20,
+      },
+      {
+        name: "Isometric Hang: Front 2 Half Crimp",
+        sets: 1,
+        reps: 2,
+        workDuration: 10,
+        restDuration: 20,
+      },
+      {
+        name: "Isometric Hang: Middle 2 Half Crimp",
+        sets: 1,
+        reps: 2,
+        workDuration: 10,
+        restDuration: 20,
       },
     ],
   };
@@ -281,11 +316,11 @@ export default function IntervalTimer() {
 
         <div className="text-center sm:flex-1">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            {currentConfig?.workoutName}
+            {timer.status.currentExercise?.name}
           </h1>
           <div className="mt-1 text-xs text-emerald-200/70 sm:text-sm">
             Exercise {timer.status.currentExerciseIndex + 1} of{" "}
-            {timer.status.totalExercises}: {timer.status.currentExercise?.name}
+            {timer.status.totalExercises}
           </div>
         </div>
 

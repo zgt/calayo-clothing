@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Play, Database, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Database, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import type { ProcessedJob } from "~/lib/job-types";
@@ -22,19 +22,16 @@ export default function JobAutomationPanel() {
   } = api.jobs.getJobs.useQuery();
 
   // Get job status
-  const {
-    data: statusData,
-    isLoading: statusLoading,
-    refetch: refetchStatus,
-  } = api.jobs.getJobStatus.useQuery(
-    undefined,
-    {
+  const { data: statusData, refetch: refetchStatus } =
+    api.jobs.getJobStatus.useQuery(undefined, {
       refetchInterval: (query) => {
         // Poll every 2 seconds if job is running, otherwise don't poll
-        return query?.state?.data?.success && query?.state?.data?.status?.isRunning ? 2000 : false;
+        return query?.state?.data?.success &&
+          query?.state?.data?.status?.isRunning
+          ? 2000
+          : false;
       },
-    }
-  );
+    });
 
   // Validate connections
   const {
@@ -43,20 +40,20 @@ export default function JobAutomationPanel() {
     refetch: validateConnections,
   } = api.jobs.validateConnections.useQuery();
 
-  const jobs = jobsData?.jobs || [];
+  const jobs = jobsData?.jobs ?? [];
   const jobStatus = statusData?.status;
-  const isJobRunning = jobStatus?.isRunning || false;
+  const isJobRunning = jobStatus?.isRunning ?? false;
 
   const handleJobComplete = () => {
     // Refetch jobs when scraping completes
-    refetchJobs();
-    refetchStatus();
+    void refetchJobs();
+    void refetchStatus();
     toast.success("Job scraping completed!");
   };
 
   const handleJobError = (error: string) => {
     toast.error(`Job scraping failed: ${error}`);
-    refetchStatus();
+    void refetchStatus();
   };
 
   return (
@@ -69,7 +66,7 @@ export default function JobAutomationPanel() {
             Automated LinkedIn job scraping with AI-powered filtering
           </p>
         </div>
-        
+
         {/* Connection Status */}
         <div className="flex items-center gap-2">
           {validationLoading ? (
@@ -88,7 +85,7 @@ export default function JobAutomationPanel() {
               <span className="text-sm">Connection issues</span>
             </div>
           )}
-          
+
           <button
             onClick={() => validateConnections()}
             disabled={validationLoading}
@@ -101,7 +98,7 @@ export default function JobAutomationPanel() {
 
       {/* Job Status Indicator */}
       {jobStatus && (
-        <JobStatusIndicator 
+        <JobStatusIndicator
           status={jobStatus}
           onComplete={handleJobComplete}
           onError={handleJobError}
@@ -111,7 +108,7 @@ export default function JobAutomationPanel() {
       {/* Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Scrape Jobs Button */}
-        <ScrapeJobsButton 
+        <ScrapeJobsButton
           disabled={isJobRunning}
           onJobStarted={() => refetchStatus()}
         />
@@ -153,7 +150,7 @@ export default function JobAutomationPanel() {
           className="rounded-lg border border-red-500/20 bg-red-900/20 p-4"
         >
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
             <div>
               <h3 className="font-medium text-red-300">Connection Issues</h3>
               <ul className="mt-1 space-y-1 text-sm text-red-200/80">
@@ -173,10 +170,10 @@ export default function JobAutomationPanel() {
         transition={{ delay: 0.2 }}
       >
         {isTableView ? (
-          <JobsTable 
+          <JobsTable
             jobs={jobs}
             isLoading={jobsLoading}
-            error={jobsError}
+            error={jobsError ? new Error(jobsError.message) : null}
             onRefresh={refetchJobs}
           />
         ) : (
@@ -188,21 +185,24 @@ export default function JobAutomationPanel() {
 }
 
 // Job statistics component
-function JobStats({ 
-  jobs, 
-  isLoading 
-}: { 
-  jobs: ProcessedJob[]; 
+function JobStats({
+  jobs,
+  isLoading,
+}: {
+  jobs: ProcessedJob[];
   isLoading: boolean;
 }) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 p-6">
+          <div
+            key={i}
+            className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 p-6"
+          >
             <div className="animate-pulse">
-              <div className="h-8 w-16 bg-emerald-900/50 rounded mb-2"></div>
-              <div className="h-4 w-24 bg-emerald-900/50 rounded"></div>
+              <div className="mb-2 h-8 w-16 rounded bg-emerald-900/50"></div>
+              <div className="h-4 w-24 rounded bg-emerald-900/50"></div>
             </div>
           </div>
         ))}
@@ -210,32 +210,46 @@ function JobStats({
     );
   }
 
-  const totalJobs = jobs.length;
-  const avgRating = jobs.length > 0 
-    ? (jobs.reduce((sum, job) => sum + job.rating, 0) / jobs.length).toFixed(1)
-    : "0";
-  const topCompanies = jobs
-    .reduce((acc, job) => {
-      acc[job.company] = (acc[job.company] || 0) + 1;
+  // Filter out "not relevant" jobs for statistics
+  const relevantJobs = jobs.filter(
+    (job) => job.status?.toLowerCase() !== "not relevant",
+  );
+
+  const totalJobs = relevantJobs.length;
+  const avgRating =
+    relevantJobs.length > 0
+      ? (
+          relevantJobs.reduce((sum, job) => sum + job.rating, 0) /
+          relevantJobs.length
+        ).toFixed(1)
+      : "0";
+  const topCompanies = relevantJobs.reduce(
+    (acc, job) => {
+      acc[job.company] = (acc[job.company] ?? 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
-  const mostActiveCompany = Object.entries(topCompanies)
-    .sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] || "None";
+    },
+    {} as Record<string, number>,
+  );
+  const mostActiveCompany =
+    Object.entries(topCompanies).sort(([, a], [, b]) => b - a)[0]?.[0] ??
+    "None";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       <div className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 p-6">
         <div className="text-3xl font-bold text-emerald-400">{totalJobs}</div>
         <div className="text-emerald-200/70">Total Matching Jobs</div>
       </div>
-      
+
       <div className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 p-6">
         <div className="text-3xl font-bold text-emerald-400">{avgRating}</div>
         <div className="text-emerald-200/70">Average Match Rating</div>
       </div>
-      
+
       <div className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 p-6">
-        <div className="text-lg font-bold text-emerald-400 truncate">{mostActiveCompany}</div>
+        <div className="truncate text-lg font-bold text-emerald-400">
+          {mostActiveCompany}
+        </div>
         <div className="text-emerald-200/70">Most Active Company</div>
       </div>
     </div>

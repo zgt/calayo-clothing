@@ -2,44 +2,63 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  ExternalLink, 
-  Star, 
-  MapPin, 
-  Building, 
+import {
+  ExternalLink,
+  Star,
+  MapPin,
+  Building,
   RefreshCw,
   Search,
   SortAsc,
   SortDesc,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import type { ProcessedJob } from "~/lib/job-types";
 
 interface JobsTableProps {
   jobs: ProcessedJob[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   onRefresh: () => void;
 }
 
-type SortField = "role" | "company" | "rating" | "location";
+type SortField = "role" | "company" | "rating" | "location" | "status";
 type SortDirection = "asc" | "desc";
 
-export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTableProps) {
+export default function JobsTable({
+  jobs,
+  isLoading,
+  error,
+  onRefresh,
+}: JobsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<SortField>("rating");
+  const [sortField, setSortField] = useState<SortField>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
-  // Filter jobs based on search term
-  const filteredJobs = jobs.filter((job) =>
-    job.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.skills.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter jobs based on search term and exclude "not relevant" jobs
+  const filteredJobs = jobs.filter(
+    (job) =>
+      // Filter out jobs with "not relevant" status
+      job.status?.toLowerCase() !== "not relevant" &&
+      // Apply search filter
+      (job.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.skills.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.status?.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
-  // Sort jobs
+  // Sort jobs with "to review" priority
   const sortedJobs = [...filteredJobs].sort((a, b) => {
+    // First, prioritize "to review" status when sorting by status
+    if (sortField === "status") {
+      const aIsToReview = a.status?.toLowerCase() === "to review";
+      const bIsToReview = b.status?.toLowerCase() === "to review";
+
+      if (aIsToReview && !bIsToReview) return -1;
+      if (!aIsToReview && bIsToReview) return 1;
+    }
+
     let aValue: string | number;
     let bValue: string | number;
 
@@ -59,6 +78,10 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
       case "location":
         aValue = a.location.toLowerCase();
         bValue = b.location.toLowerCase();
+        break;
+      case "status":
+        aValue = a.status?.toLowerCase() ?? "";
+        bValue = b.status?.toLowerCase() ?? "";
         break;
       default:
         return 0;
@@ -80,18 +103,22 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return null;
-    return sortDirection === "asc" ? 
-      <SortAsc className="h-4 w-4" /> : 
-      <SortDesc className="h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <SortAsc className="h-4 w-4" />
+    ) : (
+      <SortDesc className="h-4 w-4" />
+    );
   };
 
   if (error) {
     return (
       <div className="rounded-lg border border-red-500/20 bg-red-900/20 p-8 text-center">
-        <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
-        <h3 className="text-lg font-medium text-red-300 mb-2">Failed to Load Jobs</h3>
-        <p className="text-red-200/80 mb-4">
-          {error.message || "An error occurred while fetching jobs"}
+        <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+        <h3 className="mb-2 text-lg font-medium text-red-300">
+          Failed to Load Jobs
+        </h3>
+        <p className="mb-4 text-red-200/80">
+          {error?.message ?? "An error occurred while fetching jobs"}
         </p>
         <button
           onClick={onRefresh}
@@ -109,51 +136,58 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
       {/* Search and Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-400/50" />
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-emerald-400/50" />
           <input
             type="text"
-            placeholder="Search jobs, companies, skills..."
+            placeholder="Search jobs, companies, skills, status..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-lg border border-emerald-700/20 bg-emerald-900/30 pl-10 pr-4 py-2 text-white placeholder-emerald-400/50 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-emerald-700/20 bg-emerald-900/30 py-2 pr-4 pl-10 text-white placeholder-emerald-400/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
           />
         </div>
 
         {/* Results count and refresh */}
         <div className="flex items-center gap-4">
           <span className="text-sm text-emerald-200/70">
-            {isLoading ? "Loading..." : `${sortedJobs.length} of ${jobs.length} jobs`}
+            {isLoading
+              ? "Loading..."
+              : `${sortedJobs.length} of ${jobs.length} jobs${
+                  jobs.length - filteredJobs.length > 0
+                    ? ` (${jobs.length - filteredJobs.length} filtered out)`
+                    : ""
+                }`}
           </span>
           <button
             onClick={onRefresh}
             disabled={isLoading}
             className="inline-flex items-center gap-1 text-sm text-emerald-300 hover:text-emerald-200 disabled:opacity-50"
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-emerald-700/20 bg-emerald-900/30 overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-emerald-700/20 bg-emerald-900/30">
         {isLoading ? (
           <div className="p-8 text-center">
-            <RefreshCw className="mx-auto h-8 w-8 animate-spin text-emerald-400 mb-4" />
+            <RefreshCw className="mx-auto mb-4 h-8 w-8 animate-spin text-emerald-400" />
             <p className="text-emerald-200/70">Loading jobs...</p>
           </div>
         ) : sortedJobs.length === 0 ? (
           <div className="p-8 text-center">
-            <Building className="mx-auto h-12 w-12 text-emerald-400/50 mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">
+            <Building className="mx-auto mb-4 h-12 w-12 text-emerald-400/50" />
+            <h3 className="mb-2 text-lg font-medium text-white">
               {searchTerm ? "No matching jobs found" : "No jobs available"}
             </h3>
             <p className="text-emerald-200/70">
-              {searchTerm 
-                ? "Try adjusting your search terms" 
-                : "Start by scraping some jobs to see them here"
-              }
+              {searchTerm
+                ? "Try adjusting your search terms"
+                : "Start by scraping some jobs to see them here"}
             </p>
           </div>
         ) : (
@@ -161,6 +195,15 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
             <table className="w-full">
               <thead className="border-b border-emerald-700/20 bg-emerald-900/50">
                 <tr>
+                  <th className="px-4 py-3 text-left">
+                    <button
+                      onClick={() => handleSort("status")}
+                      className="flex items-center gap-1 font-medium text-emerald-200 hover:text-white"
+                    >
+                      Status
+                      {getSortIcon("status")}
+                    </button>
+                  </th>
                   <th className="px-4 py-3 text-left">
                     <button
                       onClick={() => handleSort("role")}
@@ -212,14 +255,30 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-emerald-900/20 transition-colors"
+                    className="transition-colors hover:bg-emerald-900/20"
                   >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            job.status?.toLowerCase() === "to review"
+                              ? "border border-amber-800/20 bg-amber-900/50 text-amber-200"
+                              : job.status?.toLowerCase() === "applied"
+                                ? "border border-emerald-800/20 bg-emerald-900/50 text-emerald-200"
+                                : job.status?.toLowerCase() === "rejected"
+                                  ? "border border-red-800/20 bg-red-900/50 text-red-200"
+                                  : job.status?.toLowerCase() === "interview"
+                                    ? "border border-blue-800/20 bg-blue-900/50 text-blue-200"
+                                    : "border border-slate-800/20 bg-slate-900/50 text-slate-200"
+                          }`}
+                        >
+                          {job.status || "Unknown"}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <div>
                         <div className="font-medium text-white">{job.role}</div>
-                        {job.compensation && (
-                          <div className="text-sm text-emerald-300">{job.compensation}</div>
-                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -237,11 +296,16 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 text-amber-400" />
-                        <span className="font-medium text-white">{job.rating}/10</span>
+                        <span className="font-medium text-white">
+                          {job.rating}/10
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-emerald-200 max-w-xs truncate" title={job.skills}>
+                      <div
+                        className="max-w-xs truncate text-sm text-emerald-200"
+                        title={job.skills}
+                      >
                         {job.skills}
                       </div>
                     </td>
@@ -251,7 +315,14 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
                           href={job.jobLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-600 transition-colors"
+                          className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-emerald-600"
+                          aria-disabled={!job.jobLink}
+                          tabIndex={!job.jobLink ? -1 : 0}
+                          style={
+                            !job.jobLink
+                              ? { pointerEvents: "none", opacity: 0.5 }
+                              : {}
+                          }
                         >
                           <ExternalLink className="h-3 w-3" />
                           Apply
@@ -261,7 +332,7 @@ export default function JobsTable({ jobs, isLoading, error, onRefresh }: JobsTab
                             href={job.companyWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-md border border-emerald-700/20 px-3 py-1 text-sm font-medium text-emerald-200 hover:bg-emerald-800/40 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md border border-emerald-700/20 px-3 py-1 text-sm font-medium text-emerald-200 transition-colors hover:bg-emerald-800/40"
                           >
                             <Building className="h-3 w-3" />
                             Site

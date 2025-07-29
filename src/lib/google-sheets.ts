@@ -1,14 +1,17 @@
 import { google } from "googleapis";
 import { env } from "~/env.js";
-import type { SheetRow, ProcessedJob } from "./job-types";
+import type { ProcessedJob } from "./job-types";
 
 // Initialize Google Sheets client
 function initializeSheets() {
   // Parse the service account credentials from environment variable
   let credentials: Record<string, unknown>;
   try {
-    credentials = JSON.parse(env.GOOGLE_SHEETS_SERVICE_ACCOUNT as string);
-  } catch (err) {
+    credentials = JSON.parse(env.GOOGLE_SHEETS_SERVICE_ACCOUNT) as Record<
+      string,
+      unknown
+    >;
+  } catch {
     throw new Error("Invalid GOOGLE_SHEETS_SERVICE_ACCOUNT JSON");
   }
 
@@ -16,7 +19,6 @@ function initializeSheets() {
     credentials: credentials as { client_email: string; private_key: string },
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-  
 
   return google.sheets({ version: "v4", auth });
 }
@@ -29,7 +31,7 @@ export async function readJobsFromSheet(): Promise<ProcessedJob[]> {
   try {
     const sheets = initializeSheets();
     const spreadsheetId = env.GOOGLE_SHEETS_SPREADSHEET_ID;
-    
+
     // Read all data from the sheet starting from row 2 (skip header)
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -37,14 +39,15 @@ export async function readJobsFromSheet(): Promise<ProcessedJob[]> {
     });
 
     const rows = response.data.values ?? [];
-    
+
     // Convert sheet rows to ProcessedJob objects
     const jobs: ProcessedJob[] = rows.map((row) => ({
+      status: (row[0] as string) ?? "",
       role: (row[3] as string) ?? "",
       company: (row[4] as string) ?? "",
       location: (row[5] as string) ?? "",
       rating: parseFloat((row[11] as string) ?? "0") || 0,
-      reasonForMatch: (row[5] as string) ?? "",
+      reasonForMatch: (row[10] as string) ?? "",
       companyWebsite: (row[7] as string) ?? "",
       jobLink: (row[8] as string) ?? "",
       skills: (row[9] as string) ?? "",
@@ -58,13 +61,21 @@ export async function readJobsFromSheet(): Promise<ProcessedJob[]> {
 }
 
 /**
- * Check if a job already exists in the sheet (by job URL)
+ * Check if a job already exists in the sheet (by company name, role title, and job URL)
  * @param existingJobs - Array of existing jobs
- * @param newJobUrl - URL of the new job to check
+ * @param newJob - New job to check for duplicates
  * @returns true if job already exists
  */
-export function isDuplicateJob(existingJobs: ProcessedJob[], newJobUrl: string): boolean {
-  return existingJobs.some((job) => job.jobLink === newJobUrl);
+export function isDuplicateJob(
+  existingJobs: ProcessedJob[],
+  newJob: { company: string; role: string; jobLink: string },
+): boolean {
+  return existingJobs.some(
+    (job) =>
+      job.company === newJob.company &&
+      job.role === newJob.role &&
+      job.jobLink === newJob.jobLink,
+  );
 }
 
 /**
@@ -120,10 +131,10 @@ export async function getSheetHeaders(): Promise<string[]> {
   try {
     const sheets = initializeSheets();
     const spreadsheetId = env.GOOGLE_SHEETS_SPREADSHEET_ID;
-    
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Job boards!A1:I1", // First row only
+      range: "Job boards!A1:L1", // First row only
     });
 
     return (response.data.values?.[0] as string[]) ?? [];
@@ -140,16 +151,16 @@ export async function getSheetHeaders(): Promise<string[]> {
 export async function initializeSheetHeaders(): Promise<void> {
   try {
     const headers = await getSheetHeaders();
-    console.log(headers)
-    
+
     // If sheet is empty or doesn't have the expected headers, initialize it
     if (headers.length === 0) {
       const sheets = initializeSheets();
       const spreadsheetId = env.GOOGLE_SHEETS_SPREADSHEET_ID;
 
       const headerRow = [
+        "Status",
         "Role",
-        "Company", 
+        "Company",
         "Location",
         "Compensation",
         "Rating",
@@ -184,7 +195,7 @@ export async function validateSheetsConnection(): Promise<void> {
   try {
     const sheets = initializeSheets();
     const spreadsheetId = env.GOOGLE_SHEETS_SPREADSHEET_ID;
-    
+
     // Try to read the spreadsheet metadata
     await sheets.spreadsheets.get({
       spreadsheetId,
@@ -193,6 +204,8 @@ export async function validateSheetsConnection(): Promise<void> {
     console.log("Google Sheets connection validated successfully");
   } catch (error) {
     console.error("Google Sheets connection validation failed:", error);
-    throw new Error("Failed to connect to Google Sheets. Check credentials and spreadsheet ID.");
+    throw new Error(
+      "Failed to connect to Google Sheets. Check credentials and spreadsheet ID.",
+    );
   }
 }

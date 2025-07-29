@@ -1,19 +1,18 @@
 import { ApifyClient } from "apify-client";
 import OpenAI from "openai";
 import { env } from "~/env.js";
-import type { 
-  RawJob, 
-  JobEvaluation, 
-  ProcessedJob, 
-  ApifyConfig, 
+import type {
+  RawJob,
+  JobEvaluation,
+  ProcessedJob,
+  ApifyConfig,
   JobProcessingOptions,
-  JobStatus 
 } from "./job-types";
-import { 
-  readJobsFromSheet, 
-  appendJobsToSheet, 
+import {
+  readJobsFromSheet,
+  appendJobsToSheet,
   isDuplicateJob,
-  initializeSheetHeaders 
+  initializeSheetHeaders,
 } from "./google-sheets";
 import { jobEvaluationSchema, rawJobSchema } from "./job-types";
 
@@ -137,10 +136,12 @@ Full-Stack Developer with 4+ years of professional experience at Counterpoint Co
  * @param config - Apify configuration
  * @returns Array of raw job data
  */
-export async function scrapeJobsFromLinkedIn(config: ApifyConfig): Promise<RawJob[]> {
+export async function scrapeJobsFromLinkedIn(
+  config: ApifyConfig,
+): Promise<RawJob[]> {
   try {
     console.log("Starting job scraping with Apify...");
-    
+
     //Run the LinkedIn job scraper
     const run = await apifyClient.actor("hKByXkMQaC5Qt9UMN").call({
       count: config.count,
@@ -150,15 +151,15 @@ export async function scrapeJobsFromLinkedIn(config: ApifyConfig): Promise<RawJo
     });
 
     //Get the dataset items
-    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    const { items } = await apifyClient
+      .dataset(run.defaultDatasetId)
+      .listItems();
 
-    
-    
     console.log(`Scraped ${items.length} jobs from LinkedIn`);
-    
+
     // Validate and parse the raw job data
     const validJobs: RawJob[] = [];
-    
+
     for (const item of items) {
       try {
         const validJob = rawJobSchema.parse(item);
@@ -167,7 +168,7 @@ export async function scrapeJobsFromLinkedIn(config: ApifyConfig): Promise<RawJo
         console.warn("Skipping invalid job data:", error);
       }
     }
-    
+
     return validJobs;
   } catch (error) {
     console.error("Error scraping jobs with Apify:", error);
@@ -180,10 +181,12 @@ export async function scrapeJobsFromLinkedIn(config: ApifyConfig): Promise<RawJo
  * @param job - Raw job data
  * @returns Job evaluation result
  */
-export async function evaluateJobWithOpenAI(job: RawJob): Promise<JobEvaluation | null> {
+export async function evaluateJobWithOpenAI(
+  job: RawJob,
+): Promise<JobEvaluation | null> {
   try {
     const jobDescription = JSON.stringify(job);
-    
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -228,9 +231,9 @@ Return the primary skills that they are looking for in the job description.`,
     }
 
     // Parse and validate the JSON response
-    const evaluationData = JSON.parse(responseContent);
+    const evaluationData = JSON.parse(responseContent) as unknown;
     const evaluation = jobEvaluationSchema.parse(evaluationData);
-    
+
     return evaluation;
   } catch (error) {
     console.error("Error evaluating job with OpenAI:", error);
@@ -244,8 +247,12 @@ Return the primary skills that they are looking for in the job description.`,
  * @param evaluation - Job evaluation from OpenAI
  * @returns Processed job data
  */
-export function convertToProcessedJob(rawJob: RawJob, evaluation: JobEvaluation): ProcessedJob {
+export function convertToProcessedJob(
+  rawJob: RawJob,
+  evaluation: JobEvaluation,
+): ProcessedJob {
   return {
+    status: "To Review",
     role: rawJob.title,
     company: rawJob.companyName,
     location: rawJob.location,
@@ -255,6 +262,7 @@ export function convertToProcessedJob(rawJob: RawJob, evaluation: JobEvaluation)
     jobLink: rawJob.applyUrl ?? "",
     skills: evaluation.skills,
   };
+}
 
 /**
  * Process all jobs through the complete pipeline
@@ -262,23 +270,19 @@ export function convertToProcessedJob(rawJob: RawJob, evaluation: JobEvaluation)
  * @returns Array of matching processed jobs
  */
 export async function processJobsPipeline(
-  options: JobProcessingOptions = {}
+  options: JobProcessingOptions = {},
 ): Promise<ProcessedJob[]> {
-  const {
-    maxJobs = 100,
-    skipDuplicates = true,
-    onProgress,
-  } = options;
+  const { maxJobs = 100, skipDuplicates = true, onProgress } = options;
 
   const matchingJobs: ProcessedJob[] = [];
-  
+
   try {
     // Initialize sheets headers if needed
     await initializeSheetHeaders();
-    
+
     // Get existing jobs for duplicate checking
     const existingJobs = skipDuplicates ? await readJobsFromSheet() : [];
-    
+
     onProgress?.({
       isRunning: true,
       progress: 10,
@@ -294,13 +298,13 @@ export async function processJobsPipeline(
       countryCode: 10,
       scrapeCompany: true,
       urls: [
-        "https://www.linkedin.com/jobs/search/?currentJobId=4261151666&f_E=3%2C4&f_TPR=r86400&f_WT=1%2C2%2C3&geoId=105080838&keywords=software%20engineer&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true"
+        "https://www.linkedin.com/jobs/search/?currentJobId=4261151666&f_E=3%2C4&f_TPR=r86400&f_WT=1%2C2%2C3&geoId=105080838&keywords=software%20engineer&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true",
       ],
     };
 
     // Scrape jobs
     const rawJobs = await scrapeJobsFromLinkedIn(apifyConfig);
-    
+
     onProgress?.({
       isRunning: true,
       progress: 30,
@@ -316,14 +320,24 @@ export async function processJobsPipeline(
       if (!job) continue;
 
       // Skip duplicates if enabled
-      if (skipDuplicates && isDuplicateJob(existingJobs, job.applyUrl)) {
-        console.log(`Skipping duplicate job: ${job.title} at ${job.companyName}`);
+      if (
+        skipDuplicates &&
+        job.applyUrl &&
+        isDuplicateJob(existingJobs, {
+          company: job.companyName,
+          role: job.title,
+          jobLink: job.applyUrl,
+        })
+      ) {
+        console.log(
+          `Skipping duplicate job: ${job.title} at ${job.companyName}`,
+        );
         continue;
       }
 
       // Evaluate job with OpenAI
       const evaluation = await evaluateJobWithOpenAI(job);
-      
+
       if (evaluation && evaluation.verdict === "true") {
         const processedJob = convertToProcessedJob(job, evaluation);
         matchingJobs.push(processedJob);
@@ -341,7 +355,7 @@ export async function processJobsPipeline(
       });
 
       // Add small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     onProgress?.({
@@ -370,7 +384,7 @@ export async function processJobsPipeline(
     return matchingJobs;
   } catch (error) {
     console.error("Error in job processing pipeline:", error);
-    
+
     onProgress?.({
       isRunning: false,
       progress: 0,

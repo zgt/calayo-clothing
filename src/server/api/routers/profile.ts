@@ -1,18 +1,20 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { 
-  nameSchema, 
-  locationSchema, 
-  phoneSchema, 
-  websiteSchema, 
-  bioSchema 
+import {
+  nameSchema,
+  locationSchema,
+  phoneSchema,
+  websiteSchema,
+  bioSchema,
 } from "~/lib/profile-validation";
 
 export const profileRouter = createTRPCRouter({
   updateName: protectedProcedure
-    .input(z.object({
-      name: nameSchema,
-    }))
+    .input(
+      z.object({
+        name: nameSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase
         .from("user")
@@ -27,9 +29,11 @@ export const profileRouter = createTRPCRouter({
     }),
 
   updateLocation: protectedProcedure
-    .input(z.object({
-      location: locationSchema,
-    }))
+    .input(
+      z.object({
+        location: locationSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase
         .from("user")
@@ -44,9 +48,11 @@ export const profileRouter = createTRPCRouter({
     }),
 
   updatePhone: protectedProcedure
-    .input(z.object({
-      phone: phoneSchema,
-    }))
+    .input(
+      z.object({
+        phone: phoneSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase
         .from("user")
@@ -61,13 +67,15 @@ export const profileRouter = createTRPCRouter({
     }),
 
   updateWebsite: protectedProcedure
-    .input(z.object({
-      website: websiteSchema,
-    }))
+    .input(
+      z.object({
+        website: websiteSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       // Normalize URL - add https:// if no protocol specified
       let website = input.website;
-      if (website && !website.startsWith('http')) {
+      if (website && !website.startsWith("http")) {
         website = `https://${website}`;
       }
 
@@ -84,9 +92,11 @@ export const profileRouter = createTRPCRouter({
     }),
 
   updateBio: protectedProcedure
-    .input(z.object({
-      bio: bioSchema,
-    }))
+    .input(
+      z.object({
+        bio: bioSchema,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { error } = await ctx.supabase
         .from("user")
@@ -102,23 +112,26 @@ export const profileRouter = createTRPCRouter({
 
   // General update mutation for updating multiple fields at once
   updateProfile: protectedProcedure
-    .input(z.object({
-      name: nameSchema.optional(),
-      location: locationSchema.optional(),
-      phone: phoneSchema.optional(),
-      website: websiteSchema.optional(),
-      bio: bioSchema.optional(),
-    }))
+    .input(
+      z.object({
+        name: nameSchema.optional(),
+        location: locationSchema.optional(),
+        phone: phoneSchema.optional(),
+        website: websiteSchema.optional(),
+        bio: bioSchema.optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const updateData: Record<string, string | null> = {};
 
       // Only include provided fields
       if (input.name !== undefined) updateData.name = input.name;
-      if (input.location !== undefined) updateData.location = input.location || null;
+      if (input.location !== undefined)
+        updateData.location = input.location || null;
       if (input.phone !== undefined) updateData.phone = input.phone || null;
       if (input.website !== undefined) {
         let website = input.website;
-        if (website && !website.startsWith('http')) {
+        if (website && !website.startsWith("http")) {
           website = `https://${website}`;
         }
         updateData.website = website || null;
@@ -138,19 +151,17 @@ export const profileRouter = createTRPCRouter({
     }),
 
   // Get current user profile
-  getProfile: protectedProcedure
-    .query(async ({ ctx }) => {
-      const { data, error } = await ctx.supabase
-        .from("user")
-        .select("id, email, name, bio, website, location, phone, image, role")
-        .eq("id", ctx.user.id)
-        .single();
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.supabase
+      .from("user")
+      .select("id, email, name, bio, website, location, phone, image, role")
+      .eq("id", ctx.user.id)
+      .single();
 
-      if (error) {
-        throw new Error("Failed to fetch profile");
-      }
+    if (error) {
+      throw new Error("Failed to fetch profile");
+    }
 
-      return data;
-    }),
+    return data;
+  }),
 });
-

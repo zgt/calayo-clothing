@@ -48,15 +48,15 @@ export default function ProfileSection({
 
   // tRPC mutations for profile updates with optimistic updates
   const utils = api.useUtils();
-  
+
   const updateProfile = api.profile.updateProfile.useMutation({
     onMutate: async (newData) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await utils.profile.getProfile.cancel();
-      
+
       // Snapshot the previous value for rollback
       const previousProfile = utils.profile.getProfile.getData();
-      
+
       // Optimistically update to the new value
       if (previousProfile) {
         utils.profile.getProfile.setData(undefined, {
@@ -64,7 +64,7 @@ export default function ProfileSection({
           ...newData,
         });
       }
-      
+
       return { previousProfile };
     },
     onError: (err, newProfile, context) => {
@@ -126,11 +126,11 @@ export default function ProfileSection({
   };
 
   const handleFieldChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: null }));
+      setErrors((prev) => ({ ...prev, [field]: null }));
     }
   };
 
@@ -150,7 +150,7 @@ export default function ProfileSection({
     // Validate all fields
     const newErrors: Record<string, string | null> = {};
     let hasErrors = false;
-    
+
     Object.entries(formData).forEach(([field, value]) => {
       const error = validateField(field, value);
       newErrors[field] = error;
@@ -204,7 +204,7 @@ export default function ProfileSection({
           </div>
           <div className="mb-2">
             <InlineEditField
-              value={isEditing ? formData.name : profile?.name ?? ""}
+              value={isEditing ? formData.name : (profile?.name ?? "")}
               onChange={(value) => handleFieldChange("name", value)}
               fieldType="text"
               label="Full Name"
@@ -222,10 +222,14 @@ export default function ProfileSection({
 
         <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="font-medium text-emerald-200/70 flex-shrink-0">Location:</span>
-            <div className="flex-1 ml-2">
+            <span className="flex-shrink-0 font-medium text-emerald-200/70">
+              Location:
+            </span>
+            <div className="ml-2 flex-1">
               <InlineEditField
-                value={isEditing ? formData.location : profile?.location ?? ""}
+                value={
+                  isEditing ? formData.location : (profile?.location ?? "")
+                }
                 onChange={(value) => handleFieldChange("location", value)}
                 fieldType="text"
                 label="Location"
@@ -239,12 +243,14 @@ export default function ProfileSection({
               />
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
-            <span className="font-medium text-emerald-200/70 flex-shrink-0">Phone:</span>
-            <div className="flex-1 ml-2">
+            <span className="flex-shrink-0 font-medium text-emerald-200/70">
+              Phone:
+            </span>
+            <div className="ml-2 flex-1">
               <InlineEditField
-                value={isEditing ? formData.phone : profile?.phone ?? ""}
+                value={isEditing ? formData.phone : (profile?.phone ?? "")}
                 onChange={(value) => handleFieldChange("phone", value)}
                 fieldType="tel"
                 label="Phone"
@@ -258,12 +264,14 @@ export default function ProfileSection({
               />
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
-            <span className="font-medium text-emerald-200/70 flex-shrink-0">Website:</span>
-            <div className="flex-1 ml-2">
+            <span className="flex-shrink-0 font-medium text-emerald-200/70">
+              Website:
+            </span>
+            <div className="ml-2 flex-1">
               <InlineEditField
-                value={isEditing ? formData.website : profile?.website ?? ""}
+                value={isEditing ? formData.website : (profile?.website ?? "")}
                 onChange={(value) => handleFieldChange("website", value)}
                 fieldType="url"
                 label="Website"
@@ -277,11 +285,13 @@ export default function ProfileSection({
               />
             </div>
           </div>
-          
+
           <div className="border-t border-emerald-700/30 pt-3">
-            <span className="block font-medium text-emerald-200/70 mb-2">Bio:</span>
+            <span className="mb-2 block font-medium text-emerald-200/70">
+              Bio:
+            </span>
             <InlineEditField
-              value={isEditing ? formData.bio : profile?.bio ?? ""}
+              value={isEditing ? formData.bio : (profile?.bio ?? "")}
               onChange={(value) => handleFieldChange("bio", value)}
               fieldType="textarea"
               label="Bio"
@@ -294,10 +304,10 @@ export default function ProfileSection({
               error={errors.bio}
             />
           </div>
-          
+
           {/* Global Save/Cancel Buttons */}
           {isEditing && (
-            <div className="border-t border-emerald-700/30 pt-4 mt-4">
+            <div className="mt-4 border-t border-emerald-700/30 pt-4">
               <div className="flex justify-end gap-3">
                 <button
                   onClick={handleCancel}
@@ -467,7 +477,6 @@ export default function ProfileSection({
             </Link>
           </div>
         </div>
-
       </div>
     </div>
   );

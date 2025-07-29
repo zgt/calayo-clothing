@@ -2,16 +2,16 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { getAdminSession } from "~/lib/admin-utils";
-import { 
+import {
   processJobsPipeline,
-  getDefaultLinkedInSearchUrl
+  getDefaultLinkedInSearchUrl,
 } from "~/lib/job-processor";
-import { 
+import {
   readJobsFromSheet,
   validateSheetsConnection,
-  initializeSheetHeaders
+  initializeSheetHeaders,
 } from "~/lib/google-sheets";
-import type { JobStatus, ProcessedJob } from "~/lib/job-types";
+import type { JobStatus } from "~/lib/job-types";
 
 // In-memory storage for job processing status (in production, use Redis or database)
 const jobStatusStore = new Map<string, JobStatus>();
@@ -54,7 +54,7 @@ export const jobsRouter = createTRPCRouter({
       z.object({
         maxJobs: z.number().min(1).max(200).default(100),
         skipDuplicates: z.boolean().default(true),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Check if user is admin
@@ -71,9 +71,9 @@ export const jobsRouter = createTRPCRouter({
 
       // Check if there's already a job running for this user
       const existingJob = Array.from(jobStatusStore.values()).find(
-        status => status.isRunning
+        (status) => status.isRunning,
       );
-      
+
       if (existingJob) {
         throw new TRPCError({
           code: "CONFLICT",
@@ -90,7 +90,7 @@ export const jobsRouter = createTRPCRouter({
         jobsFound: 0,
         jobsMatched: 0,
       };
-      
+
       jobStatusStore.set(jobId, initialStatus);
 
       // Start the job processing in the background
@@ -112,11 +112,14 @@ export const jobsRouter = createTRPCRouter({
             jobsMatched: matchingJobs.length,
           };
           jobStatusStore.set(jobId, finalStatus);
-          
+
           // Clean up status after 1 hour
-          setTimeout(() => {
-            jobStatusStore.delete(jobId);
-          }, 60 * 60 * 1000);
+          setTimeout(
+            () => {
+              jobStatusStore.delete(jobId);
+            },
+            60 * 60 * 1000,
+          );
         })
         .catch((error) => {
           // Job failed
@@ -125,14 +128,17 @@ export const jobsRouter = createTRPCRouter({
             progress: 0,
             stage: "error",
             message: "Job processing failed",
-            error: error.message,
+            error: error instanceof Error ? error.message : "Unknown error",
           };
           jobStatusStore.set(jobId, errorStatus);
-          
+
           // Clean up status after 1 hour
-          setTimeout(() => {
-            jobStatusStore.delete(jobId);
-          }, 60 * 60 * 1000);
+          setTimeout(
+            () => {
+              jobStatusStore.delete(jobId);
+            },
+            60 * 60 * 1000,
+          );
         });
 
       return {
@@ -157,11 +163,12 @@ export const jobsRouter = createTRPCRouter({
 
     // Find the most recent job status
     const statuses = Array.from(jobStatusStore.values());
-    const latestStatus = statuses.length > 0 ? statuses[statuses.length - 1] : null;
+    const latestStatus =
+      statuses.length > 0 ? statuses[statuses.length - 1] : null;
 
     return {
       success: true,
-      status: latestStatus || {
+      status: latestStatus ?? {
         isRunning: false,
         progress: 0,
         stage: "completed" as const,
@@ -193,13 +200,13 @@ export const jobsRouter = createTRPCRouter({
       // Test Google Sheets connection
       await validateSheetsConnection();
       validationResults.googleSheets = true;
-      
+
       // Initialize sheet headers if needed
       await initializeSheetHeaders();
       validationResults.sheetsInitialized = true;
-      
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       validationResults.errors.push(`Google Sheets: ${errorMessage}`);
     }
 
@@ -246,7 +253,7 @@ export const jobsRouter = createTRPCRouter({
     }
 
     jobStatusStore.clear();
-    
+
     return {
       success: true,
       message: "Job status cleared",

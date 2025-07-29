@@ -18,8 +18,51 @@ const DEFAULT_EXERCISE: Exercise = {
 };
 
 const DEFAULT_CONFIG: TimerConfig = {
-  workoutName: "My Workout",
-  exercises: [DEFAULT_EXERCISE],
+  workoutName: "Daily Fingerboard",
+  exercises: [
+    {
+      name: "Isometric Hang",
+      sets: 1,
+      reps: 6,
+      workDuration: 10,
+      restDuration: 20,
+    },
+    {
+      name: "Isometric Hang: Front 3 Open",
+      sets: 1,
+      reps: 6,
+      workDuration: 10,
+      restDuration: 20,
+    },
+    {
+      name: "Isometric Hang: Front 2 Open",
+      sets: 1,
+      reps: 2,
+      workDuration: 10,
+      restDuration: 20,
+    },
+    {
+      name: "Isometric Hang: Middle 2 Open",
+      sets: 1,
+      reps: 2,
+      workDuration: 10,
+      restDuration: 20,
+    },
+    {
+      name: "Isometric Hang: Front 2 Half Crimp",
+      sets: 1,
+      reps: 2,
+      workDuration: 10,
+      restDuration: 20,
+    },
+    {
+      name: "Isometric Hang: Middle 2 Half Crimp",
+      sets: 1,
+      reps: 2,
+      workDuration: 10,
+      restDuration: 20,
+    },
+  ],
 };
 
 const PRESET_WORKOUTS: TimerConfig[] = [

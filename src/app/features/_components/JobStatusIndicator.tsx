@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle, AlertCircle, Loader2, Search, Brain, Save } from "lucide-react";
+import {
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Search,
+  Brain,
+  Save,
+} from "lucide-react";
 import type { JobStatus } from "~/lib/job-types";
 
 interface JobStatusIndicatorProps {
@@ -11,17 +18,17 @@ interface JobStatusIndicatorProps {
   onError?: (error: string) => void;
 }
 
-export default function JobStatusIndicator({ 
-  status, 
-  onComplete, 
-  onError 
+export default function JobStatusIndicator({
+  status,
+  onComplete,
+  onError,
 }: JobStatusIndicatorProps) {
   const prevStatusRef = useRef<JobStatus | null>(null);
 
   // Handle status changes
   useEffect(() => {
     const prevStatus = prevStatusRef.current;
-    
+
     if (prevStatus?.isRunning && !status.isRunning) {
       if (status.stage === "completed") {
         onComplete?.();
@@ -29,11 +36,15 @@ export default function JobStatusIndicator({
         onError?.(status.error);
       }
     }
-    
+
     prevStatusRef.current = status;
   }, [status, onComplete, onError]);
 
-  if (!status.isRunning && status.stage === "completed" && status.progress === 0) {
+  if (
+    !status.isRunning &&
+    status.stage === "completed" &&
+    status.progress === 0
+  ) {
     return null; // Don't show indicator when there's no job running or completed
   }
 
@@ -94,18 +105,14 @@ export default function JobStatusIndicator({
         </div>
 
         {/* Status Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-white">
-              {status.message}
-            </p>
-            <span className="text-sm text-white/70">
-              {status.progress}%
-            </span>
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-medium text-white">{status.message}</p>
+            <span className="text-sm text-white/70">{status.progress}%</span>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-white/10 rounded-full h-2">
+          <div className="h-2 w-full rounded-full bg-white/10">
             <motion.div
               className={`h-2 rounded-full ${getProgressColor()}`}
               initial={{ width: 0 }}
@@ -115,8 +122,9 @@ export default function JobStatusIndicator({
           </div>
 
           {/* Job Counts */}
-          {(status.jobsFound !== undefined || status.jobsMatched !== undefined) && (
-            <div className="flex items-center gap-4 mt-2 text-xs text-white/70">
+          {(status.jobsFound !== undefined ||
+            status.jobsMatched !== undefined) && (
+            <div className="mt-2 flex items-center gap-4 text-xs text-white/70">
               {status.jobsFound !== undefined && (
                 <span>Found: {status.jobsFound}</span>
               )}

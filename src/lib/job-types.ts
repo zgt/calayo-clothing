@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // OpenAI job evaluation response schema
 export const jobEvaluationSchema = z.object({
-  verdict: z.string(), // "true" or "false" 
+  verdict: z.string(), // "true" or "false"
   reason: z.string(),
   companyName: z.string(),
   rating: z.number().min(1).max(10),
@@ -26,6 +26,7 @@ export type RawJob = z.infer<typeof rawJobSchema>;
 
 // Processed job data for Google Sheets
 export const processedJobSchema = z.object({
+  status: z.string().default("To Review"),
   role: z.string(),
   company: z.string(),
   location: z.string(),

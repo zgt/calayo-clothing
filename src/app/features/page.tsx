@@ -16,32 +16,17 @@ export default function FeaturesPage() {
     vizuals: <ComingSoon title="Data Visualizations" />,
     tools: <IntervalTimer />,
     demos: <ComingSoon title="Interactive Demos" />,
-    admin: isAdmin ? <JobAutomationPanel /> : null
+    admin: isAdmin ? <JobAutomationPanel /> : null,
   };
 
   // Define tabs based on user role
-  const tabs = isAdmin 
+  const tabs = isAdmin
     ? ["Vizuals", "Tools", "Demos", "Admin"]
     : ["Vizuals", "Tools", "Demos"];
 
   return (
     <main className="min-h-screen pt-6 pb-12">
       <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          <h1 className="text-center text-4xl font-bold text-white">
-            Matt&apos;s Features
-          </h1>
-          <p className="mx-auto mt-2 max-w-2xl text-center text-emerald-200/70">
-            Explore various feature demos showcasing different capabilities and
-            interesting projects.
-          </p>
-        </motion.div>
-
         {/* Tabs Navigation */}
         <div className="mb-8 flex justify-center">
           <div className="inline-flex rounded-md border border-emerald-700/20 bg-emerald-900/30 p-1 backdrop-blur-sm">
