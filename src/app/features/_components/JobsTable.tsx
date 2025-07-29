@@ -14,12 +14,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 import type { ProcessedJob } from "~/lib/job-types";
+import StatusSelector from "./StatusSelector";
+import { api } from "~/trpc/react";
 
 interface JobsTableProps {
   jobs: ProcessedJob[];
   isLoading: boolean;
   error: Error | null;
   onRefresh: () => void;
+  onJobUpdate?: (updatedJob: ProcessedJob) => void;
 }
 
 type SortField = "role" | "company" | "rating" | "location" | "status";
@@ -30,10 +33,62 @@ export default function JobsTable({
   isLoading,
   error,
   onRefresh,
+  onJobUpdate,
 }: JobsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [updatingJobs, setUpdatingJobs] = useState<Set<string>>(new Set());
+
+  // tRPC mutation for updating job status
+  const updateJobStatusMutation = api.jobs.updateJobStatus.useMutation({
+    onSuccess: () => {
+      // Optionally refresh the data or show success message
+      onRefresh();
+    },
+    onError: (error) => {
+      console.error("Failed to update job status:", error);
+      // Optionally show error message to user
+    },
+  });
+
+  // Handler for status changes
+  const handleStatusChange = async (
+    jobIdentifier: { company: string; role: string; jobLink: string },
+    newStatus: string,
+  ) => {
+    const jobKey = `${jobIdentifier.company}-${jobIdentifier.role}-${jobIdentifier.jobLink}`;
+    
+    // Add to updating set
+    setUpdatingJobs((prev) => new Set(prev).add(jobKey));
+
+    try {
+      await updateJobStatusMutation.mutateAsync({
+        jobIdentifier,
+        newStatus,
+      });
+
+      // Update local state if callback provided
+      if (onJobUpdate) {
+        const updatedJob = jobs.find(
+          (job) =>
+            job.company === jobIdentifier.company &&
+            job.role === jobIdentifier.role &&
+            job.jobLink === jobIdentifier.jobLink,
+        );
+        if (updatedJob) {
+          onJobUpdate({ ...updatedJob, status: newStatus });
+        }
+      }
+    } finally {
+      // Remove from updating set
+      setUpdatingJobs((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(jobKey);
+        return newSet;
+      });
+    }
+  };
 
   // Filter jobs based on search term and exclude "not relevant" jobs
   const filteredJobs = jobs.filter(
@@ -259,21 +314,13 @@ export default function JobsTable({
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            job.status?.toLowerCase() === "to review"
-                              ? "border border-amber-800/20 bg-amber-900/50 text-amber-200"
-                              : job.status?.toLowerCase() === "applied"
-                                ? "border border-emerald-800/20 bg-emerald-900/50 text-emerald-200"
-                                : job.status?.toLowerCase() === "rejected"
-                                  ? "border border-red-800/20 bg-red-900/50 text-red-200"
-                                  : job.status?.toLowerCase() === "interview"
-                                    ? "border border-blue-800/20 bg-blue-900/50 text-blue-200"
-                                    : "border border-slate-800/20 bg-slate-900/50 text-slate-200"
-                          }`}
-                        >
-                          {job.status || "Unknown"}
-                        </span>
+                        <StatusSelector
+                          job={job}
+                          onStatusChange={handleStatusChange}
+                          isUpdating={updatingJobs.has(
+                            `${job.company}-${job.role}-${job.jobLink}`,
+                          )}
+                        />
                       </div>
                     </td>
                     <td className="px-4 py-3">

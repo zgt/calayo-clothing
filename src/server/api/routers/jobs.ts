@@ -10,6 +10,7 @@ import {
   readJobsFromSheet,
   validateSheetsConnection,
   initializeSheetHeaders,
+  updateJobStatus,
 } from "~/lib/google-sheets";
 import type { JobStatus } from "~/lib/job-types";
 
@@ -238,6 +239,45 @@ export const jobsRouter = createTRPCRouter({
       },
     };
   }),
+
+  /**
+   * Update job status in Google Sheets
+   */
+  updateJobStatus: protectedProcedure
+    .input(
+      z.object({
+        jobIdentifier: z.object({
+          company: z.string(),
+          role: z.string(),
+          jobLink: z.string(),
+        }),
+        newStatus: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is admin
+      const { isAdmin } = await getAdminSession(ctx.headers);
+      if (!isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin access required",
+        });
+      }
+
+      try {
+        await updateJobStatus(input.jobIdentifier, input.newStatus);
+        return {
+          success: true,
+          message: "Job status updated successfully",
+        };
+      } catch (error) {
+        console.error("Error updating job status:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update job status",
+        });
+      }
+    }),
 
   /**
    * Clear job processing status (for testing/debugging)

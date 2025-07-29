@@ -40,8 +40,24 @@ export async function readJobsFromSheet(): Promise<ProcessedJob[]> {
 
     const rows = response.data.values ?? [];
 
+    // Filter out rows that match the specific pattern ['', '6', '0']
+    const filteredRows = rows.filter((row) => {
+      // Check if the row matches the exact pattern to exclude
+      const isExcludedPattern = 
+        row.length >= 3 &&
+        row[0] === '' &&
+        row[1] === '6' &&
+        row[2] === '0' &&
+        // Ensure the rest of the row is empty or undefined
+        row.slice(3).every((cell) => 
+          cell === undefined || cell === null || String(cell).trim() === ""
+        );
+      
+      return !isExcludedPattern;
+    });
+
     // Convert sheet rows to ProcessedJob objects
-    const jobs: ProcessedJob[] = rows.map((row) => ({
+    const jobs: ProcessedJob[] = filteredRows.map((row) => ({
       status: (row[0] as string) ?? "",
       role: (row[3] as string) ?? "",
       company: (row[4] as string) ?? "",
@@ -184,6 +200,71 @@ export async function initializeSheetHeaders(): Promise<void> {
   } catch (error) {
     console.error("Error initializing sheet headers:", error);
     throw new Error("Failed to initialize sheet headers");
+  }
+}
+
+/**
+ * Update a specific job's status in Google Sheets
+ * @param jobIdentifier - Object containing company, role, and jobLink to identify the row
+ * @param newStatus - New status value to set
+ * @returns Promise that resolves when the status is updated
+ */
+export async function updateJobStatus(
+  jobIdentifier: { company: string; role: string; jobLink: string },
+  newStatus: string,
+): Promise<void> {
+  try {
+    const sheets = initializeSheets();
+    const spreadsheetId = env.GOOGLE_SHEETS_SPREADSHEET_ID;
+
+    // First, read all data to find the correct row
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Job boards!A2:L", // Same range as readJobsFromSheet
+    });
+
+    const rows = response.data.values ?? [];
+
+    // Find the row that matches the job identifier
+    let targetRowIndex = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row) continue;
+
+      const rowCompany = (row[4] as string) ?? ""; // Column E (index 4)
+      const rowRole = (row[3] as string) ?? ""; // Column D (index 3)
+      const rowJobLink = (row[8] as string) ?? ""; // Column I (index 8)
+
+      if (
+        rowCompany === jobIdentifier.company &&
+        rowRole === jobIdentifier.role &&
+        rowJobLink === jobIdentifier.jobLink
+      ) {
+        targetRowIndex = i + 2; // +2 because sheet is 1-indexed and we start from row 2
+        break;
+      }
+    }
+
+    if (targetRowIndex === -1) {
+      throw new Error("Job not found in Google Sheets");
+    }
+
+    // Update the status in column A of the found row
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `Job boards!A${targetRowIndex}`,
+      valueInputOption: "RAW",
+      requestBody: {
+        values: [[newStatus]],
+      },
+    });
+
+    console.log(
+      `Successfully updated job status to "${newStatus}" for ${jobIdentifier.role} at ${jobIdentifier.company}`,
+    );
+  } catch (error) {
+    console.error("Error updating job status in Google Sheets:", error);
+    throw new Error("Failed to update job status in Google Sheets");
   }
 }
 
