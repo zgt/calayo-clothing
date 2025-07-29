@@ -3,16 +3,26 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useSession } from "~/lib/auth-client";
 import IntervalTimer from "./_components/IntervalTimer";
+import JobAutomationPanel from "./_components/JobAutomationPanel";
 
 export default function FeaturesPage() {
   const [activeTab, setActiveTab] = useState<string>("tools");
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   const tabContent = {
     vizuals: <ComingSoon title="Data Visualizations" />,
     tools: <IntervalTimer />,
     demos: <ComingSoon title="Interactive Demos" />,
+    admin: isAdmin ? <JobAutomationPanel /> : null
   };
+
+  // Define tabs based on user role
+  const tabs = isAdmin 
+    ? ["Vizuals", "Tools", "Demos", "Admin"]
+    : ["Vizuals", "Tools", "Demos"];
 
   return (
     <main className="min-h-screen pt-6 pb-12">
@@ -35,7 +45,7 @@ export default function FeaturesPage() {
         {/* Tabs Navigation */}
         <div className="mb-8 flex justify-center">
           <div className="inline-flex rounded-md border border-emerald-700/20 bg-emerald-900/30 p-1 backdrop-blur-sm">
-            {["Vizuals", "Tools", "Demos"].map((tab) => {
+            {tabs.map((tab) => {
               const tabKey = tab.toLowerCase();
               const isActive = activeTab === tabKey;
 
