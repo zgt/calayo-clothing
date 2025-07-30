@@ -1,5 +1,7 @@
 import { ApifyClient } from "apify-client";
 import OpenAI from "openai";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { env } from "~/env.js";
 import type {
   RawJob,
@@ -242,14 +244,99 @@ Return the primary skills that they are looking for in the job description.`,
 }
 
 /**
+ * Extract ATS-optimized keywords using OpenAI for resume optimization
+ * Reads the actual resume file contents and sends them to OpenAI along with job details
+ * to get personalized ATS keywords based on the specific job and resume combination
+ * @param job - Raw job data
+ * @returns String of ATS keywords or empty string on error
+ */
+export async function extractAtsKeywordsWithOpenAI(
+  job: RawJob,
+): Promise<string> {
+  try {
+    const jobDescription = job.description ?? job.title;
+    const companyWebsite = job.companyWebsite ?? job.companyName;
+    const jobLink = job.applyUrl ?? "Job description provided";
+
+    // Read the resume file contents
+    let resumeContent = "";
+    try {
+      const resumePath = join(
+        process.cwd(),
+        "src",
+        "lib",
+        "resume",
+        "Matthew Calayo - Resume.md",
+      );
+      resumeContent = readFileSync(resumePath, "utf-8");
+    } catch (fileError) {
+      console.warn("Could not read resume file, using fallback:", fileError);
+      resumeContent =
+        "Resume file not available - please use general software development keywords.";
+    }
+
+    const prompt = `I am applying for this job: ${jobLink}
+Job Description: ${jobDescription}
+At this company: ${companyWebsite}
+
+Using my resume below, recommend 8-12 keywords I should include in my resume that an Applicant Tracking System would filter or search for when scanning resumes for this role and industry.
+
+MY RESUME:
+${resumeContent}
+
+Return only the keywords as a comma-separated list, no additional text or explanation.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert resume optimization assistant focused on ATS (Applicant Tracking System) keywords. Return only the requested keywords as a comma-separated list.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.1,
+      max_tokens: 200,
+    });
+
+    const responseContent = completion.choices[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error("No response from OpenAI for keyword extraction");
+    }
+
+    // Clean up the response and ensure it's a proper comma-separated list
+    const keywords = responseContent
+      .trim()
+      .replace(/^["'\s]+|["'\s]+$/g, "") // Remove quotes and whitespace from start/end
+      .replace(/\s*,\s*/g, ", ") // Normalize comma spacing
+      .replace(/\.$/, ""); // Remove trailing period if present
+
+    console.log(
+      `Extracted ATS keywords for ${job.title} at ${job.companyName}:`,
+      keywords,
+    );
+    return keywords;
+  } catch (error) {
+    console.error("Error extracting ATS keywords with OpenAI:", error);
+    return ""; // Return empty string on error - will fallback to original skills
+  }
+}
+
+/**
  * Convert raw job and evaluation to processed job format
  * @param rawJob - Raw job data from Apify
  * @param evaluation - Job evaluation from OpenAI
+ * @param atsKeywords - Optional ATS-optimized keywords to override evaluation skills
  * @returns Processed job data
  */
 export function convertToProcessedJob(
   rawJob: RawJob,
   evaluation: JobEvaluation,
+  atsKeywords?: string,
 ): ProcessedJob {
   return {
     status: "To Review",
@@ -260,12 +347,22 @@ export function convertToProcessedJob(
     reasonForMatch: evaluation.reason,
     companyWebsite: rawJob.companyWebsite ?? "",
     jobLink: rawJob.applyUrl ?? "",
-    skills: evaluation.skills,
+    skills:
+      atsKeywords && atsKeywords.trim() !== ""
+        ? atsKeywords
+        : evaluation.skills,
   };
 }
 
 /**
  * Process all jobs through the complete pipeline
+ *
+ * Pipeline includes:
+ * 1. Scrape jobs from LinkedIn using Apify
+ * 2. Evaluate job fit using OpenAI
+ * 3. Extract ATS-optimized keywords for matching jobs
+ * 4. Convert to processed format and save to Google Sheets
+ *
  * @param options - Processing options
  * @returns Array of matching processed jobs
  */
@@ -309,7 +406,7 @@ export async function processJobsPipeline(
       isRunning: true,
       progress: 30,
       stage: "evaluating",
-      message: "Evaluating job matches with AI...",
+      message: "Evaluating job matches and extracting ATS keywords with AI...",
       jobsFound: rawJobs.length,
       jobsMatched: 0,
     });
@@ -335,12 +432,33 @@ export async function processJobsPipeline(
         continue;
       }
 
-      // Evaluate job with OpenAI
-      const evaluation = await evaluateJobWithOpenAI(job);
+      try {
+        // Evaluate job with OpenAI
+        const evaluation = await evaluateJobWithOpenAI(job);
 
-      if (evaluation && evaluation.verdict === "true") {
-        const processedJob = convertToProcessedJob(job, evaluation);
-        matchingJobs.push(processedJob);
+        if (evaluation && evaluation.verdict === "true") {
+          // Extract ATS-optimized keywords for resume optimization
+          const atsKeywords = await extractAtsKeywordsWithOpenAI(job);
+          const processedJob = convertToProcessedJob(
+            job,
+            evaluation,
+            atsKeywords,
+          );
+          matchingJobs.push(processedJob);
+
+          console.log(
+            `✅ Successfully processed job: ${job.title} at ${job.companyName}`,
+          );
+        } else {
+          console.log(`❌ Job not a match: ${job.title} at ${job.companyName}`);
+        }
+      } catch (jobError) {
+        console.error(
+          `Error processing job: ${job.title} at ${job.companyName}`,
+          jobError,
+        );
+        // Continue processing other jobs even if this one fails
+        continue;
       }
 
       // Update progress

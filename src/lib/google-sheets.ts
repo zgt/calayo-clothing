@@ -43,16 +43,19 @@ export async function readJobsFromSheet(): Promise<ProcessedJob[]> {
     // Filter out rows that match the specific pattern ['', '6', '0']
     const filteredRows = rows.filter((row) => {
       // Check if the row matches the exact pattern to exclude
-      const isExcludedPattern = 
+      const isExcludedPattern =
         row.length >= 3 &&
-        row[0] === '' &&
-        row[1] === '6' &&
-        row[2] === '0' &&
+        row[0] === "" &&
+        row[1] === "6" &&
+        row[2] === "0" &&
         // Ensure the rest of the row is empty or undefined
-        row.slice(3).every((cell) => 
-          cell === undefined || cell === null || String(cell).trim() === ""
-        );
-      
+        row
+          .slice(3)
+          .every(
+            (cell) =>
+              cell === undefined || cell === null || String(cell).trim() === "",
+          );
+
       return !isExcludedPattern;
     });
 

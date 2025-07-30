@@ -58,7 +58,7 @@ export default function JobsTable({
     newStatus: string,
   ) => {
     const jobKey = `${jobIdentifier.company}-${jobIdentifier.role}-${jobIdentifier.jobLink}`;
-    
+
     // Add to updating set
     setUpdatingJobs((prev) => new Set(prev).add(jobKey));
 
