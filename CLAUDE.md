@@ -19,54 +19,71 @@ This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, 
 ### Core Technologies
 - **Next.js 15** with App Router
 - **tRPC** for type-safe API endpoints (`src/server/api/`)
-- **Supabase** for authentication and database
-- **TailwindCSS + Material-UI** for styling
+- **Better-Auth** for authentication with admin roles
+- **Supabase/PostgreSQL** for database
+- **TailwindCSS 4 + Material-UI** for styling
 - **TypeScript** with strict configuration
 - **Zod** for runtime validation
+- **React Three Fiber + Drei** for 3D graphics
+- **GSAP + Framer Motion** for animations
+- **UploadThing** for file uploads
+- **Resend** for transactional emails
 
 ### Key Architecture Patterns
 
 **Authentication Flow**:
-- Supabase auth with custom React context (`src/context/auth.tsx`)
-- Auth provider wraps the app and manages user state
-- Protected routes use the `useAuth()` hook
+- Better-Auth with admin plugin (`src/lib/auth.ts`)
+- Client setup in `src/lib/auth-client.ts`
+- Role-based access control (user/admin)
+- Email verification and magic link support
 
 **API Layer**:
-- tRPC routers in `src/server/api/routers/`
+- tRPC routers in `src/server/api/routers/` (commissions, instagram, profile, jobs)
 - Main router in `src/server/api/root.ts`
 - Client-side tRPC setup in `src/trpc/`
+- Middleware for auth, admin, and timing
 
 **Environment Variables**:
 - Managed through `@t3-oss/env-nextjs` in `src/env.js`
+- Required: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_BETTER_AUTH_URL`
 - Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Required: `NEXT_PUBLIC_INSTA_USER_ID`, `NEXT_PUBLIC_INSTA_ACCESS_TOKEN` (for Instagram API)
-- Server-only: `UPLOADTHING_APP_ID`
-- Optional: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `UPLOADTHING_SECRET`, `UPLOADTHING_TOKEN`
+- Required: `INSTA_USER_ID`, `INSTA_ACCESS_TOKEN`, `UPLOADTHING_APP_ID`
+- Required: `RESEND_API_KEY`, `APIFY_API_KEY`, `OPENAI_API_KEY`
+- Required: `GOOGLE_SHEETS_SERVICE_ACCOUNT`, `GOOGLE_SHEETS_SPREADSHEET_ID`
+- Optional: `UPLOADTHING_SECRET`, `UPLOADTHING_TOKEN`
 - **Note**: Create `.env.local` file with these variables before running dev/build commands
 
 **File Structure**:
 - App Router pages in `src/app/`
-- Shared components in `src/app/_components/`
+- Shared components in `src/app/_components/` (including 3D models, UI components)
 - Page-specific components in `src/app/[page]/_components/`
-- Server-side utilities in `src/server/`
+- Server API routers in `src/server/api/routers/`
+- Database migrations in `src/server/migrations/`
 - Client contexts in `src/context/`
+- Utility libraries in `src/lib/`
+- Email templates in `emails/`
+- 3D assets in `public/3d-assets/`
 
 ### Business Domain
 
 The app handles:
-- User authentication and profiles
-- Commission requests and management
-- Admin order management
-- Instagram media integration
-- Google Maps integration for outdoor features
-- User measurements and custom clothing orders
+- Custom clothing commission requests with measurements
+- User authentication with role-based admin access
+- Order management with status tracking
+- Instagram media integration for portfolio showcase
+- Job automation (web scraping, OpenAI processing, Google Sheets integration)
+- File uploads for commission images and documents
+- 3D garment visualization (dress, jacket, pants, shirt models)
+- Email notifications and transactional messaging
 
 ### Important Notes
 
 - Uses path alias `~/*` for `./src/*`
-- Supabase client utilities separated by environment (client/server/middleware)
-- Instagram API integration for media fetching
-- Material-UI with Emotion for component styling
+- Better-Auth replaces Supabase auth (database still uses Supabase PostgreSQL)
+- tRPC procedures: `publicProcedure`, `protectedProcedure`, `adminProcedure`
+- Email templates stored as HTML files in `/emails` directory
+- 3D models use GLTF format with textures in `public/3d-assets/`
+- Job processing system with automated workflows
 
 ### Claude Guidance
 - Never add information about claude in the commit messages, that includes made by claude or helped by claude.

@@ -92,7 +92,7 @@ export default function InfinitePhotoGrid() {
         // Desktop
         return {
           columns: 5,
-          maxItemsPerRow: 2,
+          maxItemsPerRow: 3,
           gap: "2rem",
           padding: "2rem",
           rowHeight: "15vh",
@@ -102,7 +102,7 @@ export default function InfinitePhotoGrid() {
         // Large desktop
         return {
           columns: 5,
-          maxItemsPerRow: 2,
+          maxItemsPerRow: 3,
           gap: "2rem",
           padding: "2rem",
           rowHeight: "12vh",
@@ -113,7 +113,7 @@ export default function InfinitePhotoGrid() {
       // Fallback
       return {
         columns: 5,
-        maxItemsPerRow: 2,
+        maxItemsPerRow: 3,
         gap: "2rem",
         padding: "2rem",
         rowHeight: "15vh",
@@ -137,7 +137,7 @@ export default function InfinitePhotoGrid() {
     // Use a seed based on photos length and columns for consistent positioning
     let seed = totalPhotos * columns;
     const seededRandom = () => {
-      seed = (seed * 9301 + 49297) % 233280;
+      seed = (seed * 9301 + 49297) % 233384;
       return seed / 233280;
     };
 
@@ -148,13 +148,17 @@ export default function InfinitePhotoGrid() {
         return false;
       }
 
-      // Check all 8 adjacent positions (including diagonals)
-      for (let r = row - 1; r <= row + 1; r++) {
-        for (let c = col - 1; c <= col + 1; c++) {
-          if (r === row && c === col) continue; // Skip the position itself
-          if (usedPositions.has(`${r}-${c}`)) {
-            return false;
-          }
+      // Check only horizontal and vertical adjacent positions (4 directions, no diagonals)
+      const adjacentPositions = [
+        `${row - 1}-${col}`, // Above
+        `${row + 1}-${col}`, // Below
+        `${row}-${col - 1}`, // Left
+        `${row}-${col + 1}`, // Right
+      ];
+
+      for (const position of adjacentPositions) {
+        if (usedPositions.has(position)) {
+          return false;
         }
       }
       return true;
@@ -315,6 +319,7 @@ export default function InfinitePhotoGrid() {
         <div className="content">
           <div
             ref={gridRef}
+            className="relative z-20"
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${gridConfig.columns}, 1fr)`,
@@ -330,7 +335,7 @@ export default function InfinitePhotoGrid() {
               return (
                 <div
                   key={photo.id}
-                  className="grid-item"
+                  className="grid-item z-100"
                   style={{
                     gridRow: row,
                     gridColumn: col,
