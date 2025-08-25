@@ -4,12 +4,15 @@ import { useEffect, useRef, useMemo, useState } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ReactLenis } from "lenis/react";
+import { ReactLenis, useLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
 import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,11 +29,17 @@ export default function CircularPhotoLayout() {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const loadedImagesCount = useRef(0);
 
+  const lenis = useLenis((lenis) => {
+    // console.log('lenis in callback', lenis)
+  })
+
   const {
     data: photos,
     isLoading,
     error,
   } = api.instagram.getAllInstagramPhotos.useQuery();
+
+  console.log(photos)
 
   const handleImageLoad = () => {
     if (!photos) return;
@@ -89,7 +98,7 @@ export default function CircularPhotoLayout() {
           radius: minDimension * 0.35,
           photoSize: 100,
           maxPhotos: 20,
-          minHeight: "100vh",
+          minHeight: "50vh",
         };
       } else {
         // Large desktop
@@ -122,11 +131,11 @@ export default function CircularPhotoLayout() {
     return photosToShow.map((_, index) => {
       // Calculate angle for even distribution around the circle
       const angle = (index / totalPhotos) * 2 * Math.PI;
-      
+
       // Calculate x, y positions using trigonometry
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius;
-      
+
       // Add some random rotation for visual interest (between -15 and 15 degrees)
       const rotation = (Math.random() - 0.5) * 30;
 
@@ -177,14 +186,25 @@ export default function CircularPhotoLayout() {
 
   // Lenis integration
   useEffect(() => {
+
     function update(time: number) {
       lenisRef.current?.lenis?.raf(time * 1000);
     }
 
+    //const animate = (time: number) => {
+    //  lenisRef.current?.lenis?.raf(time);
+    //  requestAnimationFrame(animate);
+    //};
+
+    //requestAnimationFrame(animate);
+
     gsap.ticker.add(update);
 
     return () => gsap.ticker.remove(update);
-  }, []);
+  }, [lenisRef]);
+  useEffect(() => {
+    console.log('lenis', lenisRef.current)
+  }, [lenisRef]);
 
   // GSAP animations for photos
   useEffect(() => {
@@ -200,7 +220,7 @@ export default function CircularPhotoLayout() {
       photoElements.forEach((photo, index) => {
         // Set initial state
         gsap.set(photo, {
-          scale: 0.8,
+          scale: 1,
           opacity: 0.7,
         });
 
@@ -214,12 +234,13 @@ export default function CircularPhotoLayout() {
             start: "top bottom",
             end: "bottom top",
             scrub: 1,
+            toggleActions: "restart none reverse none",
             onUpdate: (self) => {
               // Add subtle rotation based on scroll progress
               const progress = self.progress;
-              const rotationOffset = progress * 10 - 5; // -5 to +5 degrees
+              const rotationOffset = progress * 10 - 50; // -5 to +5 degrees
               const currentRotation = photoPositions[index]?.rotation ?? 0;
-              
+
               gsap.set(photo, {
                 rotation: currentRotation + rotationOffset,
               });
@@ -228,7 +249,7 @@ export default function CircularPhotoLayout() {
         });
 
         // Add entrance animation with staggered delay
-        gsap.fromTo(photo, 
+        gsap.fromTo(photo,
           {
             scale: 0,
             rotation: (photoPositions[index]?.rotation ?? 0) + 180,
@@ -271,15 +292,17 @@ export default function CircularPhotoLayout() {
         <div className="content">
           <div
             ref={containerRef}
-            className="relative z-20 flex items-center justify-center min-h-screen"
+            className="z-20 flex items-center justify-center "
             style={{
               minHeight: circleConfig.minHeight,
             }}
           >
             {/* Circular photo layout */}
-            <div 
-              className="relative"
+            <div
+              id="circle"
+              className=""
               style={{
+                backgroundColor: 'black',
                 width: circleConfig.radius * 2 + circleConfig.photoSize,
                 height: circleConfig.radius * 2 + circleConfig.photoSize,
               }}
@@ -367,6 +390,6 @@ export default function CircularPhotoLayout() {
           </div>
         </div>
       </main>
-    </ReactLenis>
+    </ReactLenis >
   );
 }
