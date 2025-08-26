@@ -279,9 +279,9 @@ export default function CircularPhotoLayout() {
             end: '+=500',
             pin: gap,
             scrub: true,
-            onLeave: ({ progress, direction, isActive }) => gsap.set(container, { x: 0, y: 1200 })//console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y"))
+            onLeave: ({ progress, direction, isActive }) => { console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")); gsap.set(container, { x: 0, y: 1200 }); console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")); }
           }
-        }, "start")
+        }, "start").add("spin", ">")
         .to(container, {
           rotation: -360,
           ease: "none",
@@ -289,11 +289,12 @@ export default function CircularPhotoLayout() {
             markers: { startColor: "blue", endColor: "white", fontSize: "12px" },
             trigger: spin,
             start: 'bottom bottom',
+            onEnter: ({ progress, direction, isActive }) => console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")),
             end: '+=1000',
             pin: container,
             scrub: true
           }
-        }, "start")
+        }, "spin")
 
     }
 
