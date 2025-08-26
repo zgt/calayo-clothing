@@ -197,6 +197,15 @@ body:has(.auth-page) {
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.invis{
+  width: 1px;
+  height: 5000px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  visibility: hidden;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
