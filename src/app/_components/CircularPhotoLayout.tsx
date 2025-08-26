@@ -15,9 +15,9 @@ import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(useGSAP);
 
 gsap.registerPlugin(ScrollTrigger);
-
 export default function CircularPhotoLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const coverRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const gapRef = useRef<HTMLDivElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
@@ -205,44 +205,6 @@ export default function CircularPhotoLayout() {
 
     return () => gsap.ticker.remove(update);
   }, []);
-  //  useEffect(() => {
-  //    console.log('lenis', lenisRef.current)
-  //    const raf = (time) => {
-  //      lenisRef.raf(time);
-  //      requestAnimationFrame(raf);
-  //      console.log(lenisRef.current)
-  //    }
-  //    raf();
-  //  }, [lenisRef]);
-
-  // useGSAP(() => {
-  //   if (!photos || photos.length === 0) return;
-
-  //   ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-
-  //   const container = containerRef.current;
-  //   const scroll = scrollRef.current;
-  //   const photoElements = container?.querySelectorAll(".circular-photo");
-  //   console.log('test????')
-
-
-  //   if (container && photoElements) {
-  //     const tl = gsap.timeline();
-
-  //     tl.set(container, {
-  //       transformOrigin: '-50'
-  //     }, "start")
-  //       .to(container, {
-  //         scale: 5,
-  //         scrollTrigger: {
-  //           trigger: scroll,
-  //           start: 'top top',
-  //           end: 'bottom top',
-  //           scrub: true
-  //         }
-  //       }, "start")
-  //   }
-  // }, []);
 
   //  GSAP animations for photos
   useEffect(() => {
@@ -253,49 +215,58 @@ export default function CircularPhotoLayout() {
 
     const container = containerRef.current;
     const scroll = scrollRef.current;
+    const cover = coverRef.current;
     const spin = spinRef.current;
     const gap = gapRef.current;
     const photoElements = container?.querySelectorAll(".circular-photo");
 
     if (container && photoElements) {
       const tl = gsap.timeline();
-
+      console.log(container)
+      const { width, height } = screenSize;
+      const containerWidth = container.offsetWidth;
+      console.log(width, height, containerWidth)
       ScrollTrigger.defaults({
         toggleActions: "restart none reverse none"
       })
 
       tl.set(container, {
-        transformOrigin: '-50'
+        //transformOrigin: '-50'
+        x: (width / 2) - (containerWidth / 2),
+        y: 0
+      }, "start").to(cover, {
+        y: -1000,
+        scrollTrigger: {
+          trigger: scroll,
+          start: 'top bottom',
+          end: '+=500',
+          scrub: true
+        }
       }, "start")
         .to(container, {
           scale: 2,
           ease: "none",
-          y: 1200,
+          y: 700,
           scrollTrigger: {
-            markers: { startColor: "green", endColor: "red", fontSize: "12px" },
             trigger: scroll,
             start: 'top bottom',
             //endTrigger: spin,
             end: '+=500',
             pin: gap,
             scrub: true,
-            onLeave: ({ progress, direction, isActive }) => { console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")); gsap.set(container, { x: 0, y: 1200 }); console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")); }
           }
         }, "start").add("spin", ">")
         .to(container, {
           rotation: -360,
           ease: "none",
           scrollTrigger: {
-            markers: { startColor: "blue", endColor: "white", fontSize: "12px" },
             trigger: spin,
             start: 'bottom bottom',
-            onEnter: ({ progress, direction, isActive }) => console.log(progress, direction, isActive, gsap.getProperty(container, "x"), gsap.getProperty(container, "y")),
             end: '+=1000',
-            pin: container,
+            pin: true,
             scrub: true
           }
         }, "spin")
-
     }
 
     return () => {
@@ -325,7 +296,7 @@ export default function CircularPhotoLayout() {
         <div className="content">
           <div
             ref={containerRef}
-            className="z-20 flex items-center justify-center "
+            className="z-20 flex items-center justify-center fixed"
             style={{
               minHeight: circleConfig.minHeight,
             }}
@@ -396,37 +367,32 @@ export default function CircularPhotoLayout() {
               })}
             </div>
           </div>
-
+          <div style={{ height: 1000 }} />
           <div
             ref={scrollRef}
             style={{
-              backgroundColor: 'red',
+              top: '500px'
             }}
           >
-            test
           </div>
           <div
             ref={gapRef}
             style={{
-              backgroundColor: 'red',
             }}
 
           >
-            test
           </div>
 
           <div
             ref={spinRef}
             style={{
-              backgroundColor: 'red',
             }}
           >
-            test
           </div>
 
 
           {/* Center overlay with logo and subtitle */}
-          <div className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center">
+          <div ref={coverRef} className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center">
             <div className="px-4 text-center text-white">
               <div className="mb-4">
                 <SvgLogo
