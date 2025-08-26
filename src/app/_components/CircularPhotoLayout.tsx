@@ -4,7 +4,9 @@ import { useEffect, useRef, useMemo, useState } from "react";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ReactLenis, useLenis } from "lenis/react";
+import { InertiaPlugin } from "gsap/InertiaPlugin";
+import { Draggable } from "gsap/Draggable";
+import { ReactLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
 import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
@@ -12,8 +14,9 @@ import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
 
+gsap.registerPlugin(InertiaPlugin)
 gsap.registerPlugin(useGSAP);
-
+gsap.registerPlugin(Draggable);
 gsap.registerPlugin(ScrollTrigger);
 export default function CircularPhotoLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,10 +34,6 @@ export default function CircularPhotoLayout() {
   });
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const loadedImagesCount = useRef(0);
-
-  const lenis = useLenis((lenis) => {
-    // console.log('lenis in callback', lenis)
-  })
 
   const {
     data: photos,
@@ -139,8 +138,12 @@ export default function CircularPhotoLayout() {
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius;
 
-      // Add some random rotation for visual interest (between -15 and 15 degrees)
-      const rotation = (Math.random() - 0.5) * 30;
+      // Calculate rotation to orient photos toward the center
+      // When angle is 0 (right side), photo should face left (-90 degrees)
+      // When angle is PI/2 (top), photo should be upright (0 degrees)
+      // When angle is PI (left side), photo should face right (90 degrees)
+      // When angle is 3*PI/2 (bottom), photo should face up (180 degrees)
+      const rotation = (angle * 180 / Math.PI) + 90;
 
       return {
         x,
@@ -222,10 +225,17 @@ export default function CircularPhotoLayout() {
 
     if (container && photoElements) {
       const tl = gsap.timeline();
-      console.log(container)
-      const { width, height } = screenSize;
+      const { width } = screenSize;
       const containerWidth = container.offsetWidth;
-      console.log(width, height, containerWidth)
+
+      Draggable.create(container, {
+        type: "rotation",
+        inertia: true,
+        snap: function (value) {
+          return Math.round(value / photos.length) * photos.length
+        }
+      })
+
       ScrollTrigger.defaults({
         toggleActions: "restart none reverse none"
       })
@@ -246,7 +256,7 @@ export default function CircularPhotoLayout() {
         .to(container, {
           scale: 2,
           ease: "none",
-          y: 700,
+          y: 800,
           scrollTrigger: {
             trigger: scroll,
             start: 'top bottom',
