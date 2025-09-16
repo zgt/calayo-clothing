@@ -14,7 +14,6 @@ import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
-import PG from "pg";
 
 gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
@@ -372,7 +371,7 @@ export default function CircularPhotoLayout() {
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [photos, photoPositions, screenSize]);
+  }, [photos, photoPositions, screenSize, isMobile]);
 
   if (isLoading) {
     return (

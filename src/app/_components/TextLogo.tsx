@@ -111,7 +111,7 @@ const TextLogo = forwardRef<TextLogoRef, TextLogoProps>(
 
             // Add scramble effect to each line, preserving spaces
             lines.forEach((line, index) => {
-              const originalText = (asciiArt.calayo[index] || "").replace(
+              const originalText = (asciiArt.calayo[index] ?? "").replace(
                 / /g,
                 "&nbsp;",
               );
@@ -121,7 +121,7 @@ const TextLogo = forwardRef<TextLogoRef, TextLogoProps>(
                 delay: index * 0.1,
                 scrambleText: {
                   text: originalText,
-                  chars: "▄█▀▌▐|",
+                  chars: "▄█▀▌▐",
                   revealDelay: 0.2,
                   speed: 0.2,
                   tweenLength: false,
