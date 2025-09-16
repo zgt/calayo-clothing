@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function About() {
   return (
-    <main className="min-h-screen px-4 py-4 sm:px-6">
+    <main className="mb-16 min-h-screen px-4 py-4 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

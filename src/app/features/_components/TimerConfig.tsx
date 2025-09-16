@@ -279,6 +279,14 @@ export default function TimerConfig({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <motion.button
+            type="submit"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-200 hover:from-emerald-500 hover:to-emerald-600"
+          >
+            Start Timer
+          </motion.button>
           {/* Workout Name */}
           <div>
             <label className="mb-2 block font-medium text-emerald-200">
@@ -451,15 +459,6 @@ export default function TimerConfig({
               </div>
             </div>
           </div>
-
-          <motion.button
-            type="submit"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-200 hover:from-emerald-500 hover:to-emerald-600"
-          >
-            Start Timer
-          </motion.button>
         </form>
       </motion.div>
     </div>

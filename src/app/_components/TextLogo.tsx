@@ -7,7 +7,11 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { gsap } from "gsap";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { useMobile } from "~/context/mobile-provider";
+
+gsap.registerPlugin(ScrambleTextPlugin);
 
 interface TextLogoProps {
   className?: string;
@@ -29,6 +33,8 @@ const TextLogo = forwardRef<TextLogoRef, TextLogoProps>(
     ref,
   ) => {
     const { isMobile } = useMobile();
+    const calayoRef = useRef<HTMLDivElement>(null);
+    const clothingRef = useRef<HTMLDivElement>(null);
 
     // ASCII art for CALAYO CLOTHING - using the block letter style
     const asciiArt = useMemo(() => {
@@ -65,26 +71,142 @@ const TextLogo = forwardRef<TextLogoRef, TextLogoProps>(
       return "0.7rem"; // Smaller for desktop to fit better
     }, [isMobile]);
 
-    const renderWord = (wordLines: string[], wordKey: string) => (
-      <div
-        key={wordKey}
-        className="mb-4 flex flex-col items-center justify-center"
-      >
-        {wordLines.map((line, index) => (
-          <div
-            key={`${wordKey}-line-${index}`}
-            className="text-line font-mono leading-none whitespace-pre select-none"
-            style={{
-              fontSize: responsiveFontSize,
-              letterSpacing: isMobile ? "0.04em" : "0.05em",
-              lineHeight: isMobile ? "0.9" : "0.9",
-            }}
-          >
-            {line}
-          </div>
-        ))}
-      </div>
+    useImperativeHandle(
+      ref,
+      () => ({
+        animateIn: () => {
+          const timeline = gsap.timeline();
+
+          // Animate CALAYO first - set the final text immediately and animate opacity
+          if (calayoRef.current) {
+            // Set the final ASCII art text with preserved spaces
+            calayoRef.current.innerHTML = asciiArt.calayo
+              .map(
+                (line) =>
+                  `<div class="text-line font-mono leading-none whitespace-pre select-none">${line.replace(/ /g, "&nbsp;")}</div>`,
+              )
+              .join("");
+
+            // Apply styles to the lines
+            const lines = calayoRef.current.querySelectorAll(".text-line");
+            lines.forEach((line: Element) => {
+              (line as HTMLElement).style.fontSize = responsiveFontSize;
+              (line as HTMLElement).style.letterSpacing = isMobile
+                ? "0.04em"
+                : "0.05em";
+              (line as HTMLElement).style.lineHeight = isMobile ? "0.9" : "0.9";
+            });
+
+            // Animate each line with scramble effect
+            timeline.fromTo(
+              lines,
+              { opacity: 0 },
+              {
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.1,
+                ease: "power2.out",
+              },
+            );
+
+            // Add scramble effect to each line, preserving spaces
+            lines.forEach((line, index) => {
+              const originalText = (asciiArt.calayo[index] || "").replace(
+                / /g,
+                "&nbsp;",
+              );
+
+              gsap.to(line, {
+                duration: 0.75,
+                delay: index * 0.1,
+                scrambleText: {
+                  text: originalText,
+                  chars: "▄█▀▌▐|",
+                  revealDelay: 0.2,
+                  speed: 0.2,
+                  tweenLength: false,
+                  delimiter: "",
+                },
+              });
+            });
+          }
+
+          // Then animate CLOTHING
+          if (clothingRef.current) {
+            timeline.call(
+              () => {
+                // Set the final ASCII art text with preserved spaces
+                clothingRef.current!.innerHTML = asciiArt.clothing
+                  .map(
+                    (line) =>
+                      `<div class="text-line font-mono leading-none whitespace-pre select-none">${line.replace(/ /g, "&nbsp;")}</div>`,
+                  )
+                  .join("");
+
+                // Apply styles to the lines
+                const lines =
+                  clothingRef.current!.querySelectorAll(".text-line");
+                lines.forEach((line: Element) => {
+                  (line as HTMLElement).style.fontSize = responsiveFontSize;
+                  (line as HTMLElement).style.letterSpacing = isMobile
+                    ? "0.04em"
+                    : "0.05em";
+                  (line as HTMLElement).style.lineHeight = isMobile
+                    ? "0.9"
+                    : "0.9";
+                });
+
+                // Animate each line with scramble effect
+                gsap.fromTo(
+                  lines,
+                  { opacity: 0 },
+                  {
+                    opacity: 1,
+                    duration: 0.8,
+                    stagger: 0.1,
+                    ease: "power2.out",
+                  },
+                );
+
+                // Add scramble effect to each line, preserving spaces
+                lines.forEach((line, index) => {
+                  const originalText = (asciiArt.clothing[index] ?? "").replace(
+                    / /g,
+                    "&nbsp;",
+                  );
+
+                  gsap.to(line, {
+                    duration: 0.75,
+                    delay: index * 0.1,
+                    scrambleText: {
+                      text: originalText,
+                      chars: "▄█▀▌▐",
+                      revealDelay: 0.3,
+                      speed: 0.2,
+                      tweenLength: false,
+                      delimiter: "",
+                    },
+                  });
+                });
+              },
+              [],
+              "-=1",
+            );
+          }
+        },
+      }),
+      [asciiArt, responsiveFontSize, isMobile],
     );
+
+    // Set initial state for scramble text (empty)
+    useEffect(() => {
+      if (calayoRef.current) {
+        calayoRef.current.textContent = "";
+      }
+      if (clothingRef.current) {
+        clothingRef.current.textContent = "";
+      }
+    }, []);
 
     return (
       <div
@@ -93,8 +215,24 @@ const TextLogo = forwardRef<TextLogoRef, TextLogoProps>(
           fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', monospace",
         }}
       >
-        {renderWord(asciiArt.calayo, "calayo")}
-        {renderWord(asciiArt.clothing, "clothing")}
+        <div
+          ref={calayoRef}
+          className="mb-4 font-mono leading-none whitespace-pre select-none"
+          style={{
+            fontSize: responsiveFontSize,
+            letterSpacing: isMobile ? "0.04em" : "0.05em",
+            lineHeight: isMobile ? "0.9" : "0.9",
+          }}
+        />
+        <div
+          ref={clothingRef}
+          className="font-mono leading-none whitespace-pre select-none"
+          style={{
+            fontSize: responsiveFontSize,
+            letterSpacing: isMobile ? "0.04em" : "0.05em",
+            lineHeight: isMobile ? "0.9" : "0.9",
+          }}
+        />
       </div>
     );
   },

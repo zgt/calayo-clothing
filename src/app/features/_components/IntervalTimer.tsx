@@ -384,10 +384,7 @@ export default function IntervalTimer() {
         <div className="mb-6 flex justify-center space-x-4 sm:mb-8 sm:space-x-8">
           <div className="text-center">
             <div className="text-2xl font-bold text-white sm:text-3xl">
-              {timer.status.currentRep}
-            </div>
-            <div className="text-xs tracking-wide text-white/60 uppercase sm:text-sm">
-              Rep / {timer.status.totalReps}
+              {timer.status.currentRep} / {timer.status.totalReps}
             </div>
           </div>
           <div className="w-px self-stretch bg-white/20" />

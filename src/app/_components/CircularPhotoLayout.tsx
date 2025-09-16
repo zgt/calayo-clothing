@@ -10,10 +10,11 @@ import { Draggable } from "gsap/Draggable";
 import { ReactLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
-import TextLogo from "./TextLogo";
+import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
+import PG from "pg";
 
 gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
@@ -25,7 +26,7 @@ export default function CircularPhotoLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const mobileCoverRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<TextLogoRef>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const gapRef = useRef<HTMLDivElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
@@ -48,7 +49,6 @@ export default function CircularPhotoLayout() {
 
   const handleImageLoad = () => {
     if (!photos) return;
-    const logo = logoRef.current;
 
     loadedImagesCount.current += 1;
 
@@ -60,10 +60,10 @@ export default function CircularPhotoLayout() {
         // Start subtitle animation
         if (isMobile) {
           mobileSubtitleRef.current?.animateIn();
-          logo?.animateIn();
+          logoRef.current?.animateIn();
         } else {
           subtitleRef.current?.animateIn();
-          logo?.animateIn();
+          logoRef.current?.animateIn();
         }
       }, 100);
     }
@@ -78,7 +78,7 @@ export default function CircularPhotoLayout() {
       if (width < 480) {
         // Small mobile
         return {
-          radius: minDimension * 0.36,
+          radius: minDimension * 0.42,
           photoSize: 70,
           maxPhotos: 12,
           minHeight: "100vh",
@@ -86,7 +86,7 @@ export default function CircularPhotoLayout() {
       } else {
         // Large mobile
         return {
-          radius: minDimension * 0.39,
+          radius: minDimension * 0.44,
           photoSize: 80,
           maxPhotos: 12,
           minHeight: "100vh",
@@ -95,7 +95,7 @@ export default function CircularPhotoLayout() {
     } else if (isTablet) {
       // Tablet
       return {
-        radius: minDimension * 0.38,
+        radius: minDimension * 0.43,
         photoSize: 90,
         maxPhotos: 16,
         minHeight: "100vh",
@@ -104,7 +104,7 @@ export default function CircularPhotoLayout() {
       if (width < 1440) {
         // Desktop
         return {
-          radius: minDimension * 0.35,
+          radius: minDimension * 0.4,
           photoSize: 100,
           maxPhotos: 20,
           minHeight: "50vh",
@@ -112,7 +112,7 @@ export default function CircularPhotoLayout() {
       } else {
         // Large desktop
         return {
-          radius: minDimension * 0.38,
+          radius: minDimension * 0.43,
           photoSize: 110,
           maxPhotos: 24,
           minHeight: "100vh",
@@ -121,7 +121,7 @@ export default function CircularPhotoLayout() {
     } else {
       // Fallback
       return {
-        radius: minDimension * 0.35,
+        radius: minDimension * 0.42,
         photoSize: 100,
         maxPhotos: 20,
         minHeight: "100vh",
@@ -225,6 +225,7 @@ export default function CircularPhotoLayout() {
     const container = containerRef.current;
     const scroll = scrollRef.current;
     const cover = coverRef.current;
+    const logo = logoRef.current;
     const mobileCover = mobileCoverRef.current;
     const spin = spinRef.current;
     const gap = gapRef.current;
@@ -286,7 +287,16 @@ export default function CircularPhotoLayout() {
             },
           },
           "start",
-        );
+        ).to(logo, {
+          scale: 1.5,
+          y: -150,
+          scrollTrigger: {
+            trigger: scroll,
+            start: "top bottom",
+            end: "+=500",
+            scrub: true,
+          },
+        });
       }
       if (!isMobile && container) {
         tl.to(
@@ -381,7 +391,15 @@ export default function CircularPhotoLayout() {
   const photosToShow = photos.slice(0, circleConfig.maxPhotos);
 
   return (
-    <ReactLenis root options={{ autoRaf: false }} ref={lenisRef}>
+    <ReactLenis
+      root
+      options={{
+        autoRaf: false,
+        smoothWheel: true,
+        duration: 1.5,
+      }}
+      ref={lenisRef}
+    >
       <main className="relative min-h-screen w-full">
         <div className="content">
           {/* Mobile: Logo and subtitle above circle */}
@@ -389,7 +407,7 @@ export default function CircularPhotoLayout() {
             <div className="pointer-events-none fixed inset-x-0 top-10 z-30 flex flex-col items-center justify-start pt-16">
               <div className="px-4 text-center text-white">
                 <div className="mb-4">
-                  <TextLogo fontSize="2.5rem" letterSpacing="0" />
+                  <TextLogo ref={logoRef} fontSize="2.5rem" letterSpacing="0" />
                 </div>
                 <div ref={mobileCoverRef}>
                   <AnimatedSubtitle
@@ -444,8 +462,32 @@ export default function CircularPhotoLayout() {
                     <div
                       className="relative overflow-hidden rounded-lg shadow-lg"
                       style={{
+                        transition: "transform 0.3s ease",
                         width: "100%",
                         height: "100%",
+                        transformOrigin: "center",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isMobile) {
+                          e.currentTarget.style.transform =
+                            "scale(1.8) translate(0, -20px)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "scale(1)";
+                        }
+                      }}
+                      onTouchStart={(e) => {
+                        if (!isMobile) {
+                          e.currentTarget.style.transform =
+                            "scale(2) translate(0, -20px)";
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "scale(1)";
+                        }
                       }}
                     >
                       <Image
@@ -454,25 +496,18 @@ export default function CircularPhotoLayout() {
                         fill
                         style={{
                           objectFit: "cover",
-                          transition: "transform 0.3s ease",
                         }}
                         onLoad={handleImageLoad}
-                        onMouseEnter={(e) => {
-                          if (!isMobile) {
-                            e.currentTarget.style.transform = "scale(1.1)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isMobile) {
-                            e.currentTarget.style.transform = "scale(1)";
-                          }
-                        }}
-                        onTouchStart={(e) => {
-                          e.currentTarget.style.transform = "scale(0.95)";
-                        }}
-                        onTouchEnd={(e) => {
-                          e.currentTarget.style.transform = "scale(1)";
-                        }}
+                        // onMouseEnter={(e) => {
+                        //   if (!isMobile) {
+                        //     e.currentTarget.style.transform = "scale(1.1)";
+                        //   }
+                        // }}
+                        // onMouseLeave={(e) => {
+                        //   if (!isMobile) {
+                        //     e.currentTarget.style.transform = "scale(1)";
+                        //   }
+                        // }}
                         priority={index < 8}
                       />
                     </div>
