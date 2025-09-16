@@ -5,28 +5,33 @@ import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { Draggable } from "gsap/Draggable";
 import { ReactLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
-import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
+import TextLogo from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(InertiaPlugin)
+gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
 gsap.registerPlugin(Draggable);
 gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrambleTextPlugin);
+
 export default function CircularPhotoLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
+  const mobileCoverRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const gapRef = useRef<HTMLDivElement>(null);
   const spinRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<LenisRef>(null);
-  const logoRef = useRef<SvgLogoRef>(null);
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
+  const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 1024,
@@ -41,10 +46,9 @@ export default function CircularPhotoLayout() {
     error,
   } = api.instagram.getAllInstagramPhotos.useQuery();
 
-  console.log(photos)
-
   const handleImageLoad = () => {
     if (!photos) return;
+    const logo = logoRef.current;
 
     loadedImagesCount.current += 1;
 
@@ -53,11 +57,14 @@ export default function CircularPhotoLayout() {
       setImagesLoaded(true);
       // Small delay to ensure all images are rendered
       setTimeout(() => {
-        logoRef.current?.animateIn();
-        // Start subtitle animation slightly after logo animation begins
-        setTimeout(() => {
+        // Start subtitle animation
+        if (isMobile) {
+          mobileSubtitleRef.current?.animateIn();
+          logo?.animateIn();
+        } else {
           subtitleRef.current?.animateIn();
-        }, 500);
+          logo?.animateIn();
+        }
       }, 100);
     }
   };
@@ -71,15 +78,15 @@ export default function CircularPhotoLayout() {
       if (width < 480) {
         // Small mobile
         return {
-          radius: minDimension * 0.32,
+          radius: minDimension * 0.36,
           photoSize: 70,
-          maxPhotos: 10,
+          maxPhotos: 12,
           minHeight: "100vh",
         };
       } else {
         // Large mobile
         return {
-          radius: minDimension * 0.35,
+          radius: minDimension * 0.39,
           photoSize: 80,
           maxPhotos: 12,
           minHeight: "100vh",
@@ -143,7 +150,7 @@ export default function CircularPhotoLayout() {
       // When angle is PI/2 (top), photo should be upright (0 degrees)
       // When angle is PI (left side), photo should face right (90 degrees)
       // When angle is 3*PI/2 (bottom), photo should face up (180 degrees)
-      const rotation = (angle * 180 / Math.PI) + 90;
+      const rotation = (angle * 180) / Math.PI + 90;
 
       return {
         x,
@@ -192,7 +199,6 @@ export default function CircularPhotoLayout() {
 
   // Lenis integration
   useEffect(() => {
-
     function update(time: number) {
       lenisRef.current?.lenis?.raf(time * 1000);
     }
@@ -219,6 +225,7 @@ export default function CircularPhotoLayout() {
     const container = containerRef.current;
     const scroll = scrollRef.current;
     const cover = coverRef.current;
+    const mobileCover = mobileCoverRef.current;
     const spin = spinRef.current;
     const gap = gapRef.current;
     const photoElements = container?.querySelectorAll(".circular-photo");
@@ -228,55 +235,128 @@ export default function CircularPhotoLayout() {
       const { width } = screenSize;
       const containerWidth = container.offsetWidth;
 
-      Draggable.create(container, {
-        type: "rotation",
-        inertia: true,
-        snap: function (value) {
-          return Math.round(value / photos.length) * photos.length
-        }
-      })
-
+      if (!isMobile) {
+        Draggable.create(container, {
+          type: "rotation",
+          inertia: true,
+          snap: function (value) {
+            return Math.round(value / photos.length) * photos.length;
+          },
+        });
+      }
       ScrollTrigger.defaults({
-        toggleActions: "restart none reverse none"
-      })
+        toggleActions: "restart none reverse none",
+      });
 
-      tl.set(container, {
-        //transformOrigin: '-50'
-        x: (width / 2) - (containerWidth / 2),
-        y: 0
-      }, "start").to(cover, {
-        y: -1000,
-        scrollTrigger: {
-          trigger: scroll,
-          start: 'top bottom',
-          end: '+=500',
-          scrub: true
-        }
-      }, "start")
-        .to(container, {
-          scale: 2,
-          ease: "none",
-          y: 800,
-          scrollTrigger: {
-            trigger: scroll,
-            start: 'top bottom',
-            //endTrigger: spin,
-            end: '+=500',
-            pin: gap,
-            scrub: true,
-          }
-        }, "start").add("spin", ">")
-        .to(container, {
-          rotation: -360,
-          ease: "none",
-          scrollTrigger: {
-            trigger: spin,
-            start: 'bottom bottom',
-            end: '+=1000',
-            pin: true,
-            scrub: true
-          }
-        }, "spin")
+      tl.set(
+        container,
+        {
+          //transformOrigin: '-50'
+          x: width / 2 - containerWidth / 2,
+          y: isMobile ? 0 : 0,
+        },
+        "start",
+      );
+
+      // Only animate cover on non-mobile devices since mobile has separate logo layout
+      if (!isMobile && cover) {
+        tl.to(
+          cover,
+          {
+            y: -1000,
+            scrollTrigger: {
+              trigger: scroll,
+              start: "top bottom",
+              end: "+=500",
+              scrub: true,
+            },
+          },
+          "start",
+        );
+      } else if (isMobile && mobileCover) {
+        tl.to(
+          mobileCover,
+          {
+            y: -1000,
+            scrollTrigger: {
+              trigger: scroll,
+              start: "top bottom",
+              end: "+=500",
+              scrub: true,
+            },
+          },
+          "start",
+        );
+      }
+      if (!isMobile && container) {
+        tl.to(
+          container,
+          {
+            scale: 2,
+            ease: "none",
+            y: 800,
+            scrollTrigger: {
+              trigger: scroll,
+              start: "top bottom",
+              //endTrigger: spin,
+              end: "+=500",
+              pin: gap,
+              scrub: true,
+            },
+          },
+          "start",
+        )
+          .add("spin", ">")
+          .to(
+            container,
+            {
+              rotation: -360,
+              ease: "none",
+              scrollTrigger: {
+                trigger: spin,
+                start: "bottom bottom",
+                end: "+=1000",
+                pin: true,
+                scrub: true,
+              },
+            },
+            "spin",
+          );
+      } else if (isMobile && container) {
+        tl.to(
+          container,
+          {
+            scale: 3,
+            ease: "none",
+            y: 400,
+            scrollTrigger: {
+              trigger: scroll,
+              start: "top bottom",
+              //endTrigger: spin,
+              end: "+=500",
+              pin: gap,
+              scrub: true,
+            },
+          },
+          "start",
+        )
+          .add("spin", ">")
+          .to(
+            container,
+            {
+              rotation: -360,
+              ease: "none",
+              scrollTrigger: {
+                trigger: spin,
+                start: "bottom bottom",
+                end: "+=1000",
+                pin: true,
+                scrub: true,
+              },
+            },
+            "spin",
+          );
+      }
     }
 
     return () => {
@@ -304,9 +384,33 @@ export default function CircularPhotoLayout() {
     <ReactLenis root options={{ autoRaf: false }} ref={lenisRef}>
       <main className="relative min-h-screen w-full">
         <div className="content">
+          {/* Mobile: Logo and subtitle above circle */}
+          {isMobile && (
+            <div className="pointer-events-none fixed inset-x-0 top-10 z-30 flex flex-col items-center justify-start pt-16">
+              <div className="px-4 text-center text-white">
+                <div className="mb-4">
+                  <TextLogo fontSize="2.5rem" letterSpacing="0" />
+                </div>
+                <div ref={mobileCoverRef}>
+                  <AnimatedSubtitle
+                    ref={mobileSubtitleRef}
+                    text="Intentionally yours"
+                    className="font-light"
+                    style={{
+                      fontSize: "1.25rem",
+                    }}
+                  />
+                  <div className="mt-4 text-sm opacity-70">
+                    SCROLL TO EXPLORE
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div
             ref={containerRef}
-            className="z-20 flex items-center justify-center fixed"
+            className={`fixed z-20 flex items-center justify-center ${isMobile ? "top-8" : ""}`}
             style={{
               minHeight: circleConfig.minHeight,
             }}
@@ -334,14 +438,14 @@ export default function CircularPhotoLayout() {
                       width: `${circleConfig.photoSize}px`,
                       height: `${circleConfig.photoSize}px`,
                       transform: `translate(-50%, -50%) rotate(${position.rotation}deg)`,
-                      transformOrigin: 'center',
+                      transformOrigin: "center",
                     }}
                   >
                     <div
                       className="relative overflow-hidden rounded-lg shadow-lg"
                       style={{
-                        width: '100%',
-                        height: '100%',
+                        width: "100%",
+                        height: "100%",
                       }}
                     >
                       <Image
@@ -381,53 +485,38 @@ export default function CircularPhotoLayout() {
           <div
             ref={scrollRef}
             style={{
-              top: '500px'
+              top: "500px",
             }}
-          >
-          </div>
-          <div
-            ref={gapRef}
-            style={{
-            }}
+          ></div>
+          <div ref={gapRef} style={{}}></div>
 
-          >
-          </div>
+          <div ref={spinRef} style={{}}></div>
 
-          <div
-            ref={spinRef}
-            style={{
-            }}
-          >
-          </div>
-
-
-          {/* Center overlay with logo and subtitle */}
-          <div ref={coverRef} className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center">
-            <div className="px-4 text-center text-white">
-              <div className="mb-4">
-                <SvgLogo
-                  ref={logoRef}
-                  fontSize={isMobile ? "2.5rem" : "6rem"}
-                  letterSpacing="0"
+          {/* Desktop/Tablet: Center overlay with logo and subtitle */}
+          {!isMobile && (
+            <div
+              ref={coverRef}
+              className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center"
+            >
+              <div className="px-4 text-center text-white">
+                <div className="mb-4">
+                  <TextLogo ref={logoRef} fontSize="6rem" letterSpacing="0" />
+                </div>
+                <AnimatedSubtitle
+                  ref={subtitleRef}
+                  text="Intentionally yours"
+                  className="font-light"
+                  style={{
+                    fontSize: "2rem",
+                  }}
                 />
-              </div>
-              <AnimatedSubtitle
-                ref={subtitleRef}
-                text="Intentionally yours"
-                className="font-light"
-                style={{
-                  fontSize: isMobile ? "1.25rem" : "2rem",
-                }}
-              />
-              <div className="mt-8 text-sm opacity-70">
-                SCROLL TO EXPLORE
+                <div className="mt-8 text-sm opacity-70">SCROLL TO EXPLORE</div>
               </div>
             </div>
-          </div>
-          <div className="invis">
-          </div>
+          )}
+          <div className="invis"></div>
         </div>
       </main>
-    </ReactLenis >
+    </ReactLenis>
   );
 }

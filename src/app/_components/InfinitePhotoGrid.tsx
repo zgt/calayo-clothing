@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ReactLenis } from "lenis/react";
 import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
-import SvgLogo, { type SvgLogoRef } from "./SvgLogo";
+import TextLogo from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 
@@ -16,7 +16,6 @@ gsap.registerPlugin(ScrollTrigger);
 export default function InfinitePhotoGrid() {
   const gridRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<LenisRef>(null);
-  const logoRef = useRef<SvgLogoRef>(null);
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
   const [screenSize, setScreenSize] = useState({
@@ -42,11 +41,8 @@ export default function InfinitePhotoGrid() {
       setImagesLoaded(true);
       // Small delay to ensure all images are rendered
       setTimeout(() => {
-        logoRef.current?.animateIn();
-        // Start subtitle animation slightly after logo animation begins
-        setTimeout(() => {
-          subtitleRef.current?.animateIn();
-        }, 500);
+        // Start subtitle animation
+        subtitleRef.current?.animateIn();
       }, 100);
     }
   };
@@ -385,8 +381,7 @@ export default function InfinitePhotoGrid() {
           <div className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center">
             <div className="px-4 text-center text-white">
               <div className="mb-4">
-                <SvgLogo
-                  ref={logoRef}
+                <TextLogo
                   fontSize={isMobile ? "2.5rem" : "6rem"}
                   letterSpacing="0"
                 />
