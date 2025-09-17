@@ -14,6 +14,7 @@ import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
+import MagneticDiv from "./MagneticDiv";
 
 gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
@@ -35,12 +36,27 @@ export default function CircularPhotoLayout() {
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
+
+  // Animate photos sequentially after all have loaded
+  const animatePhotosSequentially = () => {
+    const photoElements = document.querySelectorAll(
+      ".circular-photo [data-photo-id]",
+    );
+
+    gsap.to(photoElements, {
+      opacity: 1,
+      duration: 0.4,
+      stagger: 0.1,
+      ease: "power2.out",
+    });
+  };
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 1024,
     height: typeof window !== "undefined" ? window.innerHeight : 768,
   });
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const loadedImagesCount = useRef(0);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const {
     data: photos,
@@ -48,42 +64,60 @@ export default function CircularPhotoLayout() {
     error,
   } = api.instagram.getAllInstagramPhotos.useQuery();
 
-  const handleImageLoad = () => {
+  const handleImageLoad = (photoId: string) => {
     if (!photos) return;
+
+    const totalPhotos = photos.slice(0, circleConfig.maxPhotos).length;
+
+    // Track individual image loading
+    setLoadedImages((prev) => {
+      const newSet = new Set(prev);
+      if (!newSet.has(photoId)) {
+        newSet.add(photoId);
+      }
+      return newSet;
+    });
 
     loadedImagesCount.current += 1;
 
-    // Check if first two images are loaded
-    if (loadedImagesCount.current >= 2 && !imagesLoaded) {
+    // Check if all images are loaded
+    if (loadedImagesCount.current === totalPhotos && !imagesLoaded) {
       setImagesLoaded(true);
       // Small delay to ensure all images are rendered
       setTimeout(() => {
-        // Start subtitle animation
-        if (isMobile) {
-          mobileSubtitleRef.current?.animateIn();
-          logoRef.current?.animateIn();
-          gsap.to(subsubtitleRef.current, {
-            duration: isMobile ? 1.5 : 2,
-            scrambleText: {
-              text: "SCROLL TO EXPLORE",
-              chars: "▄█▀▌▐",
-              revealDelay: 0.3,
-              speed: 0.5,
-            },
-          });
-        } else {
-          subtitleRef.current?.animateIn();
-          logoRef.current?.animateIn();
-          gsap.to(subsubtitleRef.current, {
-            duration: isMobile ? 1.5 : 2,
-            scrambleText: {
-              text: "SCROLL TO EXPLORE",
-              chars: "▄█▀▌▐",
-              revealDelay: 0.3,
-              speed: 0.5,
-            },
-          });
-        }
+        // Start staggered photo animation first
+        animatePhotosSequentially();
+
+        // Start subtitle animation after a brief delay
+        setTimeout(() => {
+          if (isMobile) {
+            mobileSubtitleRef.current?.animateIn();
+            logoRef.current?.animateIn();
+            gsap.to(subsubtitleRef.current, {
+              opacity: 1,
+              duration: isMobile ? 1.5 : 2,
+              scrambleText: {
+                text: "SCROLL TO EXPLORE",
+                chars: "▄█▀▌▐",
+                revealDelay: 0.3,
+                speed: 0.5,
+              },
+            });
+          } else {
+            subtitleRef.current?.animateIn();
+            logoRef.current?.animateIn();
+            gsap.to(subsubtitleRef.current, {
+              opacity: 1,
+              duration: isMobile ? 1.5 : 2,
+              scrambleText: {
+                text: "SCROLL TO EXPLORE",
+                chars: "▄█▀▌▐",
+                revealDelay: 0.3,
+                speed: 0.5,
+              },
+            });
+          }
+        }, 800);
       }, 100);
     }
   };
@@ -255,6 +289,7 @@ export default function CircularPhotoLayout() {
       const tl = gsap.timeline();
       const { width } = screenSize;
       const containerWidth = container.offsetWidth;
+      gsap.set(subsubtitleRef.current, { opacity: 0 });
 
       if (!isMobile) {
         Draggable.create(container, {
@@ -479,60 +514,66 @@ export default function CircularPhotoLayout() {
                       height: `${circleConfig.photoSize}px`,
                       transform: `translate(-50%, -50%) rotate(${position.rotation}deg)`,
                       transformOrigin: "center",
+                      transition: "transform 0.3s ease",
+                    }}
+                    onClick={(e) => {
+                      console.log(e);
+                      const clicked = true;
+                      if (!isMobile) {
+                        console.log(e.currentTarget.style.transform);
+                        e.currentTarget.style.transform = clicked
+                          ? `scale(5)`
+                          : `scale(1)`; //translate(${position.x}px, -${position.y}px) rotate(-${position.rotation}deg)`;
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isMobile) {
+                        console.log(e.currentTarget.style.transform);
+                        e.currentTarget.style.transform =
+                          "scale(1.8) translate(0, -20px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isMobile) {
+                        e.currentTarget.style.transform = `scale(1) translate(-50%, -50%) rotate(${position.rotation}deg`;
+                      }
                     }}
                   >
-                    <div
-                      className="relative overflow-hidden rounded-lg shadow-lg"
-                      style={{
-                        transition: "transform 0.3s ease",
-                        width: "100%",
-                        height: "100%",
-                        transformOrigin: "center",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform =
-                            "scale(1.8) translate(0, -20px)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "scale(1)";
-                        }
-                      }}
-                      onTouchStart={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform =
-                            "scale(2) translate(0, -20px)";
-                        }
-                      }}
-                      onTouchEnd={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "scale(1)";
-                        }
-                      }}
-                    >
-                      <Image
-                        src={photo.mediaUrl}
-                        alt={`Instagram photo ${photo.id}`}
-                        fill
+                    {/* <a>{position.rotation}</a> */}
+                    <MagneticDiv>
+                      <div
+                        className="relative overflow-hidden rounded-lg shadow-lg"
+                        data-photo-id={photo.id}
                         style={{
-                          objectFit: "cover",
+                          transition: "transform 0.3s ease",
+                          width: "100%",
+                          height: "100%",
+                          transformOrigin: "center",
+                          opacity: 0,
                         }}
-                        onLoad={handleImageLoad}
-                        // onMouseEnter={(e) => {
-                        //   if (!isMobile) {
-                        //     e.currentTarget.style.transform = "scale(1.1)";
-                        //   }
-                        // }}
-                        // onMouseLeave={(e) => {
-                        //   if (!isMobile) {
-                        //     e.currentTarget.style.transform = "scale(1)";
-                        //   }
-                        // }}
-                        priority={index < 8}
-                      />
-                    </div>
+                      >
+                        <Image
+                          src={photo.mediaUrl}
+                          alt={`Instagram photo ${photo.id}`}
+                          fill
+                          style={{
+                            objectFit: "cover",
+                          }}
+                          onLoad={() => handleImageLoad(photo.id)}
+                          // onMouseEnter={(e) => {
+                          //   if (!isMobile) {
+                          //     e.currentTarget.style.transform = "scale(1.1)";
+                          //   }
+                          // }}
+                          // onMouseLeave={(e) => {
+                          //   if (!isMobile) {
+                          //     e.currentTarget.style.transform = "scale(1)";
+                          //   }
+                          // }}
+                          priority={index < 8}
+                        />
+                      </div>
+                    </MagneticDiv>
                   </div>
                 );
               })}
