@@ -23,6 +23,8 @@ gsap.registerPlugin(ScrambleTextPlugin);
 
 export default function CircularPhotoLayout() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const subsubtitleRef = useRef<HTMLDivElement>(null);
+  const circleRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const mobileCoverRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<TextLogoRef>(null);
@@ -60,9 +62,27 @@ export default function CircularPhotoLayout() {
         if (isMobile) {
           mobileSubtitleRef.current?.animateIn();
           logoRef.current?.animateIn();
+          gsap.to(subsubtitleRef.current, {
+            duration: isMobile ? 1.5 : 2,
+            scrambleText: {
+              text: "SCROLL TO EXPLORE",
+              chars: "▄█▀▌▐",
+              revealDelay: 0.3,
+              speed: 0.5,
+            },
+          });
         } else {
           subtitleRef.current?.animateIn();
           logoRef.current?.animateIn();
+          gsap.to(subsubtitleRef.current, {
+            duration: isMobile ? 1.5 : 2,
+            scrambleText: {
+              text: "SCROLL TO EXPLORE",
+              chars: "▄█▀▌▐",
+              revealDelay: 0.3,
+              speed: 0.5,
+            },
+          });
         }
       }, 100);
     }
@@ -222,6 +242,7 @@ export default function CircularPhotoLayout() {
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
 
     const container = containerRef.current;
+    const circle = circleRef.current;
     const scroll = scrollRef.current;
     const cover = coverRef.current;
     const logo = logoRef.current;
@@ -273,7 +294,9 @@ export default function CircularPhotoLayout() {
           },
           "start",
         );
-      } else if (isMobile && mobileCover) {
+      } else if (isMobile && mobileCover && circle) {
+        const circleMiddle = circle?.getBoundingClientRect().height / 2;
+        gsap.set(mobileCover, { y: circleMiddle });
         tl.to(
           mobileCover,
           {
@@ -288,7 +311,6 @@ export default function CircularPhotoLayout() {
           "start",
         ).to(logo, {
           scale: 1.5,
-          y: -150,
           scrollTrigger: {
             trigger: scroll,
             start: "top bottom",
@@ -436,6 +458,7 @@ export default function CircularPhotoLayout() {
             <div
               id="circle"
               className=""
+              ref={circleRef}
               style={{
                 width: circleConfig.radius * 2 + circleConfig.photoSize,
                 height: circleConfig.radius * 2 + circleConfig.photoSize,
@@ -544,7 +567,9 @@ export default function CircularPhotoLayout() {
                     fontSize: "2rem",
                   }}
                 />
-                <div className="mt-8 text-sm opacity-70">SCROLL TO EXPLORE</div>
+                <div ref={subsubtitleRef} className="mt-8 text-sm opacity-70">
+                  SCROLL TO EXPLORE
+                </div>
               </div>
             </div>
           )}
