@@ -648,7 +648,7 @@ export default function CircularPhotoLayout() {
                           style={{
                             objectFit: "cover",
                           }}
-                          onLoad={() => handleImageLoad(photo.id)}
+                          onLoad={() => handleImageLoad()}
                           // onMouseEnter={(e) => {
                           //   if (!isMobile) {
                           //     e.currentTarget.style.transform = "scale(1.1)";
