@@ -295,13 +295,23 @@ export default function CircularPhotoLayout() {
           const handleMouseEnter = () => {
             // Only apply hover effect if photo is not clicked
             if (!clickedPhotos.has(photoId)) {
+              const originalPosition = photoPositions[index];
+              if (!originalPosition) return;
+
+              // Calculate movement in the photo's local "up" direction
+              // Since photos are rotated, we need to move relative to their rotation
+              const moveDistance = 40; // Distance to move "up" in photo's coordinate system
+              const rotationRad = (originalPosition.rotation * Math.PI) / 180;
+              const moveX = Math.sin(rotationRad) * moveDistance;
+              const moveY = -Math.cos(rotationRad) * moveDistance;
+
               gsap.to(photoElement, {
                 scale: 2,
-                y: 10,
+                x: moveX,
+                y: moveY,
                 duration: 0.3,
                 ease: "power4.inOut",
                 transformOrigin: "center",
-
                 zIndex: 1000,
               });
             }
@@ -323,6 +333,7 @@ export default function CircularPhotoLayout() {
 
             gsap.to(photoElement, {
               scale: 1,
+              x: 0,
               y: 0,
               duration: 0.3,
               rotation: originalPosition.rotation,
