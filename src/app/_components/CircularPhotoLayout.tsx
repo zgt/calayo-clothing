@@ -36,6 +36,7 @@ export default function CircularPhotoLayout() {
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
+  const [containerRotation, setContainerRotation] = useState(0);
 
   // Animate photos sequentially after all have loaded
   const animatePhotosSequentially = () => {
@@ -252,6 +253,8 @@ export default function CircularPhotoLayout() {
     const animate = (time: number) => {
       lenisRef.current?.lenis?.raf(time);
       requestAnimationFrame(animate);
+
+      setContainerRotation(gsap.getProperty(containerRef.current, "rotation"));
     };
 
     requestAnimationFrame(animate);
@@ -304,23 +307,25 @@ export default function CircularPhotoLayout() {
           };
 
           const handleMouseLeave = () => {
+            const originalPosition = photoPositions[index];
+            if (!originalPosition) return;
             // Only return to normal if photo is not clicked
-            if (!clickedPhotos.has(photoId)) {
-              gsap.to(photoElement, {
-                scale: 1,
-                y: 0,
-                duration: 0.3,
-                ease: "power2.out",
-                transformOrigin: "center",
-                zIndex: 1,
-              });
-            }
+            gsap.to(photoElement, {
+              scale: 1,
+              y: 0,
+              duration: 0.3,
+              rotation: originalPosition.rotation,
+              ease: "power2.out",
+              transformOrigin: "center",
+              zIndex: 1,
+            });
           };
 
           const handleClick = () => {
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             const originalPosition = photoPositions[index];
 
+            const containerRotation = gsap.getProperty(container, "rotation");
             if (!originalPosition) return;
 
             if (isCurrentlyClicked) {
@@ -346,20 +351,37 @@ export default function CircularPhotoLayout() {
                 newSet.add(photoId);
                 return newSet;
               });
-              console.log(gsap.getProperty(photoElement, "rotation"));
-              console.log(originalPosition.rotation);
-              console.log(gsap.getProperty(container, "rotation"));
 
-              gsap.to(photoElement, {
-                scale: 5,
-                y: 0,
-                rotation: 0,
-                duration: 0.3,
-                ease: "power2.out",
-                transformOrigin: "center",
-                zIndex: 1000,
-              });
+              console.log(containerRotation);
+              if (typeof containerRotation !== "number") {
+                return;
+              }
+              const containerScale = gsap.getProperty(container, "scale");
+              if (containerScale !== 1) {
+                gsap.to(photoElement, {
+                  scale: 3,
+                  y: 0,
+                  rotation: -containerRotation,
+                  duration: 0.3,
+                  ease: "power2.out",
+                  transformOrigin: "center",
+                  zIndex: 1000,
+                });
+                console.log(containerRotation);
+              } else {
+                gsap.to(photoElement, {
+                  scale: 5,
+                  y: 0,
+                  rotation: -containerRotation,
+                  duration: 0.3,
+                  ease: "power2.out",
+                  transformOrigin: "center",
+                  zIndex: 1000,
+                });
+                console.log(containerRotation);
+              }
             }
+            console.log(containerRotation);
           };
 
           // Add event listeners
@@ -464,7 +486,7 @@ export default function CircularPhotoLayout() {
           },
           "start",
         )
-          .add("spin", ">")
+          //.add("spin", ">")
           .to(
             container,
             {
@@ -569,6 +591,7 @@ export default function CircularPhotoLayout() {
     >
       <main className="relative min-h-screen w-full">
         <div className="content">
+          <h3 className="fixed text-center text-white">{containerRotation}</h3>
           {/* Mobile: Logo and subtitle above circle */}
           {isMobile && (
             <div className="pointer-events-none fixed inset-x-0 top-10 z-30 flex flex-col items-center justify-start pt-16">
@@ -629,40 +652,40 @@ export default function CircularPhotoLayout() {
                     }}
                   >
                     {/* <a>{position.rotation}</a> */}
-                    <MagneticDiv>
-                      <div
-                        className="relative overflow-hidden rounded-lg shadow-lg"
-                        data-photo-id={photo.id}
+                    {/* <MagneticDiv>*/}
+                    <div
+                      className="relative overflow-hidden rounded-lg shadow-lg"
+                      data-photo-id={photo.id}
+                      style={{
+                        transition: "transform 0.3s ease",
+                        width: "100%",
+                        height: "100%",
+                        transformOrigin: "center",
+                        opacity: 0,
+                      }}
+                    >
+                      <Image
+                        src={photo.mediaUrl}
+                        alt={`Instagram photo ${photo.id}`}
+                        fill
                         style={{
-                          transition: "transform 0.3s ease",
-                          width: "100%",
-                          height: "100%",
-                          transformOrigin: "center",
-                          opacity: 0,
+                          objectFit: "cover",
                         }}
-                      >
-                        <Image
-                          src={photo.mediaUrl}
-                          alt={`Instagram photo ${photo.id}`}
-                          fill
-                          style={{
-                            objectFit: "cover",
-                          }}
-                          onLoad={() => handleImageLoad()}
-                          // onMouseEnter={(e) => {
-                          //   if (!isMobile) {
-                          //     e.currentTarget.style.transform = "scale(1.1)";
-                          //   }
-                          // }}
-                          // onMouseLeave={(e) => {
-                          //   if (!isMobile) {
-                          //     e.currentTarget.style.transform = "scale(1)";
-                          //   }
-                          // }}
-                          priority={index < 8}
-                        />
-                      </div>
-                    </MagneticDiv>
+                        onLoad={() => handleImageLoad()}
+                        // onMouseEnter={(e) => {
+                        //   if (!isMobile) {
+                        //     e.currentTarget.style.transform = "scale(1.1)";
+                        //   }
+                        // }}
+                        // onMouseLeave={(e) => {
+                        //   if (!isMobile) {
+                        //     e.currentTarget.style.transform = "scale(1)";
+                        //   }
+                        // }}
+                        priority={index < 8}
+                      />
+                    </div>
+                    {/* </MagneticDiv>*/}
                   </div>
                 );
               })}
