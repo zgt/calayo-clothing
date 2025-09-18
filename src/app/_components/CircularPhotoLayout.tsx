@@ -56,7 +56,7 @@ export default function CircularPhotoLayout() {
   });
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const loadedImagesCount = useRef(0);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [clickedPhotos, setClickedPhotos] = useState<Set<string>>(new Set());
 
   const {
     data: photos,
@@ -64,19 +64,12 @@ export default function CircularPhotoLayout() {
     error,
   } = api.instagram.getAllInstagramPhotos.useQuery();
 
-  const handleImageLoad = (photoId: string) => {
+  const handleImageLoad = () => {
     if (!photos) return;
 
     const totalPhotos = photos.slice(0, circleConfig.maxPhotos).length;
 
-    // Track individual image loading
-    setLoadedImages((prev) => {
-      const newSet = new Set(prev);
-      if (!newSet.has(photoId)) {
-        newSet.add(photoId);
-      }
-      return newSet;
-    });
+    // Track individual image loading - increment counter
 
     loadedImagesCount.current += 1;
 
@@ -284,8 +277,107 @@ export default function CircularPhotoLayout() {
     const spin = spinRef.current;
     const gap = gapRef.current;
     const photoElements = container?.querySelectorAll(".circular-photo");
+    const photosToShow = photos.slice(0, circleConfig.maxPhotos);
 
     if (container && photoElements) {
+      // Setup hover animations for photo elements
+      photoElements.forEach((photoElement, index) => {
+        if (!isMobile) {
+          const photoId = photosToShow[index]?.id;
+          if (!photoId) return;
+
+          const handleMouseEnter = () => {
+            console.log("Mouse enter");
+
+            // Only apply hover effect if photo is not clicked
+            if (!clickedPhotos.has(photoId)) {
+              gsap.to(photoElement, {
+                scale: 2,
+                y: -10,
+                duration: 0.3,
+                ease: "power4.inOut",
+                transformOrigin: "center",
+
+                zIndex: 1000,
+              });
+            }
+          };
+
+          const handleMouseLeave = () => {
+            // Only return to normal if photo is not clicked
+            if (!clickedPhotos.has(photoId)) {
+              gsap.to(photoElement, {
+                scale: 1,
+                y: 0,
+                duration: 0.3,
+                ease: "power2.out",
+                transformOrigin: "center",
+                zIndex: 1,
+              });
+            }
+          };
+
+          const handleClick = () => {
+            const isCurrentlyClicked = clickedPhotos.has(photoId);
+            const originalPosition = photoPositions[index];
+
+            if (!originalPosition) return;
+
+            if (isCurrentlyClicked) {
+              // Photo is clicked, return to normal with original rotation
+              setClickedPhotos((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(photoId);
+                return newSet;
+              });
+
+              gsap.to(photoElement, {
+                scale: 1,
+                y: 0,
+                rotation: originalPosition.rotation,
+                duration: 0.3,
+                ease: "power2.out",
+                transformOrigin: "center",
+              });
+            } else {
+              // Photo is not clicked, enlarge it and make it level (rotation: 0)
+              setClickedPhotos((prev) => {
+                const newSet = new Set(prev);
+                newSet.add(photoId);
+                return newSet;
+              });
+              console.log(gsap.getProperty(photoElement, "rotation"));
+              console.log(originalPosition.rotation);
+              console.log(gsap.getProperty(container, "rotation"));
+
+              gsap.to(photoElement, {
+                scale: 5,
+                y: 0,
+                rotation: 0,
+                duration: 0.3,
+                ease: "power2.out",
+                transformOrigin: "center",
+                zIndex: 1000,
+              });
+            }
+          };
+
+          // Add event listeners
+          photoElement.addEventListener("mouseenter", handleMouseEnter);
+          photoElement.addEventListener("mouseleave", handleMouseLeave);
+          photoElement.addEventListener("click", handleClick);
+
+          // Store cleanup functions on the element
+          const element = photoElement as HTMLElement & {
+            _cleanupHover?: () => void;
+          };
+          element._cleanupHover = () => {
+            photoElement.removeEventListener("mouseenter", handleMouseEnter);
+            photoElement.removeEventListener("mouseleave", handleMouseLeave);
+            photoElement.removeEventListener("click", handleClick);
+          };
+        }
+      });
       const tl = gsap.timeline();
       const { width } = screenSize;
       const containerWidth = container.offsetWidth;
@@ -426,9 +518,28 @@ export default function CircularPhotoLayout() {
     }
 
     return () => {
+      // Cleanup hover event listeners
+      if (photoElements) {
+        photoElements.forEach((photoElement) => {
+          const element = photoElement as HTMLElement & {
+            _cleanupHover?: () => void;
+          };
+          if (element._cleanupHover) {
+            element._cleanupHover();
+          }
+        });
+      }
+
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
-  }, [photos, photoPositions, screenSize, isMobile]);
+  }, [
+    photos,
+    photoPositions,
+    screenSize,
+    isMobile,
+    clickedPhotos,
+    circleConfig.maxPhotos,
+  ]);
 
   if (isLoading) {
     return (
@@ -515,28 +626,6 @@ export default function CircularPhotoLayout() {
                       transform: `translate(-50%, -50%) rotate(${position.rotation}deg)`,
                       transformOrigin: "center",
                       transition: "transform 0.3s ease",
-                    }}
-                    onClick={(e) => {
-                      console.log(e);
-                      const clicked = true;
-                      if (!isMobile) {
-                        console.log(e.currentTarget.style.transform);
-                        e.currentTarget.style.transform = clicked
-                          ? `scale(5)`
-                          : `scale(1)`; //translate(${position.x}px, -${position.y}px) rotate(-${position.rotation}deg)`;
-                      }
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isMobile) {
-                        console.log(e.currentTarget.style.transform);
-                        e.currentTarget.style.transform =
-                          "scale(1.8) translate(0, -20px)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isMobile) {
-                        e.currentTarget.style.transform = `scale(1) translate(-50%, -50%) rotate(${position.rotation}deg`;
-                      }
                     }}
                   >
                     {/* <a>{position.rotation}</a> */}
