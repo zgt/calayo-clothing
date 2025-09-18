@@ -14,7 +14,7 @@ import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
-import MagneticDiv from "./MagneticDiv";
+//import MagneticDiv from "./MagneticDiv";
 
 gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
@@ -36,7 +36,6 @@ export default function CircularPhotoLayout() {
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
-  const [containerRotation, setContainerRotation] = useState(0);
 
   // Animate photos sequentially after all have loaded
   const animatePhotosSequentially = () => {
@@ -601,7 +600,6 @@ export default function CircularPhotoLayout() {
     >
       <main className="relative min-h-screen w-full">
         <div className="content">
-          <h3 className="fixed text-center text-white">{containerRotation}</h3>
           {/* Mobile: Logo and subtitle above circle */}
           {isMobile && (
             <div className="pointer-events-none fixed inset-x-0 top-10 z-30 flex flex-col items-center justify-start pt-16">
