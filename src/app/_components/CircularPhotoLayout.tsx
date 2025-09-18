@@ -192,12 +192,15 @@ export default function CircularPhotoLayout() {
       const x = Math.cos(angle) * radius;
       const y = Math.sin(angle) * radius;
 
-      // Calculate rotation to orient photos toward the center
-      // When angle is 0 (right side), photo should face left (-90 degrees)
-      // When angle is PI/2 (top), photo should be upright (0 degrees)
-      // When angle is PI (left side), photo should face right (90 degrees)
-      // When angle is 3*PI/2 (bottom), photo should face up (180 degrees)
-      const rotation = (angle * 180) / Math.PI + 90;
+      // Calculate rotation to orient photos toward the center using GSAP's coordinate system
+      // GSAP: 0° = top, 90° = right, 180° = bottom, -90° = left
+      // Convert from mathematical angle (0 = right) to GSAP angle (0 = top)
+      let rotation = (angle * 180) / Math.PI + 90;
+
+      // Normalize to GSAP's -180 to 180 range
+      if (rotation > 180) {
+        rotation = rotation - 360;
+      }
 
       return {
         x,
@@ -254,7 +257,7 @@ export default function CircularPhotoLayout() {
       lenisRef.current?.lenis?.raf(time);
       requestAnimationFrame(animate);
 
-      setContainerRotation(gsap.getProperty(containerRef.current, "rotation"));
+      // setContainerRotation(gsap.getProperty(containerRef.current, "rotation"));
     };
 
     requestAnimationFrame(animate);
@@ -290,13 +293,11 @@ export default function CircularPhotoLayout() {
           if (!photoId) return;
 
           const handleMouseEnter = () => {
-            console.log("Mouse enter");
-
             // Only apply hover effect if photo is not clicked
             if (!clickedPhotos.has(photoId)) {
               gsap.to(photoElement, {
                 scale: 2,
-                y: -10,
+                y: 10,
                 duration: 0.3,
                 ease: "power4.inOut",
                 transformOrigin: "center",
@@ -309,7 +310,17 @@ export default function CircularPhotoLayout() {
           const handleMouseLeave = () => {
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
-            // Only return to normal if photo is not clicked
+
+            const isCurrentlyClicked = clickedPhotos.has(photoId);
+            if (isCurrentlyClicked) {
+              // Photo is clicked, remove from clicked state and return to normal
+              setClickedPhotos((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(photoId);
+                return newSet;
+              });
+            }
+
             gsap.to(photoElement, {
               scale: 1,
               y: 0,
@@ -352,22 +363,12 @@ export default function CircularPhotoLayout() {
                 return newSet;
               });
 
-              console.log(containerRotation);
               if (typeof containerRotation !== "number") {
                 return;
               }
               const containerScale = gsap.getProperty(container, "scale");
               if (containerScale !== 1) {
-                gsap.to(photoElement, {
-                  scale: 3,
-                  y: 0,
-                  rotation: -containerRotation,
-                  duration: 0.3,
-                  ease: "power2.out",
-                  transformOrigin: "center",
-                  zIndex: 1000,
-                });
-                console.log(containerRotation);
+                return;
               } else {
                 gsap.to(photoElement, {
                   scale: 5,
@@ -378,10 +379,8 @@ export default function CircularPhotoLayout() {
                   transformOrigin: "center",
                   zIndex: 1000,
                 });
-                console.log(containerRotation);
               }
             }
-            console.log(containerRotation);
           };
 
           // Add event listeners
