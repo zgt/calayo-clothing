@@ -532,7 +532,7 @@ export default function CircularPhotoLayout() {
           {
             scale: 3,
             ease: "none",
-            y: screenSize.height / 2,
+            y: screenSize.height / 1.5,
             scrollTrigger: {
               trigger: scroll,
               start: "top bottom",
