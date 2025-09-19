@@ -35,6 +35,7 @@ export default function CircularPhotoLayout() {
   const lenisRef = useRef<LenisRef>(null);
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
+  const lightRaysRef = useRef<HTMLDivElement>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
 
   // Animate photos sequentially after all have loaded
@@ -110,6 +111,17 @@ export default function CircularPhotoLayout() {
               },
             });
           }
+
+          // Fade in light rays after subtitle animation starts
+          setTimeout(() => {
+            if (lightRaysRef.current) {
+              gsap.to(lightRaysRef.current, {
+                opacity: 1,
+                duration: 2,
+                ease: "power2.out",
+              });
+            }
+          }, 400);
         }, 800);
       }, 100);
     }
@@ -287,6 +299,7 @@ export default function CircularPhotoLayout() {
     const mobileCover = mobileCoverRef.current;
     const spin = spinRef.current;
     const gap = gapRef.current;
+    const lightRays = lightRaysRef.current;
     const photoElements = container?.querySelectorAll(".circular-photo");
     const photosToShow = photos.slice(0, circleConfig.maxPhotos);
 
@@ -310,6 +323,9 @@ export default function CircularPhotoLayout() {
               const moveX = Math.sin(rotationRad) * moveDistance;
               const moveY = -Math.cos(rotationRad) * moveDistance;
 
+              const photoContainer =
+                photoElement.querySelector(".photo-container")!;
+
               gsap.to(photoElement, {
                 scale: 2,
                 x: moveX,
@@ -319,6 +335,24 @@ export default function CircularPhotoLayout() {
                 transformOrigin: "center",
                 zIndex: 1000,
               });
+
+              // Add pulsing glow effect
+              if (photoContainer) {
+                gsap.to(photoContainer, {
+                  boxShadow: "0 0 10px 3px rgba(0, 255, 127, 0.6)",
+                  duration: 0.3,
+                  ease: "power2.inOut",
+                });
+
+                // Start pulsing animation
+                gsap.to(photoContainer, {
+                  boxShadow: "0 0 15px 5px rgba(0, 255, 127, 0.8)",
+                  duration: 2,
+                  ease: "sine.inOut",
+                  repeat: -1,
+                  yoyo: true,
+                });
+              }
             }
           };
 
@@ -331,6 +365,9 @@ export default function CircularPhotoLayout() {
               return;
             }
 
+            const photoContainer =
+              photoElement.querySelector(".photo-container")!;
+
             gsap.to(photoElement, {
               scale: 1,
               x: 0,
@@ -341,6 +378,16 @@ export default function CircularPhotoLayout() {
               transformOrigin: "center",
               zIndex: 1,
             });
+
+            // Remove glow effect
+            if (photoContainer) {
+              gsap.killTweensOf(photoContainer); // Stop any ongoing glow animations
+              gsap.to(photoContainer, {
+                boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
+                duration: 0.3,
+                ease: "power2.out",
+              });
+            }
           };
 
           const handleClick = () => {
@@ -440,6 +487,37 @@ export default function CircularPhotoLayout() {
           },
         });
       }
+
+      // Animate light rays
+      if (lightRays) {
+        gsap.to(lightRays, {
+          rotation: -360,
+          duration: 60,
+          ease: "none",
+          repeat: -1,
+        });
+
+        // Subtle opacity pulse for rays
+        gsap.to(lightRays, {
+          opacity: 0.3,
+          duration: 3,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+        });
+      }
+
+      // Breathing animation for the entire circle
+      if (circle) {
+        gsap.to(circle, {
+          scale: 1.02,
+          duration: 4,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+        });
+      }
+
       ScrollTrigger.defaults({
         toggleActions: "restart none reverse none",
       });
@@ -702,6 +780,56 @@ export default function CircularPhotoLayout() {
               minHeight: circleConfig.minHeight,
             }}
           >
+            {/* Light rays emanating from center */}
+            <div
+              ref={lightRaysRef}
+              className="light-rays"
+              style={{
+                position: "absolute",
+                width: circleConfig.radius * 2 + circleConfig.photoSize,
+                height: circleConfig.radius * 2 + circleConfig.photoSize,
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 5,
+                pointerEvents: "none",
+                opacity: 0,
+              }}
+            >
+              {[...Array(64)].map((_, i) => {
+                // Generate random-seeming but consistent angles for each ray
+                const seedAngle = (i * 137.5) % 360; // Golden angle for natural distribution
+                const randomOffset = Math.sin(i * 2.4) * 15; // Deterministic "random" offset
+                const finalAngle = seedAngle + randomOffset;
+
+                // Vary ray lengths randomly but consistently
+                const lengthVariation = 0.6 + Math.sin(i * 1.7) * 0.9; // 0.3 to 0.9 multiplier
+                const rayLength = circleConfig.radius * lengthVariation;
+
+                // Vary ray width slightly
+                const widthVariation = 1 + Math.sin(i * 3.1) * 0.5; // 0.5 to 1.5px
+
+                return (
+                  <div
+                    key={i}
+                    className={`light-ray light-ray-${i}`}
+                    style={{
+                      position: "absolute",
+                      left: "50%",
+                      top: "50%",
+                      width: `${widthVariation}px`,
+                      height: `${rayLength}px`,
+                      background:
+                        "linear-gradient(to bottom, rgba(0, 255, 127, 1) 0%, rgba(0, 255, 127, 0.4) 50%, rgba(0, 255, 127, 0.2) 100%)",
+                      transformOrigin: "50% 0%",
+                      transform: `translate(-50%, 0%) rotate(${finalAngle}deg)`,
+                      opacity: 0.4 + Math.sin(i * 2.8) * 0.6, // 0.2 to 0.6 opacity
+                    }}
+                  />
+                );
+              })}
+            </div>
+
             {/* Circular photo layout */}
             <div
               id="circle"
@@ -710,6 +838,8 @@ export default function CircularPhotoLayout() {
               style={{
                 width: circleConfig.radius * 2 + circleConfig.photoSize,
                 height: circleConfig.radius * 2 + circleConfig.photoSize,
+                position: "relative",
+                zIndex: 10,
               }}
             >
               {photosToShow.map((photo, index) => {
@@ -733,14 +863,15 @@ export default function CircularPhotoLayout() {
                     {/* <a>{position.rotation}</a> */}
                     {/* <MagneticDiv>*/}
                     <div
-                      className="relative overflow-hidden rounded-lg shadow-lg"
+                      className="photo-container relative overflow-hidden rounded-lg shadow-lg"
                       data-photo-id={photo.id}
                       style={{
-                        transition: "transform 0.3s ease",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
                         width: "100%",
                         height: "100%",
                         transformOrigin: "center",
                         opacity: 0,
+                        boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
                       }}
                     >
                       <Image
