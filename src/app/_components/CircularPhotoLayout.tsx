@@ -124,6 +124,7 @@ export default function CircularPhotoLayout() {
       if (width < 480) {
         // Small mobile
         return {
+          name: "small-mobile",
           radius: minDimension * 0.42,
           photoSize: 70,
           maxPhotos: 12,
@@ -132,6 +133,7 @@ export default function CircularPhotoLayout() {
       } else {
         // Large mobile
         return {
+          name: "large-mobile",
           radius: minDimension * 0.44,
           photoSize: 80,
           maxPhotos: 12,
@@ -141,6 +143,7 @@ export default function CircularPhotoLayout() {
     } else if (isTablet) {
       // Tablet
       return {
+        name: "tablet",
         radius: minDimension * 0.43,
         photoSize: 90,
         maxPhotos: 16,
@@ -150,6 +153,7 @@ export default function CircularPhotoLayout() {
       if (width < 1440) {
         // Desktop
         return {
+          name: "desktop",
           radius: minDimension * 0.4,
           photoSize: 100,
           maxPhotos: 20,
@@ -158,8 +162,9 @@ export default function CircularPhotoLayout() {
       } else {
         // Large desktop
         return {
+          name: "large-desktop",
           radius: minDimension * 0.43,
-          photoSize: 110,
+          photoSize: 121,
           maxPhotos: 24,
           minHeight: "100vh",
         };
@@ -167,6 +172,7 @@ export default function CircularPhotoLayout() {
     } else {
       // Fallback
       return {
+        name: "fallback",
         radius: minDimension * 0.42,
         photoSize: 100,
         maxPhotos: 20,
@@ -309,7 +315,7 @@ export default function CircularPhotoLayout() {
                 x: moveX,
                 y: moveY,
                 duration: 0.3,
-                ease: "power4.inOut",
+                ease: "power2.inOut",
                 transformOrigin: "center",
                 zIndex: 1000,
               });
@@ -322,12 +328,7 @@ export default function CircularPhotoLayout() {
 
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             if (isCurrentlyClicked) {
-              // Photo is clicked, remove from clicked state and return to normal
-              setClickedPhotos((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(photoId);
-                return newSet;
-              });
+              return;
             }
 
             gsap.to(photoElement, {
@@ -345,9 +346,13 @@ export default function CircularPhotoLayout() {
           const handleClick = () => {
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             const originalPosition = photoPositions[index];
-
-            const containerRotation = gsap.getProperty(container, "rotation");
             if (!originalPosition) return;
+
+            const containerScale = gsap.getProperty(container, "scale");
+            if (containerScale !== 1) {
+              return;
+            }
+            const containerRotation = gsap.getProperty(container, "rotation");
 
             if (isCurrentlyClicked) {
               // Photo is clicked, return to normal with original rotation
@@ -362,7 +367,7 @@ export default function CircularPhotoLayout() {
                 y: 0,
                 rotation: originalPosition.rotation,
                 duration: 0.3,
-                ease: "power2.out",
+                ease: "power4.out",
                 transformOrigin: "center",
               });
             } else {
@@ -376,13 +381,25 @@ export default function CircularPhotoLayout() {
               if (typeof containerRotation !== "number") {
                 return;
               }
-              const containerScale = gsap.getProperty(container, "scale");
               if (containerScale !== 1) {
                 return;
               } else {
+                // Calculate movement toward the center of the circle
+                // Compute distance from photo's current position to center
+                const distanceFromCenter = Math.sqrt(
+                  originalPosition.x * originalPosition.x +
+                    originalPosition.y * originalPosition.y,
+                );
+                // Move a percentage of the distance toward center (e.g., 30%)
+                const moveDistance = -distanceFromCenter;
+                const rotationRad = (originalPosition.rotation * Math.PI) / 180;
+                const moveX = Math.sin(rotationRad) * moveDistance;
+                const moveY = -Math.cos(rotationRad) * moveDistance;
+
                 gsap.to(photoElement, {
                   scale: 5,
-                  y: 0,
+                  x: moveX,
+                  y: moveY,
                   rotation: -containerRotation,
                   duration: 0.3,
                   ease: "power2.out",
@@ -483,7 +500,7 @@ export default function CircularPhotoLayout() {
           {
             scale: 2,
             ease: "none",
-            y: 800,
+            y: screenSize.height / 1.2,
             scrollTrigger: {
               trigger: scroll,
               start: "top bottom",
@@ -494,30 +511,28 @@ export default function CircularPhotoLayout() {
             },
           },
           "start",
-        )
-          //.add("spin", ">")
-          .to(
-            container,
-            {
-              rotation: -360,
-              ease: "none",
-              scrollTrigger: {
-                trigger: spin,
-                start: "bottom bottom",
-                end: "+=1000",
-                pin: true,
-                scrub: true,
-              },
+        ).to(
+          container,
+          {
+            rotation: -360,
+            ease: "none",
+            scrollTrigger: {
+              trigger: spin,
+              start: "bottom bottom",
+              end: "+=1000",
+              pin: true,
+              scrub: true,
             },
-            "spin",
-          );
+          },
+          "spin",
+        );
       } else if (isMobile && container) {
         tl.to(
           container,
           {
             scale: 3,
             ease: "none",
-            y: 400,
+            y: screenSize.height / 2,
             scrollTrigger: {
               trigger: scroll,
               start: "top bottom",
@@ -598,7 +613,7 @@ export default function CircularPhotoLayout() {
       }}
       ref={lenisRef}
     >
-      <main className="relative min-h-screen w-full">
+      <main className="relative -mt-16 min-h-screen w-full">
         <div className="content">
           {/* Mobile: Logo and subtitle above circle */}
           {isMobile && (
@@ -699,7 +714,8 @@ export default function CircularPhotoLayout() {
               })}
             </div>
           </div>
-          <div style={{ height: 1000 }} />
+          {/* <div style={{ height: 1500 }} />*/}
+          <div style={{ height: screenSize.height }} />
           <div
             ref={scrollRef}
             style={{
