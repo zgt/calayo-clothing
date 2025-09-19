@@ -163,7 +163,7 @@ export default function CircularPhotoLayout() {
         // Large desktop
         return {
           name: "large-desktop",
-          radius: minDimension * 0.43,
+          radius: minDimension * 0.4,
           photoSize: 121,
           maxPhotos: 24,
           minHeight: "100vh",
@@ -435,8 +435,8 @@ export default function CircularPhotoLayout() {
         Draggable.create(container, {
           type: "rotation",
           inertia: true,
-          snap: function (value) {
-            return Math.round(value / photos.length) * photos.length;
+          snap: function () {
+            return 0;
           },
         });
       }
@@ -470,7 +470,9 @@ export default function CircularPhotoLayout() {
           "start",
         );
       } else if (isMobile && mobileCover && circle) {
-        const circleMiddle = circle?.getBoundingClientRect().height / 2;
+        const circleMiddle =
+          circle?.getBoundingClientRect().height / 2 +
+          mobileCover.getBoundingClientRect().top;
         gsap.set(mobileCover, { y: circleMiddle });
         tl.to(
           mobileCover,
@@ -508,6 +510,33 @@ export default function CircularPhotoLayout() {
               end: "+=500",
               pin: gap,
               scrub: true,
+              onEnter: () => {
+                // Minimize any currently clicked photos when scrolling starts
+                if (clickedPhotos.size > 0) {
+                  clickedPhotos.forEach((photoId) => {
+                    const photoIndex = photosToShow.findIndex(
+                      (p) => p.id === photoId,
+                    );
+                    if (photoIndex !== -1) {
+                      const photoElement = photoElements?.[photoIndex];
+                      const originalPosition = photoPositions[photoIndex];
+                      if (photoElement && originalPosition) {
+                        gsap.to(photoElement, {
+                          scale: 1,
+                          x: 0,
+                          y: 0,
+                          rotation: originalPosition.rotation,
+                          duration: 0.3,
+                          ease: "power4.out",
+                          transformOrigin: "center",
+                          zIndex: 1,
+                        });
+                      }
+                    }
+                  });
+                  setClickedPhotos(new Set());
+                }
+              },
             },
           },
           "start",
@@ -540,6 +569,33 @@ export default function CircularPhotoLayout() {
               end: "+=500",
               pin: gap,
               scrub: true,
+              onEnter: () => {
+                // Minimize any currently clicked photos when scrolling starts
+                if (clickedPhotos.size > 0) {
+                  clickedPhotos.forEach((photoId) => {
+                    const photoIndex = photosToShow.findIndex(
+                      (p) => p.id === photoId,
+                    );
+                    if (photoIndex !== -1) {
+                      const photoElement = photoElements?.[photoIndex];
+                      const originalPosition = photoPositions[photoIndex];
+                      if (photoElement && originalPosition) {
+                        gsap.to(photoElement, {
+                          scale: 1,
+                          x: 0,
+                          y: 0,
+                          rotation: originalPosition.rotation,
+                          duration: 0.3,
+                          ease: "power4.out",
+                          transformOrigin: "center",
+                          zIndex: 1,
+                        });
+                      }
+                    }
+                  });
+                  setClickedPhotos(new Set());
+                }
+              },
             },
           },
           "start",
