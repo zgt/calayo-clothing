@@ -14,6 +14,7 @@ import { ourFileRouter } from "~/server/uploadthing";
 import ShaderGradientBackground from "./_components/ShaderGradient";
 import MainContent from "./_components/MainContent";
 import { Analytics } from "@vercel/analytics/next";
+import CursorTrail from "./_components/CursorTrail";
 
 export const metadata: Metadata = {
   title: "Calayo Clothing",
@@ -39,6 +40,7 @@ export default function RootLayout({
             <Nav />
             <FloatingProfile />
             <ShaderGradientBackground />
+            <CursorTrail />
             <MainContent>{children}</MainContent>
             <Toaster />
             <SpeedInsights />
