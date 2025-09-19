@@ -36,7 +36,15 @@ export default function CircularPhotoLayout() {
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const lightRaysRef = useRef<HTMLDivElement>(null);
+  const progressRingRef = useRef<SVGCircleElement>(null);
+  const cursorTrailRef = useRef<HTMLDivElement>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
+
+  // Cursor trail state
+  const mousePosition = useRef({ x: 0, y: 0 });
+  const particles = useRef<
+    Array<{ x: number; y: number; life: number; element: HTMLDivElement }>
+  >([]);
 
   // Animate photos sequentially after all have loaded
   const animatePhotosSequentially = () => {
@@ -71,8 +79,21 @@ export default function CircularPhotoLayout() {
     const totalPhotos = photos.slice(0, circleConfig.maxPhotos).length;
 
     // Track individual image loading - increment counter
-
     loadedImagesCount.current += 1;
+
+    // Update progress ring with loading progress
+    if (progressRingRef.current) {
+      const progress = loadedImagesCount.current / totalPhotos;
+      const radius = circleConfig.radius + circleConfig.photoSize * 0.75;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference * (1 - progress);
+
+      gsap.to(progressRingRef.current, {
+        strokeDashoffset: offset,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
 
     // Check if all images are loaded
     if (loadedImagesCount.current === totalPhotos && !imagesLoaded) {
@@ -112,7 +133,7 @@ export default function CircularPhotoLayout() {
             });
           }
 
-          // Fade in light rays after subtitle animation starts
+          // Fade in light rays and progress ring after subtitle animation starts
           setTimeout(() => {
             if (lightRaysRef.current) {
               gsap.to(lightRaysRef.current, {
@@ -120,6 +141,15 @@ export default function CircularPhotoLayout() {
                 duration: 2,
                 ease: "power2.out",
               });
+            }
+
+            // Show progress ring but keep it hidden until scroll starts
+            if (progressRingRef.current) {
+              const progressRingSvg = progressRingRef.current.closest("svg");
+              if (progressRingSvg) {
+                // Keep it hidden initially, will show on scroll trigger
+                gsap.set(progressRingSvg, { opacity: 0 });
+              }
             }
           }, 400);
         }, 800);
@@ -264,6 +294,95 @@ export default function CircularPhotoLayout() {
     };
   }, [screenSize.width, screenSize.height]);
 
+  // Cursor trail effect
+  useEffect(() => {
+    if (isMobile) return; // Skip on mobile devices
+
+    let animationFrame: number;
+    let lastSpawnTime = 0;
+    const spawnInterval = 50; // Spawn particle every 50ms
+
+    const createParticle = (x: number, y: number) => {
+      const particle = document.createElement("div");
+      particle.style.cssText = `
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: rgba(0, 255, 127, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        box-shadow: 0 0 6px rgba(0, 255, 127, 0.6);
+        left: ${x - 2}px;
+        top: ${y - 2}px;
+      `;
+
+      if (cursorTrailRef.current) {
+        cursorTrailRef.current.appendChild(particle);
+      }
+
+      return {
+        x,
+        y,
+        life: 1.0,
+        element: particle,
+      };
+    };
+
+    const updateParticles = (timestamp: number) => {
+      // Spawn new particle if enough time has passed
+      if (timestamp - lastSpawnTime > spawnInterval) {
+        const newParticle = createParticle(
+          mousePosition.current.x,
+          mousePosition.current.y,
+        );
+        particles.current.push(newParticle);
+        lastSpawnTime = timestamp;
+      }
+
+      // Update existing particles
+      particles.current = particles.current.filter((particle) => {
+        particle.life -= 0.02;
+
+        if (particle.life <= 0) {
+          if (particle.element.parentNode) {
+            particle.element.parentNode.removeChild(particle.element);
+          }
+          return false;
+        }
+
+        // Update particle appearance
+        particle.element.style.opacity = particle.life.toString();
+        particle.element.style.transform = `scale(${particle.life})`;
+
+        return true;
+      });
+
+      animationFrame = requestAnimationFrame(updateParticles);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePosition.current = { x: e.clientX, y: e.clientY };
+    };
+
+    // Start the animation loop
+    animationFrame = requestAnimationFrame(updateParticles);
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("mousemove", handleMouseMove);
+
+      // Clean up particles
+      particles.current.forEach((particle) => {
+        if (particle.element.parentNode) {
+          particle.element.parentNode.removeChild(particle.element);
+        }
+      });
+      particles.current = [];
+    };
+  }, [isMobile]);
+
   // Lenis integration
   useEffect(() => {
     function update(time: number) {
@@ -300,6 +419,7 @@ export default function CircularPhotoLayout() {
     const spin = spinRef.current;
     const gap = gapRef.current;
     const lightRays = lightRaysRef.current;
+    const progressRing = progressRingRef.current;
     const photoElements = container?.querySelectorAll(".circular-photo");
     const photosToShow = photos.slice(0, circleConfig.maxPhotos);
 
@@ -327,11 +447,11 @@ export default function CircularPhotoLayout() {
                 photoElement.querySelector(".photo-container")!;
 
               gsap.to(photoElement, {
-                scale: 2,
+                scale: 1.8,
                 x: moveX,
                 y: moveY,
                 duration: 0.3,
-                ease: "power2.inOut",
+                ease: "power4.inOut",
                 transformOrigin: "center",
                 zIndex: 1000,
               });
@@ -353,6 +473,43 @@ export default function CircularPhotoLayout() {
                   yoyo: true,
                 });
               }
+
+              // Cascade effect: animate neighboring photos
+              const totalPhotos = photosToShow.length;
+              photoElements?.forEach((neighborElement, neighborIndex) => {
+                if (neighborIndex === index) return; // Skip the hovered photo itself
+
+                const neighborPhotoId = photosToShow[neighborIndex]?.id;
+                if (!neighborPhotoId || clickedPhotos.has(neighborPhotoId))
+                  return;
+
+                // Calculate distance between photos (accounting for circular nature)
+                const distance1 = Math.abs(neighborIndex - index);
+                const distance2 = totalPhotos - distance1;
+                const circularDistance = Math.min(distance1, distance2);
+
+                // Only affect immediate neighbors (1-2 positions away)
+                if (circularDistance <= 2) {
+                  const intensity = circularDistance === 1 ? 0.5 : 0.25;
+                  const neighborContainer =
+                    neighborElement.querySelector(".photo-container");
+
+                  // Subtle scale and glow for neighbors
+                  gsap.to(neighborElement, {
+                    scale: 1 + 0.3 * intensity,
+                    duration: 0.3,
+                    ease: "power2.inOut",
+                  });
+
+                  if (neighborContainer) {
+                    gsap.to(neighborContainer, {
+                      boxShadow: `0 0 ${5 * intensity}px 2px rgba(0, 255, 127, ${0.3 * intensity})`,
+                      duration: 0.3,
+                      ease: "power2.inOut",
+                    });
+                  }
+                }
+              });
             }
           };
 
@@ -388,6 +545,44 @@ export default function CircularPhotoLayout() {
                 ease: "power2.out",
               });
             }
+
+            // Reset cascade effect on neighboring photos
+            const totalPhotos = photosToShow.length;
+            photoElements?.forEach((neighborElement, neighborIndex) => {
+              if (neighborIndex === index) return; // Skip the main photo
+
+              const neighborPhotoId = photosToShow[neighborIndex]?.id;
+              if (!neighborPhotoId || clickedPhotos.has(neighborPhotoId))
+                return;
+
+              // Calculate distance between photos (accounting for circular nature)
+              const distance1 = Math.abs(neighborIndex - index);
+              const distance2 = totalPhotos - distance1;
+              const circularDistance = Math.min(distance1, distance2);
+
+              // Reset neighbors that were affected
+              if (circularDistance <= 2) {
+                const neighborContainer =
+                  neighborElement.querySelector(".photo-container");
+                const neighborOriginalPosition = photoPositions[neighborIndex];
+
+                gsap.to(neighborElement, {
+                  scale: 1,
+                  duration: 0.3,
+                  rotation: neighborOriginalPosition?.rotation || 0,
+                  ease: "power2.out",
+                });
+
+                if (neighborContainer) {
+                  gsap.killTweensOf(neighborContainer);
+                  gsap.to(neighborContainer, {
+                    boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
+                    duration: 0.3,
+                    ease: "power2.out",
+                  });
+                }
+              }
+            });
           };
 
           const handleClick = () => {
@@ -406,6 +601,15 @@ export default function CircularPhotoLayout() {
               setClickedPhotos((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(photoId);
+
+                // Resume breathing animation if no photos are clicked
+                if (newSet.size === 0 && circle) {
+                  const breathingAnim = (circle as any)._breathingAnimation;
+                  if (breathingAnim) {
+                    breathingAnim.play();
+                  }
+                }
+
                 return newSet;
               });
 
@@ -422,6 +626,15 @@ export default function CircularPhotoLayout() {
               setClickedPhotos((prev) => {
                 const newSet = new Set(prev);
                 newSet.add(photoId);
+
+                // Pause breathing animation when any photo is clicked
+                if (newSet.size === 1 && circle) {
+                  const breathingAnim = (circle as any)._breathingAnimation;
+                  if (breathingAnim) {
+                    breathingAnim.pause();
+                  }
+                }
+
                 return newSet;
               });
 
@@ -499,8 +712,8 @@ export default function CircularPhotoLayout() {
 
         // Subtle opacity pulse for rays
         gsap.to(lightRays, {
-          opacity: 0.3,
-          duration: 3,
+          opacity: 0.5,
+          duration: 4,
           ease: "sine.inOut",
           repeat: -1,
           yoyo: true,
@@ -508,14 +721,18 @@ export default function CircularPhotoLayout() {
       }
 
       // Breathing animation for the entire circle
+      let breathingAnimation: gsap.core.Tween;
       if (circle) {
-        gsap.to(circle, {
+        breathingAnimation = gsap.to(circle, {
           scale: 1.02,
           duration: 4,
           ease: "sine.inOut",
           repeat: -1,
           yoyo: true,
         });
+
+        // Store the breathing animation for later control
+        (circle as any)._breathingAnimation = breathingAnimation;
       }
 
       ScrollTrigger.defaults({
@@ -612,7 +829,28 @@ export default function CircularPhotoLayout() {
                       }
                     }
                   });
+
+                  // Resume breathing animation since all photos are being reset
+                  if (circle) {
+                    const breathingAnim = (circle as any)._breathingAnimation;
+                    if (breathingAnim) {
+                      breathingAnim.play();
+                    }
+                  }
+
                   setClickedPhotos(new Set());
+                }
+
+                // Show progress ring when scroll starts
+                if (progressRing) {
+                  const progressRingSvg = progressRing.closest("svg");
+                  if (progressRingSvg) {
+                    gsap.to(progressRingSvg, {
+                      opacity: 1,
+                      duration: 0.5,
+                      ease: "power2.out",
+                    });
+                  }
                 }
               },
             },
@@ -629,6 +867,20 @@ export default function CircularPhotoLayout() {
               end: "+=1000",
               pin: true,
               scrub: true,
+              onUpdate: (self) => {
+                // Update progress ring with scroll progress (desktop)
+                if (progressRing) {
+                  const progress = self.progress;
+                  const radius =
+                    circleConfig.radius + circleConfig.photoSize * 0.75;
+                  const circumference = 2 * Math.PI * radius;
+                  const offset = circumference * (1 - progress);
+
+                  gsap.set(progressRing, {
+                    strokeDashoffset: offset,
+                  });
+                }
+              },
             },
           },
           "spin",
@@ -671,7 +923,42 @@ export default function CircularPhotoLayout() {
                       }
                     }
                   });
+
+                  // Resume breathing animation since all photos are being reset
+                  if (circle) {
+                    const breathingAnim = (circle as any)._breathingAnimation;
+                    if (breathingAnim) {
+                      breathingAnim.play();
+                    }
+                  }
+
                   setClickedPhotos(new Set());
+                }
+
+                // Show progress ring when scroll starts
+                if (progressRing) {
+                  const progressRingSvg = progressRing.closest("svg");
+                  if (progressRingSvg) {
+                    gsap.to(progressRingSvg, {
+                      opacity: 1,
+                      duration: 0.5,
+                      ease: "power2.out",
+                    });
+                  }
+                }
+              },
+              onUpdate: (self) => {
+                // Update progress ring with scroll progress (mobile)
+                if (progressRing) {
+                  const progress = self.progress;
+                  const radius =
+                    circleConfig.radius + circleConfig.photoSize * 0.75;
+                  const circumference = 2 * Math.PI * radius;
+                  const offset = circumference * (1 - progress);
+
+                  gsap.set(progressRing, {
+                    strokeDashoffset: offset,
+                  });
                 }
               },
             },
@@ -747,6 +1034,12 @@ export default function CircularPhotoLayout() {
       }}
       ref={lenisRef}
     >
+      {/* Cursor trail container */}
+      <div
+        ref={cursorTrailRef}
+        className="pointer-events-none fixed inset-0 z-[9999]"
+      />
+
       <main className="relative -mt-16 min-h-screen w-full">
         <div className="content">
           {/* Mobile: Logo and subtitle above circle */}
@@ -780,6 +1073,36 @@ export default function CircularPhotoLayout() {
               minHeight: circleConfig.minHeight,
             }}
           >
+            {/* Progress Ring */}
+            <svg
+              style={{
+                position: "absolute",
+                width: circleConfig.radius * 2 + circleConfig.photoSize * 1.5,
+                height: circleConfig.radius * 2 + circleConfig.photoSize * 1.5,
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%) rotate(-90deg)",
+                zIndex: 15,
+                pointerEvents: "none",
+                opacity: 0,
+              }}
+            >
+              <circle
+                cx="50%"
+                cy="50%"
+                r={circleConfig.radius + circleConfig.photoSize * 0.75}
+                fill="none"
+                stroke="rgba(0, 255, 127, 0.3)"
+                strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * (circleConfig.radius + circleConfig.photoSize * 0.75)}`}
+                strokeDashoffset={`${2 * Math.PI * (circleConfig.radius + circleConfig.photoSize * 0.75)}`}
+                ref={progressRingRef}
+                style={{
+                  transition: "stroke-dashoffset 0.3s ease",
+                }}
+              />
+            </svg>
+
             {/* Light rays emanating from center */}
             <div
               ref={lightRaysRef}
@@ -917,7 +1240,7 @@ export default function CircularPhotoLayout() {
           {!isMobile && (
             <div
               ref={coverRef}
-              className="cover pointer-events-none fixed inset-0 z-10 flex items-center justify-center"
+              className="cover pointer-events-none fixed inset-0 z-100 flex items-center justify-center"
             >
               <div className="px-4 text-center text-white">
                 <div className="mb-4">
