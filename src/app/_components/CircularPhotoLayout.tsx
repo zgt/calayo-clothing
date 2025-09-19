@@ -81,19 +81,7 @@ export default function CircularPhotoLayout() {
     // Track individual image loading - increment counter
     loadedImagesCount.current += 1;
 
-    // Update progress ring with loading progress
-    if (progressRingRef.current) {
-      const progress = loadedImagesCount.current / totalPhotos;
-      const radius = circleConfig.radius + circleConfig.photoSize * 0.75;
-      const circumference = 2 * Math.PI * radius;
-      const offset = circumference * (1 - progress);
-
-      gsap.to(progressRingRef.current, {
-        strokeDashoffset: offset,
-        duration: 0.3,
-        ease: "power2.out",
-      });
-    }
+    // Progress ring will be updated only during scroll animation, not during image loading
 
     // Check if all images are loaded
     if (loadedImagesCount.current === totalPhotos && !imagesLoaded) {
@@ -137,7 +125,7 @@ export default function CircularPhotoLayout() {
           setTimeout(() => {
             if (lightRaysRef.current) {
               gsap.to(lightRaysRef.current, {
-                opacity: 1,
+                opacity: 0.5,
                 duration: 2,
                 ease: "power2.out",
               });
@@ -160,14 +148,21 @@ export default function CircularPhotoLayout() {
   // Responsive circle configuration
   const circleConfig = useMemo(() => {
     const { width, height } = screenSize;
+    const aspectRatio = width / height;
     const minDimension = Math.min(width, height);
+
+    // For wide screens (aspect ratio > 1.5), use height-based calculation with larger multiplier
+    // For normal screens, use minimum dimension
+    const baseRadius = aspectRatio > 1.5 ? height * 0.35 : minDimension * 0.4;
+    console.log(aspectRatio);
 
     if (isMobile) {
       if (width < 480) {
         // Small mobile
         return {
           name: "small-mobile",
-          radius: minDimension * 0.42,
+          aspectRatio,
+          radius: aspectRatio > 2 ? height * 0.3 : minDimension * 0.42,
           photoSize: 70,
           maxPhotos: 12,
           minHeight: "100vh",
@@ -176,7 +171,8 @@ export default function CircularPhotoLayout() {
         // Large mobile
         return {
           name: "large-mobile",
-          radius: minDimension * 0.44,
+          aspectRatio,
+          radius: aspectRatio > 2 ? height * 0.32 : minDimension * 0.44,
           photoSize: 80,
           maxPhotos: 12,
           minHeight: "100vh",
@@ -186,7 +182,8 @@ export default function CircularPhotoLayout() {
       // Tablet
       return {
         name: "tablet",
-        radius: minDimension * 0.43,
+        aspectRatio,
+        radius: aspectRatio > 2 ? height * 0.33 : minDimension * 0.43,
         photoSize: 90,
         maxPhotos: 16,
         minHeight: "100vh",
@@ -196,7 +193,8 @@ export default function CircularPhotoLayout() {
         // Desktop
         return {
           name: "desktop",
-          radius: minDimension * 0.4,
+          aspectRatio,
+          radius: baseRadius,
           photoSize: 100,
           maxPhotos: 20,
           minHeight: "50vh",
@@ -205,7 +203,8 @@ export default function CircularPhotoLayout() {
         // Large desktop
         return {
           name: "large-desktop",
-          radius: minDimension * 0.4,
+          aspectRatio,
+          radius: aspectRatio > 2 ? height : minDimension * 0.42,
           photoSize: 121,
           maxPhotos: 24,
           minHeight: "100vh",
@@ -215,7 +214,8 @@ export default function CircularPhotoLayout() {
       // Fallback
       return {
         name: "fallback",
-        radius: minDimension * 0.42,
+        aspectRatio,
+        radius: aspectRatio > 2 ? height * 0.32 : minDimension * 0.42,
         photoSize: 100,
         maxPhotos: 20,
         minHeight: "100vh",
@@ -569,7 +569,7 @@ export default function CircularPhotoLayout() {
                 gsap.to(neighborElement, {
                   scale: 1,
                   duration: 0.3,
-                  rotation: neighborOriginalPosition?.rotation || 0,
+                  rotation: neighborOriginalPosition?.rotation ?? 0,
                   ease: "power2.out",
                 });
 
@@ -604,7 +604,11 @@ export default function CircularPhotoLayout() {
 
                 // Resume breathing animation if no photos are clicked
                 if (newSet.size === 0 && circle) {
-                  const breathingAnim = (circle as any)._breathingAnimation;
+                  const breathingAnim = (
+                    circle as HTMLElement & {
+                      _breathingAnimation?: gsap.core.Tween;
+                    }
+                  )._breathingAnimation;
                   if (breathingAnim) {
                     breathingAnim.play();
                   }
@@ -629,7 +633,11 @@ export default function CircularPhotoLayout() {
 
                 // Pause breathing animation when any photo is clicked
                 if (newSet.size === 1 && circle) {
-                  const breathingAnim = (circle as any)._breathingAnimation;
+                  const breathingAnim = (
+                    circle as HTMLElement & {
+                      _breathingAnimation?: gsap.core.Tween;
+                    }
+                  )._breathingAnimation;
                   if (breathingAnim) {
                     breathingAnim.pause();
                   }
@@ -732,7 +740,9 @@ export default function CircularPhotoLayout() {
         });
 
         // Store the breathing animation for later control
-        (circle as any)._breathingAnimation = breathingAnimation;
+        (
+          circle as HTMLElement & { _breathingAnimation?: gsap.core.Tween }
+        )._breathingAnimation = breathingAnimation;
       }
 
       ScrollTrigger.defaults({
@@ -797,7 +807,10 @@ export default function CircularPhotoLayout() {
           {
             scale: 2,
             ease: "none",
-            y: screenSize.height / 1.2,
+            y:
+              circleConfig.aspectRatio > 2
+                ? screenSize.height / 0.7
+                : screenSize.height / 1.5,
             scrollTrigger: {
               trigger: scroll,
               start: "top bottom",
@@ -832,25 +845,17 @@ export default function CircularPhotoLayout() {
 
                   // Resume breathing animation since all photos are being reset
                   if (circle) {
-                    const breathingAnim = (circle as any)._breathingAnimation;
+                    const breathingAnim = (
+                      circle as HTMLElement & {
+                        _breathingAnimation?: gsap.core.Tween;
+                      }
+                    )._breathingAnimation;
                     if (breathingAnim) {
                       breathingAnim.play();
                     }
                   }
 
                   setClickedPhotos(new Set());
-                }
-
-                // Show progress ring when scroll starts
-                if (progressRing) {
-                  const progressRingSvg = progressRing.closest("svg");
-                  if (progressRingSvg) {
-                    gsap.to(progressRingSvg, {
-                      opacity: 1,
-                      duration: 0.5,
-                      ease: "power2.out",
-                    });
-                  }
                 }
               },
             },
@@ -875,6 +880,14 @@ export default function CircularPhotoLayout() {
                     circleConfig.radius + circleConfig.photoSize * 0.75;
                   const circumference = 2 * Math.PI * radius;
                   const offset = circumference * (1 - progress);
+                  const progressRingSvg = progressRing.closest("svg");
+                  if (progressRingSvg) {
+                    gsap.to(progressRingSvg, {
+                      opacity: 1,
+                      duration: 0.5,
+                      ease: "power2.out",
+                    });
+                  }
 
                   gsap.set(progressRing, {
                     strokeDashoffset: offset,
@@ -891,7 +904,10 @@ export default function CircularPhotoLayout() {
           {
             scale: 3,
             ease: "none",
-            y: screenSize.height / 1.5,
+            y:
+              circleConfig.aspectRatio > 2
+                ? screenSize.height / 1
+                : screenSize.height / 1.5,
             scrollTrigger: {
               trigger: scroll,
               start: "top bottom",
@@ -926,7 +942,11 @@ export default function CircularPhotoLayout() {
 
                   // Resume breathing animation since all photos are being reset
                   if (circle) {
-                    const breathingAnim = (circle as any)._breathingAnimation;
+                    const breathingAnim = (
+                      circle as HTMLElement & {
+                        _breathingAnimation?: gsap.core.Tween;
+                      }
+                    )._breathingAnimation;
                     if (breathingAnim) {
                       breathingAnim.play();
                     }
@@ -1006,6 +1026,9 @@ export default function CircularPhotoLayout() {
     isMobile,
     clickedPhotos,
     circleConfig.maxPhotos,
+    circleConfig.aspectRatio,
+    circleConfig.photoSize,
+    circleConfig.radius,
   ]);
 
   if (isLoading) {
@@ -1082,7 +1105,7 @@ export default function CircularPhotoLayout() {
                 left: "50%",
                 top: "50%",
                 transform: "translate(-50%, -50%) rotate(-90deg)",
-                zIndex: 15,
+                zIndex: 1,
                 pointerEvents: "none",
                 opacity: 0,
               }}
@@ -1114,12 +1137,12 @@ export default function CircularPhotoLayout() {
                 left: "50%",
                 top: "50%",
                 transform: "translate(-50%, -50%)",
-                zIndex: 5,
+                zIndex: 10,
                 pointerEvents: "none",
                 opacity: 0,
               }}
             >
-              {[...Array(64)].map((_, i) => {
+              {Array.from({ length: 64 }, (_, i) => {
                 // Generate random-seeming but consistent angles for each ray
                 const seedAngle = (i * 137.5) % 360; // Golden angle for natural distribution
                 const randomOffset = Math.sin(i * 2.4) * 15; // Deterministic "random" offset
@@ -1183,8 +1206,6 @@ export default function CircularPhotoLayout() {
                       transition: "transform 0.3s ease",
                     }}
                   >
-                    {/* <a>{position.rotation}</a> */}
-                    {/* <MagneticDiv>*/}
                     <div
                       className="photo-container relative overflow-hidden rounded-lg shadow-lg"
                       data-photo-id={photo.id}
@@ -1205,20 +1226,9 @@ export default function CircularPhotoLayout() {
                           objectFit: "cover",
                         }}
                         onLoad={() => handleImageLoad()}
-                        // onMouseEnter={(e) => {
-                        //   if (!isMobile) {
-                        //     e.currentTarget.style.transform = "scale(1.1)";
-                        //   }
-                        // }}
-                        // onMouseLeave={(e) => {
-                        //   if (!isMobile) {
-                        //     e.currentTarget.style.transform = "scale(1)";
-                        //   }
-                        // }}
                         priority={index < 8}
                       />
                     </div>
-                    {/* </MagneticDiv>*/}
                   </div>
                 );
               })}
@@ -1240,7 +1250,7 @@ export default function CircularPhotoLayout() {
           {!isMobile && (
             <div
               ref={coverRef}
-              className="cover pointer-events-none fixed inset-0 z-100 flex items-center justify-center"
+              className="cover pointer-events-none fixed inset-0 z-15 flex items-center justify-center"
             >
               <div className="px-4 text-center text-white">
                 <div className="mb-4">
