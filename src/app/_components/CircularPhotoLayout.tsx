@@ -35,10 +35,9 @@ export default function CircularPhotoLayout() {
   const lenisRef = useRef<LenisRef>(null);
   const subtitleRef = useRef<AnimatedSubtitleRef>(null);
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
-  const lightRaysRef = useRef<HTMLDivElement>(null);
+  const lightRaysRef = useRef<SVGSVGElement>(null);
   const progressRingRef = useRef<SVGCircleElement>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
-
 
   // Animate photos sequentially after all have loaded
   const animatePhotosSequentially = () => {
@@ -288,25 +287,20 @@ export default function CircularPhotoLayout() {
     };
   }, [screenSize.width, screenSize.height]);
 
-
-  // Lenis integration
+  // Lenis integration - drive with requestAnimationFrame only (no GSAP ticker)
   useEffect(() => {
-    function update(time: number) {
-      lenisRef.current?.lenis?.raf(time * 1000);
-    }
+    let rafId: number;
 
     const animate = (time: number) => {
       lenisRef.current?.lenis?.raf(time);
-      requestAnimationFrame(animate);
-
-      // setContainerRotation(gsap.getProperty(containerRef.current, "rotation"));
+      rafId = requestAnimationFrame(animate);
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
 
-    gsap.ticker.add(update);
-
-    return () => gsap.ticker.remove(update);
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   //  GSAP animations for photos
@@ -365,14 +359,14 @@ export default function CircularPhotoLayout() {
               // Add pulsing glow effect
               if (photoContainer) {
                 gsap.to(photoContainer, {
-                  boxShadow: "0 0 10px 3px rgba(0, 255, 127, 0.6)",
+                  filter: "drop-shadow(0 0 12px rgba(0, 255, 127, 0.6))",
                   duration: 0.3,
                   ease: "power2.inOut",
                 });
 
                 // Start pulsing animation
                 gsap.to(photoContainer, {
-                  boxShadow: "0 0 15px 5px rgba(0, 255, 127, 0.8)",
+                  filter: "drop-shadow(0 0 18px rgba(0, 255, 127, 0.8))",
                   duration: 2,
                   ease: "sine.inOut",
                   repeat: -1,
@@ -409,7 +403,7 @@ export default function CircularPhotoLayout() {
 
                   if (neighborContainer) {
                     gsap.to(neighborContainer, {
-                      boxShadow: `0 0 ${5 * intensity}px 2px rgba(0, 255, 127, ${0.3 * intensity})`,
+                      filter: `drop-shadow(0 0 ${5 * intensity}px rgba(0, 255, 127, ${0.3 * intensity}))`,
                       duration: 0.3,
                       ease: "power2.inOut",
                     });
@@ -446,7 +440,7 @@ export default function CircularPhotoLayout() {
             if (photoContainer) {
               gsap.killTweensOf(photoContainer); // Stop any ongoing glow animations
               gsap.to(photoContainer, {
-                boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
+                filter: "drop-shadow(0 0 0 rgba(0, 255, 127, 0))",
                 duration: 0.3,
                 ease: "power2.out",
               });
@@ -482,7 +476,7 @@ export default function CircularPhotoLayout() {
                 if (neighborContainer) {
                   gsap.killTweensOf(neighborContainer);
                   gsap.to(neighborContainer, {
-                    boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
+                    filter: "drop-shadow(0 0 0 rgba(0, 255, 127, 0))",
                     duration: 0.3,
                     ease: "power2.out",
                   });
@@ -622,6 +616,7 @@ export default function CircularPhotoLayout() {
           duration: 60,
           ease: "none",
           repeat: -1,
+          transformOrigin: "50% 50%",
         });
 
         // Subtle opacity pulse for rays
@@ -963,7 +958,6 @@ export default function CircularPhotoLayout() {
       }}
       ref={lenisRef}
     >
-
       <main className="relative -mt-16 min-h-screen w-full">
         <div className="content">
           {/* Mobile: Logo and subtitle above circle */}
@@ -1008,7 +1002,7 @@ export default function CircularPhotoLayout() {
                 transform: "translate(-50%, -50%) rotate(-90deg)",
                 zIndex: 1,
                 pointerEvents: "none",
-                opacity: 0,
+                opacity: 0.1,
               }}
             >
               <circle
@@ -1027,8 +1021,8 @@ export default function CircularPhotoLayout() {
               />
             </svg>
 
-            {/* Light rays emanating from center */}
-            <div
+            {/* Light rays emanating from center (SVG) */}
+            <svg
               ref={lightRaysRef}
               className="light-rays"
               style={{
@@ -1040,42 +1034,59 @@ export default function CircularPhotoLayout() {
                 transform: "translate(-50%, -50%)",
                 zIndex: 10,
                 pointerEvents: "none",
-                opacity: 0,
+                opacity: 0.1,
+                overflow: "visible",
               }}
+              width={circleConfig.radius * 2 + circleConfig.photoSize}
+              height={circleConfig.radius * 2 + circleConfig.photoSize}
+              viewBox={`0 0 ${circleConfig.radius * 2 + circleConfig.photoSize} ${circleConfig.radius * 2 + circleConfig.photoSize}`}
             >
-              {Array.from({ length: 64 }, (_, i) => {
-                // Generate random-seeming but consistent angles for each ray
-                const seedAngle = (i * 137.5) % 360; // Golden angle for natural distribution
-                const randomOffset = Math.sin(i * 2.4) * 15; // Deterministic "random" offset
-                const finalAngle = seedAngle + randomOffset;
+              <defs>
+                {/* Use userSpaceOnUse so the gradient maps to each line's local coordinates (0 to -length) */}
+                <linearGradient
+                  id="rayGradient"
+                  gradientUnits="userSpaceOnUse"
+                  x1={0}
+                  y1={0}
+                  x2={0}
+                  y2={-circleConfig.radius * 1.5}
+                >
+                  <stop offset="0%" stopColor="#00ff7f" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#00ff7f" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#00ff7f" stopOpacity="0.2" />
+                </linearGradient>
+              </defs>
+              <g
+                transform={`translate(${(circleConfig.radius * 2 + circleConfig.photoSize) / 2} ${(circleConfig.radius * 2 + circleConfig.photoSize) / 2})`}
+              >
+                {Array.from({ length: 64 }, (_, i) => {
+                  const seedAngle = (i * 137.5) % 360;
+                  const randomOffset = Math.sin(i * 2.4) * 15;
+                  const finalAngle = seedAngle + randomOffset;
 
-                // Vary ray lengths randomly but consistently
-                const lengthVariation = 0.6 + Math.sin(i * 1.7) * 0.9; // 0.3 to 0.9 multiplier
-                const rayLength = circleConfig.radius * lengthVariation;
+                  const lengthVariation = 0.6 + Math.sin(i * 1.7) * 0.9;
+                  const rayLength = circleConfig.radius * lengthVariation;
 
-                // Vary ray width slightly
-                const widthVariation = 1 + Math.sin(i * 3.1) * 0.5; // 0.5 to 1.5px
+                  const widthVariation = 1 + Math.sin(i * 3.1) * 0.5;
+                  const rayOpacity = 0.4 + Math.sin(i * 2.8) * 0.6;
 
-                return (
-                  <div
-                    key={i}
-                    className={`light-ray light-ray-${i}`}
-                    style={{
-                      position: "absolute",
-                      left: "50%",
-                      top: "50%",
-                      width: `${widthVariation}px`,
-                      height: `${rayLength}px`,
-                      background:
-                        "linear-gradient(to bottom, rgba(0, 255, 127, 1) 0%, rgba(0, 255, 127, 0.4) 50%, rgba(0, 255, 127, 0.2) 100%)",
-                      transformOrigin: "50% 0%",
-                      transform: `translate(-50%, 0%) rotate(${finalAngle}deg)`,
-                      opacity: 0.4 + Math.sin(i * 2.8) * 0.6, // 0.2 to 0.6 opacity
-                    }}
-                  />
-                );
-              })}
-            </div>
+                  return (
+                    <g key={i} transform={`rotate(${finalAngle})`}>
+                      <line
+                        x1={0}
+                        y1={0}
+                        x2={0}
+                        y2={-rayLength}
+                        stroke="url(#rayGradient)"
+                        strokeWidth={widthVariation}
+                        strokeLinecap="round"
+                        opacity={rayOpacity}
+                      />
+                    </g>
+                  );
+                })}
+              </g>
+            </svg>
 
             {/* Circular photo layout */}
             <div
@@ -1111,12 +1122,12 @@ export default function CircularPhotoLayout() {
                       className="photo-container relative overflow-hidden rounded-lg shadow-lg"
                       data-photo-id={photo.id}
                       style={{
-                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        transition: "transform 0.3s ease, filter 0.3s ease",
                         width: "100%",
                         height: "100%",
                         transformOrigin: "center",
                         opacity: 0,
-                        boxShadow: "0 0 0 0 rgba(0, 255, 127, 0)",
+                        filter: "drop-shadow(0 0 0 rgba(0, 255, 127, 0))",
                       }}
                     >
                       <Image
