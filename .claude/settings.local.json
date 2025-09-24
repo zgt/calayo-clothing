@@ -37,7 +37,11 @@
       "Bash(powershell:*)",
       "Bash(wmic process where:*)",
       "Bash(ls:*)",
-      "Read(//home/m/Pictures/**)"
+      "Read(//home/m/Pictures/**)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm update:*)"
     ],
     "deny": []
   }
