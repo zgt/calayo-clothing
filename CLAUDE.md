@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- **Start development server**: `npm run dev` (uses turbo mode)
-- **Build application**: `npm run build`
-- **Type checking**: `npm run typecheck` or `tsc --noEmit`
-- **Linting**: `npm run lint` (check) or `npm run lint:fix` (auto-fix)
-- **Format code**: `npm run format:check` (check) or `npm run format:write` (apply)
-- **Full check**: `npm run check` (combines linting and type checking)
-- **Preview production build**: `npm run preview`
+- **Start development server**: `pnpm dev` (uses turbo mode)
+- **Build application**: `pnpm build`
+- **Type checking**: `pnpm typecheck` or `tsc --noEmit`
+- **Linting**: `pnpm lint` (check) or `pnpm lint:fix` (auto-fix)
+- **Format code**: `pnpm format:check` (check) or `pnpm format:write` (apply)
+- **Full check**: `pnpm check` (combines linting and type checking)
+- **Preview production build**: `pnpm preview`
 
 ## Architecture Overview
 
