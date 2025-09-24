@@ -94,7 +94,7 @@ export function NavBar({ items, className }: NavBarProps) {
         className,
       )}
     >
-      <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-emerald-800/30 bg-emerald-900/20 px-1 py-1 shadow-lg backdrop-blur-lg">
+      <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-emerald-800/40 bg-emerald-950/60 px-1 py-1 shadow-lg">
         {items.map((item) => {
           const Icon = item.icon;
           const hasDropdown = item.dropdown && item.dropdown.length > 0;
@@ -208,7 +208,7 @@ export function NavBar({ items, className }: NavBarProps) {
                       damping: 30,
                     }}
                     className={cn(
-                      "absolute left-1/2 z-50 min-w-[160px] -translate-x-1/2 rounded-xl border border-emerald-800/30 bg-emerald-900/20 py-2 shadow-lg backdrop-blur-lg",
+                      "absolute left-1/2 z-50 min-w-[160px] -translate-x-1/2 rounded-xl border border-emerald-800/40 bg-emerald-950/70 py-2 shadow-lg backdrop-blur-md",
                       isMobile ? "bottom-full mb-2" : "top-full mt-2",
                     )}
                   >

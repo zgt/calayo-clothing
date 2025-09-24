@@ -125,12 +125,12 @@ export default function ProfileDropdown() {
       {/* Dropdown Menu - Only shown when dropdown is open */}
       {isOpen && (
         <div
-          className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-emerald-800/30 bg-gradient-to-br from-gray-900 to-emerald-950 py-1 shadow-xl backdrop-blur-sm"
+          className="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-emerald-800/40 bg-emerald-950/70 py-1 shadow-xl backdrop-blur-md"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="user-menu"
         >
-          <div className="border-b border-emerald-800/30 px-4 py-2 text-sm text-gray-300">
+          <div className="border-b border-emerald-800/30 px-4 py-2 text-sm text-emerald-100">
             <div className="font-medium">{getUserData()?.name ?? "User"}</div>
             <div className="truncate text-xs text-gray-400">
               {getUserData()?.email}
@@ -139,7 +139,7 @@ export default function ProfileDropdown() {
 
           <Link
             href="/profile"
-            className="block px-4 py-2 text-sm text-emerald-300 transition-colors hover:bg-emerald-800/20 hover:text-white"
+            className="block px-4 py-2 text-sm text-emerald-200 transition-colors hover:bg-emerald-800/30 hover:text-white"
             role="menuitem"
             onClick={() => setIsOpen(false)}
           >
@@ -148,7 +148,7 @@ export default function ProfileDropdown() {
 
           <Link
             href="/profile/orders"
-            className="block px-4 py-2 text-sm text-emerald-300 transition-colors hover:bg-emerald-800/20 hover:text-white"
+            className="block px-4 py-2 text-sm text-emerald-200 transition-colors hover:bg-emerald-800/30 hover:text-white"
             role="menuitem"
             onClick={() => setIsOpen(false)}
           >
@@ -157,7 +157,7 @@ export default function ProfileDropdown() {
 
           <Link
             href="/profile/settings"
-            className="block px-4 py-2 text-sm text-emerald-300 transition-colors hover:bg-emerald-800/20 hover:text-white"
+            className="block px-4 py-2 text-sm text-emerald-200 transition-colors hover:bg-emerald-800/30 hover:text-white"
             role="menuitem"
             onClick={() => setIsOpen(false)}
           >
@@ -169,7 +169,7 @@ export default function ProfileDropdown() {
             <div className="mt-1 border-t border-emerald-800/30 pt-1">
               <Link
                 href="/admin/orders"
-                className="flex items-center px-4 py-2 text-sm text-purple-300 transition-colors hover:bg-purple-800/20 hover:text-white"
+                className="flex items-center px-4 py-2 text-sm text-purple-200 transition-colors hover:bg-purple-800/30 hover:text-white"
                 role="menuitem"
                 onClick={() => setIsOpen(false)}
               >
@@ -194,7 +194,7 @@ export default function ProfileDropdown() {
           <div className="mt-1 border-t border-emerald-800/30 pt-1">
             <button
               onClick={handleSignOut}
-              className="w-full px-4 py-2 text-left text-sm text-red-400 transition-colors hover:bg-red-900/20 hover:text-red-300"
+              className="w-full px-4 py-2 text-left text-sm text-red-300 transition-colors hover:bg-red-900/30 hover:text-red-200"
               role="menuitem"
             >
               Sign Out

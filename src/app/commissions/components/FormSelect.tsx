@@ -4,6 +4,7 @@ import React from "react";
 interface Option {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 interface FormSelectProps {
@@ -44,15 +45,20 @@ export const FormSelect: React.FC<FormSelectProps> = ({
           name={name}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full border bg-emerald-950/50 py-3 pr-10 pl-3 ${
-            error ? "border-red-500" : "border-emerald-700/30"
-          } appearance-none rounded-lg text-emerald-100 shadow-sm transition-all outline-none focus:ring-2 focus:ring-emerald-500/20`}
+          className={`w-full border bg-emerald-900/30 py-3 pr-10 pl-3 ${
+            error ? "border-red-500" : "border-emerald-700/40"
+          } appearance-none rounded-lg text-emerald-100 shadow-sm transition-all outline-none focus:border-emerald-600/40 focus:ring-2 focus:ring-emerald-500/30`}
         >
-          <option value="" disabled>
+          <option value="" disabled className="bg-emerald-950 text-emerald-500/80">
             {placeholder}
           </option>
           {options.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option
+              key={option.value}
+              value={option.value}
+              disabled={option.disabled}
+              className={option.disabled ? "bg-emerald-950 text-emerald-600/60" : "bg-emerald-950 text-emerald-100"}
+            >
               {option.label}
             </option>
           ))}

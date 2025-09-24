@@ -9,6 +9,12 @@ import { SubmitButton } from "./SubmitButton";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import {
+  preloadAllGarments,
+  useGarmentModelReadiness,
+  useIsLowEndDevice,
+} from "~/app/_components/3d/garments-preloader";
+import type { GarmentType } from "~/app/_components/3d/garments-preloader";
 
 interface UnifiedFormLayoutProps {
   formData: CommissionFormData;
@@ -41,14 +47,14 @@ const timelineOptions = [
   { value: "flexible", label: "Flexible" },
 ];
 
-const garmentOptions = [
+const BASE_GARMENT_OPTIONS = [
   { value: "shirt", label: "Shirt" },
   { value: "jacket", label: "Jacket" },
   { value: "pants", label: "Pants" },
   { value: "dress", label: "Dress" },
   { value: "skirt", label: "Skirt" },
   { value: "other", label: "Other" },
-];
+] as const;
 
 export const UnifiedFormLayout = forwardRef<
   HTMLDivElement,
@@ -72,6 +78,33 @@ export const UnifiedFormLayout = forwardRef<
     ref,
   ) => {
     const [isMobile, setIsMobile] = useState(false);
+    const readiness = useGarmentModelReadiness();
+    const isLowEndDevice = useIsLowEndDevice();
+
+    useEffect(() => {
+      // Start preloading 3D models ASAP for gating and better UX
+      preloadAllGarments();
+    }, []);
+
+    const computedGarmentOptions = BASE_GARMENT_OPTIONS.map((o) => {
+      const type = o.value as GarmentType;
+      const status = readiness[type] ?? "ready";
+      // Treat low-end devices as ready (do not block selection)
+      const disabled = isLowEndDevice
+        ? false
+        : !(type === "other" || type === "skirt") &&
+          !(status === "ready" || status === "error");
+
+      // Add small suffix to communicate state when disabled
+      let label: string = o.label;
+      if (!isLowEndDevice && disabled) {
+        label = `${o.label} (loading 3D...)`;
+      } else if (!isLowEndDevice && status === "error") {
+        label = `${o.label} (3D unavailable)`;
+      }
+
+      return { value: o.value, label, disabled };
+    });
 
     useEffect(() => {
       const checkIsMobile = () => {
@@ -127,7 +160,7 @@ export const UnifiedFormLayout = forwardRef<
                       label="Garment Type"
                       value={formData.garmentType}
                       onChange={handleGarmentTypeChange}
-                      options={garmentOptions}
+                      options={computedGarmentOptions}
                       placeholder="Select garment type"
                       error={errors.garmentType}
                       required
@@ -302,7 +335,7 @@ export const UnifiedFormLayout = forwardRef<
                         label="Garment Type"
                         value={formData.garmentType}
                         onChange={handleGarmentTypeChange}
-                        options={garmentOptions}
+                        options={computedGarmentOptions}
                         placeholder="Select garment type"
                         error={errors.garmentType}
                         required
