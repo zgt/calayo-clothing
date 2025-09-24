@@ -41,7 +41,12 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm dev:*)",
       "Bash(pnpm list:*)",
-      "Bash(pnpm update:*)"
+      "Bash(pnpm update:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format:check:*)",
+      "Bash(pnpm format:write:*)",
+      "Bash(pnpm check:*)"
     ],
     "deny": []
   }
