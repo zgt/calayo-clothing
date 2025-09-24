@@ -49,7 +49,11 @@ export const FormSelect: React.FC<FormSelectProps> = ({
             error ? "border-red-500" : "border-emerald-700/40"
           } appearance-none rounded-lg text-emerald-100 shadow-sm transition-all outline-none focus:border-emerald-600/40 focus:ring-2 focus:ring-emerald-500/30`}
         >
-          <option value="" disabled className="bg-emerald-950 text-emerald-500/80">
+          <option
+            value=""
+            disabled
+            className="bg-emerald-950 text-emerald-500/80"
+          >
             {placeholder}
           </option>
           {options.map((option) => (
@@ -57,7 +61,11 @@ export const FormSelect: React.FC<FormSelectProps> = ({
               key={option.value}
               value={option.value}
               disabled={option.disabled}
-              className={option.disabled ? "bg-emerald-950 text-emerald-600/60" : "bg-emerald-950 text-emerald-100"}
+              className={
+                option.disabled
+                  ? "bg-emerald-950 text-emerald-600/60"
+                  : "bg-emerald-950 text-emerald-100"
+              }
             >
               {option.label}
             </option>
