@@ -331,8 +331,8 @@ export default function CircularPhotoLayout() {
           if (!photoId) return;
 
           const handleMouseEnter = () => {
-            // Only apply hover effect if photo is not clicked
-            if (!clickedPhotos.has(photoId)) {
+            // Only apply hover effect if photo is not clicked AND images are fully loaded
+            if (!clickedPhotos.has(photoId) && imagesLoaded) {
               const originalPosition = photoPositions[index];
               if (!originalPosition) return;
 
@@ -414,6 +414,9 @@ export default function CircularPhotoLayout() {
           };
 
           const handleMouseLeave = () => {
+            // Only apply hover reset if images are fully loaded
+            if (!imagesLoaded) return;
+
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
 
@@ -486,6 +489,9 @@ export default function CircularPhotoLayout() {
           };
 
           const handleClick = () => {
+            // Only allow clicks if images are fully loaded
+            if (!imagesLoaded) return;
+
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
@@ -926,6 +932,7 @@ export default function CircularPhotoLayout() {
     screenSize,
     isMobile,
     clickedPhotos,
+    imagesLoaded,
     circleConfig.maxPhotos,
     circleConfig.aspectRatio,
     circleConfig.photoSize,
