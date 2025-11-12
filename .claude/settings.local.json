@@ -46,7 +46,8 @@
       "Bash(pnpm lint:*)",
       "Bash(pnpm format:check:*)",
       "Bash(pnpm format:write:*)",
-      "Bash(pnpm check:*)"
+      "Bash(pnpm check:*)",
+      "mcp__morphllm-fast-apply__tiny_edit_file"
     ],
     "deny": []
   }

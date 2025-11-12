@@ -120,7 +120,7 @@ export default function MessagesComponent({
           filter: `commission_id=eq.${commissionId}`,
         },
         (payload: MessagePayload) => {
-          console.log("payload", payload);
+          // Payload received from subscription
           // Only fetch the new message if it wasn't sent by the current user
           const newMessage = payload.new as Message;
           if (newMessage.sender_id !== userId) {

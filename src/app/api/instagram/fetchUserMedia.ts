@@ -32,11 +32,7 @@ export async function fetchUserMedia(): Promise<InstagramMediaItem[]> {
 
   const res = await fetch(instaUrl);
 
-  console.log("Instagram API response status:", res.status);
-  console.log(
-    "Instagram API response headers:",
-    Object.fromEntries(res.headers.entries()),
-  );
+  // Instagram API response received
 
   if (!res.ok) {
     let errorDetails = "";
@@ -54,10 +50,6 @@ export async function fetchUserMedia(): Promise<InstagramMediaItem[]> {
   }
 
   const json = (await res.json()) as UserMediaResponse;
-  console.log(
-    "Successfully fetched Instagram media:",
-    json.data?.length || 0,
-    "items",
-  );
+  // Successfully fetched Instagram media
   return json.data;
 }

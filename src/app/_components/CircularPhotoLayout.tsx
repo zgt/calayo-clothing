@@ -14,7 +14,6 @@ import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
-//import MagneticDiv from "./MagneticDiv";
 
 gsap.registerPlugin(InertiaPlugin);
 gsap.registerPlugin(useGSAP);
@@ -147,7 +146,6 @@ export default function CircularPhotoLayout() {
     // For wide screens (aspect ratio > 1.5), use height-based calculation with larger multiplier
     // For normal screens, use minimum dimension
     const baseRadius = aspectRatio > 1.5 ? height * 0.35 : minDimension * 0.4;
-    console.log(aspectRatio);
 
     if (isMobile) {
       if (width < 480) {
@@ -496,11 +494,17 @@ export default function CircularPhotoLayout() {
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
 
-            const containerScale = gsap.getProperty(container, "scale");
+            const containerScale = gsap.getProperty(
+              container,
+              "scale",
+            ) as number;
             if (containerScale !== 1) {
               return;
             }
-            const containerRotation = gsap.getProperty(container, "rotation");
+            const containerRotation = gsap.getProperty(
+              container,
+              "rotation",
+            ) as number;
 
             if (isCurrentlyClicked) {
               // Photo is clicked, return to normal with original rotation
@@ -659,7 +663,6 @@ export default function CircularPhotoLayout() {
       tl.set(
         container,
         {
-          //transformOrigin: '-50'
           x: width / 2 - containerWidth / 2,
           y: isMobile ? 0 : 0,
         },
@@ -1153,7 +1156,6 @@ export default function CircularPhotoLayout() {
               })}
             </div>
           </div>
-          {/* <div style={{ height: 1500 }} />*/}
           <div style={{ height: screenSize.height }} />
           <div
             ref={scrollRef}

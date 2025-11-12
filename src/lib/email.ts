@@ -30,19 +30,19 @@ export async function sendEmail({
     });
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`✅ Email sent successfully to: ${to}`);
-      console.log(`📧 Subject: ${subject}`);
-      console.log(`📧 Resend ID: ${result.data?.id}`);
+      console.warn(`✅ Email sent successfully to: ${to}`);
+      console.warn(`📧 Subject: ${subject}`);
+      console.warn(`📧 Resend ID: ${result.data?.id}`);
     }
   } catch (error) {
     console.error("❌ Failed to send email:", error);
 
     // In development, log the email content for debugging
     if (process.env.NODE_ENV === "development") {
-      console.log("📧 Email that failed to send:");
-      console.log(`To: ${to}`);
-      console.log(`Subject: ${subject}`);
-      console.log("HTML preview:", html.substring(0, 200) + "...");
+      console.error("📧 Email that failed to send:");
+      console.error(`To: ${to}`);
+      console.error(`Subject: ${subject}`);
+      console.error("HTML preview:", html.substring(0, 200) + "...");
     }
 
     throw error;

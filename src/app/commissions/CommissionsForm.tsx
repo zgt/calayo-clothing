@@ -93,7 +93,6 @@ export default function CommissionsForm() {
     const { name, value } = e.target;
 
     if (name.startsWith("measurements.")) {
-      console.log(name);
       const measurementField = name.split(".")[1] as MeasurementKey;
       setFormData((prev) => ({
         ...prev,

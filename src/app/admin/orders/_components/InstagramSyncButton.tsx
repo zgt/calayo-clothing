@@ -18,13 +18,16 @@ export default function InstagramSyncButton() {
     message: string;
   } | null>(null);
 
+  const getSyncStatus = api.instagram.getSyncStatus.useQuery();
+
   const syncPhotos = api.instagram.syncInstagramPhotos.useMutation({
     onSuccess: (data) => {
       setResult({
         success: true,
-        message: `Successfully synced ${data.totalPhotos} photos (${data.parentPhotos} parents, ${data.childPhotos} children)`,
+        message: `Successfully synced ${data.totalNewPhotos} new photos (${data.newParentsUploaded} parents, ${data.newChildrenUploaded} children). Skipped ${data.skippedPhotos} existing photos.`,
       });
       setIsLoading(false);
+      void getSyncStatus.refetch();
     },
     onError: (error) => {
       setResult({
@@ -35,32 +38,10 @@ export default function InstagramSyncButton() {
     },
   });
 
-  const getSyncStatus = api.instagram.getSyncStatus.useQuery();
-
   const handleSync = () => {
     setIsLoading(true);
     setResult(null);
     syncPhotos.mutate();
-  };
-
-  const clearPhotos = api.instagram.clearStoredPhotos.useMutation({
-    onSuccess: () => {
-      setResult({
-        success: true,
-        message: "All stored photos cleared successfully",
-      });
-      void getSyncStatus.refetch();
-    },
-    onError: (error) => {
-      setResult({
-        success: false,
-        message: `Failed to clear photos: ${error.message}`,
-      });
-    },
-  });
-
-  const handleClear = () => {
-    void clearPhotos.mutate();
   };
 
   return (
@@ -69,10 +50,10 @@ export default function InstagramSyncButton() {
         Instagram Photo Management
       </Typography>
 
-      {getSyncStatus.data && (
+      {getSyncStatus.data && getSyncStatus.data.totalPhotos > 0 && (
         <Box className="mb-4 rounded-lg border border-emerald-600/30 bg-emerald-800/20 p-3">
           <Typography variant="body2" className="text-emerald-200">
-            Current Status: {getSyncStatus.data.totalPhotos} photos stored (
+            Database: {getSyncStatus.data.totalPhotos} photos synced (
             {getSyncStatus.data.parentPhotos} parents,{" "}
             {getSyncStatus.data.childPhotos} children)
           </Typography>
@@ -85,7 +66,7 @@ export default function InstagramSyncButton() {
         </Box>
       )}
 
-      <Box className="mb-4 flex gap-3">
+      <Box className="mb-4">
         <Button
           variant="contained"
           onClick={handleSync}
@@ -96,15 +77,6 @@ export default function InstagramSyncButton() {
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           {isLoading ? "Syncing..." : "Sync Instagram Photos"}
-        </Button>
-
-        <Button
-          variant="outlined"
-          onClick={handleClear}
-          disabled={isLoading || clearPhotos.isPending}
-          className="border-red-600 text-red-400 hover:bg-red-900/20"
-        >
-          Clear All Photos
         </Button>
       </Box>
 
@@ -127,9 +99,9 @@ export default function InstagramSyncButton() {
       )}
 
       <Typography variant="caption" className="mt-3 block text-emerald-300">
-        This will fetch all photos from Instagram and upload them to UploadThing
-        for faster loading. Child photos will be tagged with their parent&apos;s
-        ID for proper modal display.
+        Fetches new Instagram photos and uploads them to UploadThing. Duplicates
+        are automatically detected and skipped. All synced media is tracked in
+        the database for efficient sync operations.
       </Typography>
     </Box>
   );

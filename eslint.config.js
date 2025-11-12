@@ -33,6 +33,12 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error"],
+        },
+      ],
     },
   },
   {

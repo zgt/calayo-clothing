@@ -36,7 +36,6 @@ export function MeasurementGuideDisplay({
   }
 
   const guideItem = MEASUREMENT_GUIDE_ITEMS[currentMeasurement];
-  console.log(guideItem);
 
   if (!guideItem) {
     return (

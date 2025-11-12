@@ -9,7 +9,6 @@ import {
   Home,
   User,
   Briefcase,
-  FileText,
   ChevronDown,
 } from "lucide-react";
 import { useMobile } from "~/context/mobile-provider";
@@ -248,7 +247,6 @@ export default function Nav() {
         { name: "My Orders", url: "/profile/orders" },
       ],
     },
-    { name: "Features", url: "/features", icon: FileText },
     { name: "About", url: "/about", icon: User },
   ];
 

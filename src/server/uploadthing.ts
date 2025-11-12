@@ -31,7 +31,7 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata }) => {
-      console.log("Upload complete for userId:", metadata.userId);
+      console.warn("Upload complete for userId:", metadata.userId);
 
       return { uploadedBy: metadata.userId };
     }),

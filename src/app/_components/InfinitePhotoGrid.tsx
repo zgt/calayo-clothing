@@ -328,9 +328,11 @@ export default function InfinitePhotoGrid() {
           >
             {photos.map((photo, index) => {
               const { row, col } = photoPositions[index] ?? { row: 1, col: 1 };
+              const photoId = photo.id;
+              const photoUrl = photo.mediaUrl;
               return (
                 <div
-                  key={photo.id}
+                  key={photoId}
                   className="grid-item z-100"
                   style={{
                     gridRow: row,
@@ -343,8 +345,8 @@ export default function InfinitePhotoGrid() {
                 >
                   <Image
                     className="grid-item-img"
-                    src={photo.mediaUrl}
-                    alt={`Instagram photo ${photo.id}`}
+                    src={photoUrl}
+                    alt={`Instagram photo ${photoId}`}
                     fill
                     //sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1440px) 20vw, 14vw"
                     style={{

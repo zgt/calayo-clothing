@@ -16,11 +16,6 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(1),
     DATABASE_URL: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
-    // Job automation APIs
-    APIFY_API_KEY: z.string().min(1),
-    OPENAI_API_KEY: z.string().min(1),
-    GOOGLE_SHEETS_SERVICE_ACCOUNT: z.string().min(1),
-    GOOGLE_SHEETS_SPREADSHEET_ID: z.string().min(1),
   },
 
   /**
@@ -51,11 +46,6 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    // Job automation APIs
-    APIFY_API_KEY: process.env.APIFY_API_KEY,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    GOOGLE_SHEETS_SERVICE_ACCOUNT: process.env.GOOGLE_SHEETS_SERVICE_ACCOUNT,
-    GOOGLE_SHEETS_SPREADSHEET_ID: process.env.GOOGLE_SHEETS_SPREADSHEET_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
