@@ -1,35 +1,6 @@
 // Utility functions for commission forms
-import { createClient } from "~/utils/supabase/client";
-import type {
-  UserMeasurements,
-  SupabaseError,
-  MeasurementKey,
-  CommissionFormData,
-} from "./types";
+import type { MeasurementKey, CommissionFormData } from "./types";
 import { REQUIRED_MEASUREMENTS, MEASUREMENT_GROUPS } from "./constants";
-
-// Helper function to fetch profile measurements
-export const fetchProfileMeasurements = async (
-  userId: string,
-): Promise<UserMeasurements> => {
-  const supabase = createClient();
-
-  const { data, error } = (await supabase
-    .from("profile_measurements")
-    .select("*")
-    .eq("user_id", userId)
-    .single()) as {
-    data: UserMeasurements | null;
-    error: SupabaseError | null;
-  };
-
-  if (error) {
-    console.error("Error fetching measurements:", error);
-    throw new Error(error.message);
-  }
-
-  return data ?? {};
-};
 
 // Helper function to determine if a measurement field should be shown based on the garment type
 export const shouldShowMeasurement = (

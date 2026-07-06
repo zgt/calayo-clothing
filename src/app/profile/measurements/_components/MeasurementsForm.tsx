@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "~/utils/supabase/client";
+import { api, type RouterInputs } from "~/trpc/react";
 
 type ProfileMeasurements = {
   id?: string;
@@ -119,9 +119,8 @@ function TextInput({
 
 export default function MeasurementsForm({
   measurements,
-  userId,
 }: MeasurementsFormProps) {
-  const supabase = createClient();
+  const upsertMeasurements = api.profile.upsertMeasurements.useMutation();
 
   // Initialize measurements from profile or empty
   const [formData, setFormData] = useState({
@@ -191,7 +190,9 @@ export default function MeasurementsForm({
           key !== "posture" &&
           key !== "size_preference"
         ) {
-          acc[key] = parseFloat(value as string);
+          // Guard against NaN (parseFloat can yield NaN) -> null
+          const parsed = parseFloat(value as string);
+          acc[key] = Number.isNaN(parsed) ? null : parsed;
         }
         // Keep string values as strings
         else {
@@ -203,39 +204,9 @@ export default function MeasurementsForm({
     );
 
     try {
-      // Check if measurements already exist for this profile
-      const { data: existingMeasurements, error: fetchError } = await supabase
-        .from("profile_measurements")
-        .select("id")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        throw fetchError;
-      }
-
-      // Add user_id to the measurements data
-      const measurementsData = {
-        ...formattedMeasurements,
-        user_id: userId,
-      };
-
-      if (existingMeasurements?.id) {
-        // Update existing measurements
-        const { error: updateError } = await supabase
-          .from("profile_measurements")
-          .update(measurementsData)
-          .eq("id", existingMeasurements.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Insert new measurements
-        const { error: insertError } = await supabase
-          .from("profile_measurements")
-          .insert(measurementsData);
-
-        if (insertError) throw insertError;
-      }
+      await upsertMeasurements.mutateAsync(
+        formattedMeasurements as RouterInputs["profile"]["upsertMeasurements"],
+      );
 
       setMessage({
         text: "Measurements updated successfully!",

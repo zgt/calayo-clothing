@@ -60,5 +60,3 @@ export function DressModel() {
     </group>
   );
 }
-
-useGLTF.preload("/3d-assets/dress/scene.gltf");

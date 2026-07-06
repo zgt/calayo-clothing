@@ -59,13 +59,13 @@ export function MeasurementGuideDisplay({
         <div className="border-b border-emerald-700/30 pb-3">
           <h3
             id="guide-item-title"
-            className="text-lg font-semibold text-emerald-200"
+            className="text-lg font-semibold text-emerald-200 [overflow-wrap:anywhere]"
           >
             {guideItem.title}
           </h3>
           <p
             id="guide-item-description"
-            className="mt-2 text-sm text-emerald-200/80"
+            className="mt-2 text-sm text-emerald-200/80 [overflow-wrap:anywhere]"
           >
             {guideItem.description}
           </p>

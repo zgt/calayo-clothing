@@ -2,7 +2,7 @@
 
 // src/app/profile/_components/ProfileForm.tsx
 import { useState, useEffect } from "react";
-import { createClient } from "~/utils/supabase/client";
+import { api } from "~/trpc/react";
 
 type User = {
   id: string;
@@ -26,8 +26,8 @@ interface ProfileFormProps {
   userAuth: UserAuth;
 }
 
-export default function ProfileForm({ user, userAuth }: ProfileFormProps) {
-  const supabase = createClient();
+export default function ProfileForm({ user }: ProfileFormProps) {
+  const updateProfile = api.profile.updateProfile.useMutation();
 
   const [formData, setFormData] = useState({
     full_name: user?.name ?? "",
@@ -64,21 +64,17 @@ export default function ProfileForm({ user, userAuth }: ProfileFormProps) {
     setMessage({ text: "", type: "" });
 
     try {
-      // Update user profile (Better Auth manages user creation)
-      const userData = {
-        name: formData.full_name,
-        bio: formData.bio,
-        website: formData.website,
+      // Update user profile via tRPC (scoped to the authenticated user
+      // server-side and validated against the profile schemas).
+      await updateProfile.mutateAsync({
+        // nameSchema requires a non-empty value; send undefined when blank
+        // so the field is simply left unchanged.
+        name: formData.full_name || undefined,
         location: formData.location,
         phone: formData.phone,
-      };
-
-      const { error } = await supabase
-        .from("user")
-        .update(userData)
-        .eq("id", userAuth.id);
-
-      if (error) throw error;
+        website: formData.website,
+        bio: formData.bio,
+      });
 
       setMessage({
         text: "Profile updated successfully!",

@@ -93,9 +93,10 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: { id: string } | null; error: any };
 
         if (commissionError) {
+          console.error("Error creating commission:", commissionError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: commissionError.message,
+            message: "Failed to create commission",
           });
         }
 
@@ -148,9 +149,10 @@ export const commissionsRouter = createTRPCRouter({
           // Rollback: delete commission if measurements fail
           await supabase.from("commissions").delete().eq("id", commission.id);
 
+          console.error("Error creating commission measurements:", measurementsError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: measurementsError.message,
+            message: "Failed to create commission",
           });
         }
 
@@ -164,12 +166,10 @@ export const commissionsRouter = createTRPCRouter({
           throw error;
         }
 
+        console.error("Error processing commission request:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "An error occurred processing your request",
+          message: "An error occurred processing your request",
         });
       }
     }),
@@ -193,9 +193,10 @@ export const commissionsRouter = createTRPCRouter({
     };
 
     if (error) {
+      console.error("Error fetching commissions:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: "Failed to fetch commissions",
       });
     }
 
@@ -221,11 +222,16 @@ export const commissionsRouter = createTRPCRouter({
         .single()) as { data: any | null; error: any };
 
       if (error) {
+        if (error.code !== "PGRST116") {
+          console.error("Error fetching commission:", error);
+        }
         throw new TRPCError({
           code:
             error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
           message:
-            error.code === "PGRST116" ? "Commission not found" : error.message,
+            error.code === "PGRST116"
+              ? "Commission not found"
+              : "Failed to fetch commission",
         });
       }
 
@@ -253,9 +259,10 @@ export const commissionsRouter = createTRPCRouter({
       };
 
       if (error) {
+        console.error("Error fetching commissions:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: "Failed to fetch commissions",
         });
       }
 
@@ -279,13 +286,16 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: any | null; error: any };
 
         if (error) {
+          if (error.code !== "PGRST116") {
+            console.error("Error updating commission status:", error);
+          }
           throw new TRPCError({
             code:
               error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
             message:
               error.code === "PGRST116"
                 ? "Commission not found"
-                : error.message,
+                : "Failed to update commission status",
           });
         }
 
@@ -311,13 +321,16 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: any | null; error: any };
 
         if (error) {
+          if (error.code !== "PGRST116") {
+            console.error("Error fetching commission:", error);
+          }
           throw new TRPCError({
             code:
               error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
             message:
               error.code === "PGRST116"
                 ? "Commission not found"
-                : error.message,
+                : "Failed to fetch commission",
           });
         }
 

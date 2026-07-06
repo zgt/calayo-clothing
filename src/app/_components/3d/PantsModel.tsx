@@ -60,5 +60,3 @@ export function PantsModel() {
     </group>
   );
 }
-
-useGLTF.preload("/3d-assets/pants/scene.gltf");

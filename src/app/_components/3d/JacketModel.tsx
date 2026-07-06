@@ -60,5 +60,3 @@ export function JacketModel() {
     </group>
   );
 }
-
-useGLTF.preload("/3d-assets/jacket/scene.gltf");

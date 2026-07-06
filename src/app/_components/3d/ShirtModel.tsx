@@ -79,5 +79,3 @@ export function ShirtModel() {
     </group>
   );
 }
-
-useGLTF.preload("/3d-assets/shirt/scene.gltf");
