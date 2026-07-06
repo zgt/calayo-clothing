@@ -49,6 +49,10 @@ type Commission = {
   budget: string;
   timeline: string;
   details: string | null;
+  color_hex: string | null;
+  color_name: string | null;
+  fabric: string | null;
+  design_options: Record<string, string> | null;
   created_at: string;
   updated_at: string;
   user_id: string;
