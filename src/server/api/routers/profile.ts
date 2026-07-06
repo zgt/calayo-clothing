@@ -204,11 +204,14 @@ export const profileRouter = createTRPCRouter({
 
   // Get current user's profile measurements
   getMeasurements: protectedProcedure.query(async ({ ctx }) => {
-    const { data, error } = await ctx.supabase
+    const { data, error } = (await ctx.supabase
       .from("profile_measurements")
       .select("*")
       .eq("user_id", ctx.user.id)
-      .maybeSingle();
+      .maybeSingle()) as {
+      data: Record<string, number | string | null> | null;
+      error: { message?: string } | null;
+    };
 
     if (error) {
       console.error("Error fetching measurements:", error);
