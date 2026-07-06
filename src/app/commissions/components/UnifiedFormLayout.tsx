@@ -6,6 +6,13 @@ import { FormTextarea } from "./FormTextarea";
 import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
+import {
+  DesignPanel,
+  ColorSwatchPicker,
+  FabricPicker,
+  StyleOptionsPicker,
+} from "./DesignPanel";
+import { getFabricById, styleGroupsForGarment } from "~/lib/commission-design";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
 import type { CommissionFormData, MeasurementKey } from "../types";
@@ -109,6 +116,8 @@ export const UnifiedFormLayout = forwardRef<
                 <GarmentViewer
                   className="h-full w-full"
                   garmentType={formData.garmentType}
+                  colorHex={formData.design.colorHex}
+                  fabric={formData.design.fabric}
                   disableInteraction={true}
                 />
               </div>
@@ -135,6 +144,23 @@ export const UnifiedFormLayout = forwardRef<
                       error={errors.garmentType}
                       required
                     />
+                  </div>
+                </StickyTabs.Item>
+
+                <StickyTabs.Item title="Design" id="design">
+                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
+                    {formData.garmentType ? (
+                      <DesignPanel
+                        garmentType={formData.garmentType}
+                        design={formData.design}
+                        onDesignChange={onDesignChange}
+                        error={errors.design}
+                      />
+                    ) : (
+                      <p className="py-4 text-center text-emerald-200/70">
+                        Select a garment type to start designing
+                      </p>
+                    )}
                   </div>
                 </StickyTabs.Item>
 
@@ -218,6 +244,52 @@ export const UnifiedFormLayout = forwardRef<
                             {formData.garmentType}
                           </span>
                         </div>
+                        {formData.design.colorHex && (
+                          <div className="flex justify-between border-b border-emerald-700/20 py-3">
+                            <span className="text-emerald-200">Color:</span>
+                            <span className="flex items-center gap-2 font-medium text-white">
+                              <span
+                                className="h-4 w-4 rounded-full border border-white/30"
+                                style={{
+                                  backgroundColor: formData.design.colorHex,
+                                }}
+                              />
+                              {formData.design.colorName ?? "Custom"}
+                            </span>
+                          </div>
+                        )}
+                        {formData.design.fabric && (
+                          <div className="flex justify-between border-b border-emerald-700/20 py-3">
+                            <span className="text-emerald-200">Fabric:</span>
+                            <span className="font-medium text-white">
+                              {getFabricById(formData.design.fabric)?.label}
+                            </span>
+                          </div>
+                        )}
+                        {Object.entries(formData.design.styleOptions).map(
+                          ([groupId, value]) => {
+                            const group = styleGroupsForGarment(
+                              formData.garmentType,
+                            ).find((g) => g.id === groupId);
+                            const option = group?.options.find(
+                              (o) => o.value === value,
+                            );
+                            if (!group || !option) return null;
+                            return (
+                              <div
+                                key={groupId}
+                                className="flex justify-between border-b border-emerald-700/20 py-3"
+                              >
+                                <span className="text-emerald-200">
+                                  {group.label}:
+                                </span>
+                                <span className="font-medium text-white">
+                                  {option.label}
+                                </span>
+                              </div>
+                            );
+                          },
+                        )}
                         <div className="flex justify-between border-b border-emerald-700/20 py-3">
                           <span className="text-emerald-200">Budget:</span>
                           <span className="font-medium text-white">
@@ -316,6 +388,30 @@ export const UnifiedFormLayout = forwardRef<
                     </div>
                   </div>
                 </div>
+
+                {/* Garment construction details - populated once a garment is chosen */}
+                <div
+                  id="style-options-card"
+                  className="w-full max-w-md rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
+                >
+                  <h3 className="mb-4 text-lg font-semibold text-white">
+                    Details & Construction
+                  </h3>
+                  {formData.garmentType &&
+                  styleGroupsForGarment(formData.garmentType).length > 0 ? (
+                    <StyleOptionsPicker
+                      garmentType={formData.garmentType}
+                      design={formData.design}
+                      onDesignChange={onDesignChange}
+                    />
+                  ) : (
+                    <p className="text-sm text-emerald-200/60">
+                      {formData.garmentType
+                        ? "Describe the construction you have in mind in the details section — we'll design it together."
+                        : "Choose a garment to see its construction options."}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Center Column - Garment Image Placeholder */}
@@ -359,7 +455,29 @@ export const UnifiedFormLayout = forwardRef<
                     <GarmentViewer
                       className="h-full w-full"
                       garmentType={formData.garmentType}
+                      colorHex={formData.design.colorHex}
+                      fabric={formData.design.fabric}
                     />
+                  </div>
+
+                  <div
+                    id="design-card"
+                    className="w-full max-w-sm rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
+                  >
+                    <div className="space-y-5">
+                      <ColorSwatchPicker
+                        design={formData.design}
+                        onDesignChange={onDesignChange}
+                      />
+                      <FabricPicker
+                        garmentType={formData.garmentType}
+                        design={formData.design}
+                        onDesignChange={onDesignChange}
+                      />
+                      {errors.design && (
+                        <p className="text-xs text-red-400">{errors.design}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div

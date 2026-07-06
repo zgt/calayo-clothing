@@ -72,6 +72,10 @@ export function GSAPFormContainer({
     const garmentPreviewCard = containerRef.current.querySelector(
       "#garment-preview-card",
     );
+    const designCard = containerRef.current.querySelector("#design-card");
+    const styleOptionsCard = containerRef.current.querySelector(
+      "#style-options-card",
+    );
     const measurementGuideCard = containerRef.current.querySelector(
       "#measurement-guide-card",
     );
@@ -85,9 +89,12 @@ export function GSAPFormContainer({
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
-    gsap.set([additionalDetailsCard, garmentPreviewCard], {
-      x: -500,
-    });
+    gsap.set(
+      [additionalDetailsCard, garmentPreviewCard, designCard, styleOptionsCard],
+      {
+        x: -500,
+      },
+    );
     gsap.set(
       [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
       {
@@ -208,6 +215,10 @@ export function GSAPFormContainer({
     const garmentPreviewCard = containerRef.current.querySelector(
       "#garment-preview-card",
     );
+    const designCard = containerRef.current.querySelector("#design-card");
+    const styleOptionsCard = containerRef.current.querySelector(
+      "#style-options-card",
+    );
     const measurementGuideCard = containerRef.current.querySelector(
       "#measurement-guide-card",
     );
@@ -294,6 +305,18 @@ export function GSAPFormContainer({
           },
           "",
         )
+        // Design cards (color/fabric + construction details)
+        .to(
+          [designCard, styleOptionsCard],
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        )
         // Right column elements
         .to(
           measurementGuideCard,
@@ -327,7 +350,12 @@ export function GSAPFormContainer({
             ease: "power2.out",
           },
           "",
-        );
+        )
+        // The expanded grid is taller than the viewport once the design
+        // cards are in — give scroll back to the page.
+        .call(() => {
+          document.body.style.overflow = "unset";
+        });
     }
   };
 
