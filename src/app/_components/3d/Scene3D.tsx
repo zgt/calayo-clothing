@@ -16,11 +16,15 @@ function LoadingFallback() {
 
 interface Scene3DProps {
   garmentType: string;
+  colorHex?: string | null;
+  fabric?: string | null;
   disableInteraction?: boolean;
 }
 
 export function Scene3D({
   garmentType,
+  colorHex,
+  fabric,
   disableInteraction = false,
 }: Scene3DProps) {
   const { isMobile } = useMobile();
@@ -70,7 +74,11 @@ export function Scene3D({
 
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
-        <GarmentModel garmentType={garmentType} />
+        <GarmentModel
+          garmentType={garmentType}
+          colorHex={colorHex}
+          fabric={fabric}
+        />
       </Suspense>
 
       {/* Controls - adaptive for mobile */}

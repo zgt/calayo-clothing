@@ -1,53 +1,53 @@
 "use client";
 
-import { ShirtModel } from "./ShirtModel";
-import { DressModel } from "./DressModel";
-import { JacketModel } from "./JacketModel";
-import { PantsModel } from "./PantsModel";
+import {
+  GLTFGarment,
+  hasGarmentModel,
+  useGarmentMaterial,
+} from "./GLTFGarment";
 
 interface GarmentModelProps {
   garmentType: string;
+  colorHex?: string | null;
+  fabric?: string | null;
 }
 
-function PlaceholderModel() {
+// Shown for garments without a dedicated 3D model (skirt, other). Tinted by
+// the chosen color so the design selection still reads in the viewer.
+function PlaceholderModel({
+  colorHex,
+  fabric,
+}: {
+  colorHex?: string | null;
+  fabric?: string | null;
+}) {
+  const material = useGarmentMaterial(colorHex, fabric, { wireframe: true });
+
   return (
     <group>
-      <mesh position={[0, 0, 0]}>
+      <mesh position={[0, 0, 0]} material={material}>
         <boxGeometry args={[0.5, 1, 0.3]} />
-        <meshStandardMaterial
-          color="#6b7280"
-          roughness={0.8}
-          metalness={0.1}
-          wireframe
-        />
       </mesh>
-      <mesh position={[0, 0.7, 0]}>
+      <mesh position={[0, 0.7, 0]} material={material}>
         <sphereGeometry args={[0.15]} />
-        <meshStandardMaterial
-          color="#6b7280"
-          roughness={0.8}
-          metalness={0.1}
-          wireframe
-        />
       </mesh>
     </group>
   );
 }
 
-export function GarmentModel({ garmentType }: GarmentModelProps) {
-  switch (garmentType) {
-    case "shirt":
-      return <ShirtModel />;
-    case "dress":
-      return <DressModel />;
-    case "jacket":
-      return <JacketModel />;
-    case "pants":
-      return <PantsModel />;
-    case "skirt":
-    case "other":
-    case "":
-    default:
-      return <PlaceholderModel />;
+export function GarmentModel({
+  garmentType,
+  colorHex,
+  fabric,
+}: GarmentModelProps) {
+  if (hasGarmentModel(garmentType)) {
+    return (
+      <GLTFGarment
+        garmentType={garmentType}
+        colorHex={colorHex}
+        fabric={fabric}
+      />
+    );
   }
+  return <PlaceholderModel colorHex={colorHex} fabric={fabric} />;
 }

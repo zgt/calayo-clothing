@@ -2,9 +2,13 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Scene3D } from "./Scene3D";
+import { GarmentSilhouette } from "./GarmentSilhouette";
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useMobile } from "~/context/mobile-provider";
+import {
+  DEFAULT_GARMENT_COLOR,
+  getFabricById,
+} from "~/lib/commission-design";
 
 // Hook to detect device performance capabilities
 const useDeviceCapabilities = () => {
@@ -35,6 +39,8 @@ const useDeviceCapabilities = () => {
 interface GarmentViewerProps {
   className?: string;
   garmentType?: string;
+  colorHex?: string | null; // Chosen design color, live-applied to the model
+  fabric?: string | null; // Fabric preset id, drives material params
   forceFallback?: boolean; // Force 2D fallback
   disableInteraction?: boolean; // Disable orbit controls for mobile
 }
@@ -42,6 +48,8 @@ interface GarmentViewerProps {
 export function GarmentViewer({
   className = "",
   garmentType = "",
+  colorHex = null,
+  fabric = null,
   forceFallback = false,
   disableInteraction = false,
 }: GarmentViewerProps) {
@@ -58,19 +66,6 @@ export function GarmentViewer({
     }
   }, [forceFallback, isLowEndDevice]);
 
-  // Fallback images for different garment types
-  const getFallbackImage = (type: string): string => {
-    const images: Record<string, string> = {
-      shirt: "/images/garments/shirt-preview.jpg",
-      jacket: "/images/garments/jacket-preview.jpg",
-      pants: "/images/garments/pants-preview.jpg",
-      dress: "/images/garments/dress-preview.jpg",
-      skirt: "/images/garments/skirt-preview.jpg",
-      other: "/images/garments/generic-preview.jpg",
-    };
-    return images[type] ?? images.other!;
-  };
-
   const handleCreated = () => {
     setIsLoading(false);
   };
@@ -81,49 +76,49 @@ export function GarmentViewer({
     setIsLoading(false);
   };
 
-  // Render 2D fallback if 3D is disabled or has error
+  // Render 2D fallback if 3D is disabled or has error. The chosen design
+  // color still reads here via the tinted silhouette and color chip.
   if (!use3D || hasError) {
+    const displayColor = colorHex ?? DEFAULT_GARMENT_COLOR;
+    const fabricLabel = getFabricById(fabric)?.label;
+
     return (
       <div
         className={`relative overflow-hidden rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 shadow-2xl backdrop-blur-xs ${className}`}
       >
         {garmentType ? (
-          <div className="relative h-full w-full">
-            <Image
-              src={getFallbackImage(garmentType)}
-              alt={`${garmentType} preview`}
-              fill
-              className="object-cover object-center"
-              onError={() => {
-                // If image fails to load, show placeholder
-                const img = document.createElement("div");
-                img.className =
-                  "w-full h-full flex items-center justify-center bg-emerald-800/20";
-                img.innerHTML = `
-                  <div class="text-center p-8">
-                    <div class="w-16 h-16 bg-emerald-700/30 rounded-xl mb-4 flex items-center justify-center mx-auto">
-                      <svg class="w-8 h-8 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
-                      </svg>
-                    </div>
-                    <p class="text-emerald-200/70 text-sm">${garmentType.charAt(0).toUpperCase() + garmentType.slice(1)} Preview</p>
-                  </div>
-                `;
-              }}
+          <div className="relative flex h-full w-full items-center justify-center">
+            <GarmentSilhouette
+              garmentType={garmentType}
+              color={displayColor}
+              className="h-3/5 max-h-64 w-auto drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
             />
 
             <div className="absolute right-4 bottom-4 left-4">
-              <div className="rounded-lg bg-black/20 p-3 backdrop-blur-sm">
-                <h3 className="mb-1 text-lg font-semibold text-white">
-                  {garmentType.charAt(0).toUpperCase() + garmentType.slice(1)}{" "}
-                  Preview
-                </h3>
-                {(isLowEndDevice || hasError) && (
-                  <p className="text-xs text-emerald-200/70">
-                    {hasError
-                      ? "3D preview unavailable"
-                      : "Optimized for your device"}
-                  </p>
+              <div className="flex items-center justify-between rounded-lg bg-black/20 p-3 backdrop-blur-sm">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    {garmentType.charAt(0).toUpperCase() +
+                      garmentType.slice(1)}{" "}
+                    Preview
+                  </h3>
+                  {fabricLabel && (
+                    <p className="text-xs text-emerald-200/70">{fabricLabel}</p>
+                  )}
+                  {(isLowEndDevice || hasError) && (
+                    <p className="text-xs text-emerald-200/70">
+                      {hasError
+                        ? "3D preview unavailable"
+                        : "Optimized for your device"}
+                    </p>
+                  )}
+                </div>
+                {colorHex && (
+                  <span
+                    className="h-8 w-8 flex-shrink-0 rounded-full border border-white/30 shadow-inner"
+                    style={{ backgroundColor: displayColor }}
+                    aria-label={`Selected color ${displayColor}`}
+                  />
                 )}
               </div>
             </div>
@@ -184,6 +179,8 @@ export function GarmentViewer({
       >
         <Scene3D
           garmentType={garmentType}
+          colorHex={colorHex}
+          fabric={fabric}
           disableInteraction={disableInteraction || isMobile}
         />
       </Canvas>
