@@ -1,6 +1,10 @@
 // Utility functions for commission forms
 import type { MeasurementKey, CommissionFormData } from "./types";
 import { REQUIRED_MEASUREMENTS, MEASUREMENT_GROUPS } from "./constants";
+import {
+  checkMeasurementPlausibility,
+  validateDesign,
+} from "~/lib/commission-design";
 
 // Helper function to determine if a measurement field should be shown based on the garment type
 export const shouldShowMeasurement = (
@@ -63,6 +67,22 @@ export const validateCommissionForm = (
     if (!formData.measurements[field as MeasurementKey]) {
       errors[`measurements.${field}`] = "Required";
     }
+  }
+
+  // Reject values outside plausible human ranges (catches typos and
+  // cm-vs-inches mix-ups). Mirrors the server-side Zod bounds.
+  for (const [field, value] of Object.entries(formData.measurements)) {
+    if (typeof value !== "number") continue;
+    const warning = checkMeasurementPlausibility(field, value);
+    if (warning && !errors[`measurements.${field}`]) {
+      errors[`measurements.${field}`] = warning;
+    }
+  }
+
+  // Design selections must exist in the option tree for the garment.
+  const designProblems = validateDesign(formData.design, formData.garmentType);
+  if (designProblems.length > 0) {
+    errors.design = designProblems.join("; ");
   }
 
   return errors;

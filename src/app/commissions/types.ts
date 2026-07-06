@@ -1,7 +1,9 @@
 // Shared types for commission forms
+import type { CommissionDesign } from "~/lib/commission-design";
 
 export interface CommissionFormData {
   garmentType: string;
+  design: CommissionDesign;
   measurements: {
     // Basic measurements (original)
     chest: number | null;

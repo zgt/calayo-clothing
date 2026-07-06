@@ -9,6 +9,7 @@ import { SubmitButton } from "./SubmitButton";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import type { CommissionDesign } from "~/lib/commission-design";
 
 interface UnifiedFormLayoutProps {
   formData: CommissionFormData;
@@ -23,6 +24,7 @@ interface UnifiedFormLayoutProps {
   isSubmitting: boolean;
   currentMeasurement: MeasurementKey | null;
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
+  onDesignChange: (design: Partial<CommissionDesign>) => void;
   onExpand: () => void;
   onMobileGarmentSelect: () => void;
 }
@@ -66,6 +68,7 @@ export const UnifiedFormLayout = forwardRef<
       isSubmitting,
       currentMeasurement,
       onMeasurementChange,
+      onDesignChange,
       onExpand,
       onMobileGarmentSelect,
     },

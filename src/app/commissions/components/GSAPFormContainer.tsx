@@ -7,6 +7,7 @@ import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import type { CommissionDesign } from "~/lib/commission-design";
 import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
@@ -25,6 +26,7 @@ interface GSAPFormContainerProps {
   isSubmitting: boolean;
   currentMeasurement: MeasurementKey | null;
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
+  onDesignChange: (design: Partial<CommissionDesign>) => void;
 }
 
 export function GSAPFormContainer({
@@ -38,6 +40,7 @@ export function GSAPFormContainer({
   isSubmitting,
   currentMeasurement,
   onMeasurementChange,
+  onDesignChange,
 }: GSAPFormContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -100,6 +103,8 @@ export function GSAPFormContainer({
       if (currentTimeline) {
         currentTimeline.kill();
       }
+      // Restore page scroll when leaving the commissions flow.
+      document.body.style.overflow = "unset";
     };
   }, []);
 
@@ -345,6 +350,7 @@ export function GSAPFormContainer({
         isSubmitting={isSubmitting}
         currentMeasurement={currentMeasurement}
         onMeasurementChange={onMeasurementChange}
+        onDesignChange={onDesignChange}
         onExpand={handleExpand}
         onMobileGarmentSelect={handleMobileGarmentSelect}
       />
