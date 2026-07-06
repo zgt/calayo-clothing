@@ -388,30 +388,6 @@ export const UnifiedFormLayout = forwardRef<
                     </div>
                   </div>
                 </div>
-
-                {/* Garment construction details - populated once a garment is chosen */}
-                <div
-                  id="style-options-card"
-                  className="w-full max-w-md rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
-                >
-                  <h3 className="mb-4 text-lg font-semibold text-white">
-                    Details & Construction
-                  </h3>
-                  {formData.garmentType &&
-                  styleGroupsForGarment(formData.garmentType).length > 0 ? (
-                    <StyleOptionsPicker
-                      garmentType={formData.garmentType}
-                      design={formData.design}
-                      onDesignChange={onDesignChange}
-                    />
-                  ) : (
-                    <p className="text-sm text-emerald-200/60">
-                      {formData.garmentType
-                        ? "Describe the construction you have in mind in the details section — we'll design it together."
-                        : "Choose a garment to see its construction options."}
-                    </p>
-                  )}
-                </div>
               </div>
 
               {/* Center Column - Garment Image Placeholder */}
@@ -521,6 +497,29 @@ export const UnifiedFormLayout = forwardRef<
                     isLoadingMeasurements={isLoadingMeasurements}
                     onMeasurementChange={onMeasurementChange}
                   />
+                </div>
+                {/* Garment construction details - populated once a garment is chosen */}
+                <div
+                  id="style-options-card"
+                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs"
+                >
+                  <h3 className="mb-4 text-lg font-semibold text-white">
+                    Details & Construction
+                  </h3>
+                  {formData.garmentType &&
+                  styleGroupsForGarment(formData.garmentType).length > 0 ? (
+                    <StyleOptionsPicker
+                      garmentType={formData.garmentType}
+                      design={formData.design}
+                      onDesignChange={onDesignChange}
+                    />
+                  ) : (
+                    <p className="text-sm text-emerald-200/60">
+                      {formData.garmentType
+                        ? "Describe the construction you have in mind in the details section — we'll design it together."
+                        : "Choose a garment to see its construction options."}
+                    </p>
+                  )}
                 </div>
                 <div id="submit-button-container" className="submit-container">
                   <SubmitButton isLoading={isSubmitting} />

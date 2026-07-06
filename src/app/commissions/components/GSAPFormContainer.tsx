@@ -89,14 +89,16 @@ export function GSAPFormContainer({
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
+    gsap.set([additionalDetailsCard, garmentPreviewCard, designCard], {
+      x: -500,
+    });
     gsap.set(
-      [additionalDetailsCard, garmentPreviewCard, designCard, styleOptionsCard],
-      {
-        x: -500,
-      },
-    );
-    gsap.set(
-      [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
+      [
+        measurementGuideCard,
+        measurementNavigatorCard,
+        styleOptionsCard,
+        submitButtonContainer,
+      ],
       {
         x: -1000,
       },
@@ -305,9 +307,9 @@ export function GSAPFormContainer({
           },
           "",
         )
-        // Design cards (color/fabric + construction details)
+        // Design card (color/fabric)
         .to(
-          [designCard, styleOptionsCard],
+          designCard,
           {
             opacity: 1,
             x: 0,
@@ -331,6 +333,18 @@ export function GSAPFormContainer({
         )
         .to(
           measurementNavigatorCard,
+          {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          "",
+        )
+        // Construction details card (right column)
+        .to(
+          styleOptionsCard,
           {
             opacity: 1,
             x: 0,
