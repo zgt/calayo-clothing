@@ -10,3 +10,9 @@ export { SubmitButton } from "./SubmitButton";
 export { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 export { UnifiedFormLayout } from "./UnifiedFormLayout";
 export { GSAPFormContainer } from "./GSAPFormContainer";
+export {
+  DesignPanel,
+  ColorSwatchPicker,
+  FabricPicker,
+  StyleOptionsPicker,
+} from "./DesignPanel";

@@ -14,6 +14,11 @@ commissions/
 │   ├── MeasurementsForm.tsx     # Complete measurements form
 │   ├── LoadMeasurementsButton.tsx # Load from profile button
 │   ├── SubmitButton.tsx         # Form submit button
+│   ├── MeasurementNavigator.tsx # One-at-a-time measurement carousel
+│   ├── MeasurementGuideDisplay.tsx # How-to-measure guidance panel
+│   ├── DesignPanel.tsx          # Color / fabric / style option pickers
+│   ├── UnifiedFormLayout.tsx    # Desktop 3-column + mobile tabs layout
+│   ├── GSAPFormContainer.tsx    # Flip/ScrambleText animation shell
 │   └── index.ts                 # Component exports
 ├── hooks/               # Custom React hooks
 │   └── useMeasurementLoader.ts  # Hook for loading user measurements
@@ -36,6 +41,16 @@ commissions/
 - **`MeasurementsForm`**: Complete measurements interface with conditional rendering
 - **`LoadMeasurementsButton`**: Button to load saved measurements from profile
 
+### **Design Components**
+- **`DesignPanel`**: Composes the color swatch picker (curated palette plus
+  free hex picker), fabric preset chips, and per-garment style option pills.
+  Selections live-update the 3D garment via `GarmentViewer`'s
+  `colorHex`/`fabric` props and are persisted on the commission.
+- The shared design domain (palette, fabric presets, style option tree,
+  measurement plausibility bounds) lives in `src/lib/commission-design.ts`
+  and is imported by both this form and the tRPC router so client and
+  server validation cannot drift.
+
 ### **Other Components**
 - **`SubmitButton`**: Form submission button with loading states
 
@@ -51,10 +66,10 @@ Custom hook that handles:
 ## 🔧 Utilities
 
 ### **`utils.ts`**
-- `fetchProfileMeasurements()`: Fetch user's saved measurements
 - `shouldShowMeasurement()`: Conditional rendering logic
 - `isMeasurementRequired()`: Validation logic
-- `validateCommissionForm()`: Complete form validation
+- `validateCommissionForm()`: Complete form validation (required fields,
+  measurement plausibility bounds, design option tree)
 - `handleNumberInput()`: Input event handling
 
 ### **`constants.ts`**
