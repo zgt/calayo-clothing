@@ -1,7 +1,7 @@
 // src/app/profile/page.tsx - Updated version
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 import { auth, type User } from "~/lib/auth";
 import { headers } from "next/headers";
 import ProfileSection from "./_components/ProfileSection";
@@ -137,7 +137,7 @@ export default async function ProfilePage() {
   }
 
   const user = session.user as User;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch user profile from better-auth user table
   const { data: profileData, error: profileError } = (await supabase

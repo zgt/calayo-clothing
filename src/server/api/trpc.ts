@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth, type User } from "~/lib/auth";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 
 /**
  * 1. CONTEXT
@@ -38,8 +38,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     console.error("Error getting session in tRPC context:", error);
   }
 
-  // Keep Supabase client for database operations during migration
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   return {
     ...opts,

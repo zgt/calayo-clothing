@@ -1,35 +1,26 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import "server-only";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { env } from "~/env";
 
-export async function createClient() {
-  const cookieStore = await cookies();
+// Privileged service-role client. Better-Auth owns identity/cookies, so this
+// client is stateless; row-level authorization happens in tRPC procedures and
+// server components, never in the database via RLS.
+// Untyped (no Database generic): the generated types in ~/types/supabase
+// predate the instagram_media and Better-Auth tables, which the generic would
+// collapse to `never`.
+let client: SupabaseClient | null = null;
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+export function createServiceClient(): SupabaseClient {
+  client ??= createClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options: CookieOptions;
-          }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
       },
     },
   );
+  return client;
 }
