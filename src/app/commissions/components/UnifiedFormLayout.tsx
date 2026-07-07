@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useState, useEffect } from "react";
+import { forwardRef } from "react";
 import { FormSelect } from "./FormSelect";
 import { StepSlider } from "./StepSlider";
 import { FormTextarea } from "./FormTextarea";
@@ -19,6 +19,7 @@ import {
   TIMELINE_OPTIONS,
 } from "~/lib/commission-design";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
+import { useMobile } from "~/context/mobile-provider";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import type { CommissionDesign } from "~/lib/commission-design";
 
@@ -67,17 +68,10 @@ export const UnifiedFormLayout = forwardRef<
     },
     ref,
   ) => {
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-      const checkIsMobile = () => {
-        setIsMobile(window.innerWidth < 1024);
-      };
-
-      checkIsMobile();
-      window.addEventListener("resize", checkIsMobile);
-      return () => window.removeEventListener("resize", checkIsMobile);
-    }, []);
+    // The GSAP three-column flow needs the full lg breakpoint; everything
+    // narrower gets the guided stepper.
+    const { isDesktop } = useMobile();
+    const isMobile = !isDesktop;
 
     const handleGarmentTypeChange = (value: string) => {
       onSelectChange(value, "garmentType");
@@ -260,14 +254,18 @@ export const UnifiedFormLayout = forwardRef<
                 id="column-3"
                 className="grid-column-inline-grid min-w-0 content-start space-y-6 opacity-0"
               >
-                <div id="measurement-guide-card" style={{ height: "16rem" }}>
+                <div
+                  id="measurement-guide-card"
+                  className="opacity-0"
+                  style={{ height: "16rem" }}
+                >
                   <MeasurementGuideDisplay
                     currentMeasurement={currentMeasurement}
                   />
                 </div>
                 <div
                   id="measurement-navigator-card"
-                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs"
+                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
                 >
                   <MeasurementNavigator
                     formData={formData}
@@ -294,7 +292,7 @@ export const UnifiedFormLayout = forwardRef<
                     required
                   />
                 </div>
-                <div id="submit-button-container">
+                <div id="submit-button-container" className="opacity-0">
                   <SubmitButton isLoading={isSubmitting} />
                 </div>
               </div>
