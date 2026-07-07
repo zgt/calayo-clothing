@@ -202,15 +202,9 @@ export function GSAPFormContainer({
 
     // Get all the elements we need to animate
     const mainCard = containerRef.current.querySelector("#main-form-card");
-    const mainCardGradient = containerRef.current.querySelector(
-      "#main-card-gradient",
-    );
     const commissionRequestTarget = containerRef.current.querySelector(
       "#commission-request-target",
     );
-    const expandedGrid = containerRef.current.querySelector("#expanded-grid");
-    const initialPosition =
-      containerRef.current.querySelector("#initial-position");
     const additionalDetailsCard = containerRef.current.querySelector(
       "#additional-details-card",
     );
@@ -238,54 +232,39 @@ export function GSAPFormContainer({
     const budgetTimelineTarget = containerRef.current.querySelector(
       "#budget-timeline-target",
     );
-    const budget = containerRef.current.querySelector("#budget");
-    const timeline = containerRef.current.querySelector("#timeline");
 
-    // Move the card to the target position and make target visible
     if (
-      commissionRequestTarget &&
       mainCard &&
-      mainCardGradient &&
-      expandedGrid &&
       column1 &&
+      column3 &&
       budgetTimelineSection &&
-      budgetTimelineTarget &&
-      budget &&
-      timeline
+      budgetTimelineTarget
     ) {
-      // Hide the initial position container
-      gsap.set(initialPosition, { display: "none" });
+      // The expanded grid is taller than the viewport — give scroll back
+      // before any animation so the page is never stuck.
+      document.body.style.overflow = "unset";
 
-      // Show the expanded grid and target
-      gsap.set(expandedGrid, { opacity: 1, display: "grid" });
-      gsap.set(commissionRequestTarget, { opacity: 1 });
+      // Re-home the card into its column slot first, then animate from the
+      // captured centered position with a single Flip. The final layout
+      // exists in the DOM immediately, so even if the animation is starved
+      // (low-end GPU, background tab) the page is laid out correctly and
+      // the card returns to static positioning when the flip ends.
+      const state = Flip.getState(mainCard);
+      gsap.set([column1, column3], { opacity: 1 });
+      column1.appendChild(mainCard);
+      budgetTimelineTarget.appendChild(budgetTimelineSection);
+      gsap.set(budgetTimelineSection, { opacity: 1 });
+      commissionRequestTarget?.remove();
 
-      // // Move the card to the target position in DOM
-
-      Flip.fit(mainCard, expandedGrid, {
-        duration: 0.5,
+      Flip.from(state, {
+        duration: 0.6,
         ease: "power1.inOut",
         absolute: true,
-        maxWidth: "none",
-        zIndex: "2000",
-        attr: { height: 100 },
-        onComplete: () => {
-          gsap.set(column1, { opacity: 1 });
-          gsap.set(column3, { opacity: 1 });
-          column1.appendChild(mainCard);
-          commissionRequestTarget.remove();
-          gsap.set(budgetTimelineSection, { opacity: 1 });
-          budgetTimelineTarget.appendChild(budgetTimelineSection);
-          Flip.fit(mainCard, column1, {
-            duration: 0.5,
-            absolute: true,
-            ease: "power1.inOut",
-          });
-        },
+        zIndex: 2000,
       });
 
       // Animate other elements in sequence
-      const tl = gsap.timeline({ delay: 0.5 });
+      const tl = gsap.timeline({ delay: 0.3 });
 
       // Additional details card
       tl.to(additionalDetailsCard, {
@@ -364,12 +343,7 @@ export function GSAPFormContainer({
             ease: "power2.out",
           },
           "",
-        )
-        // The expanded grid is taller than the viewport once the design
-        // cards are in — give scroll back to the page.
-        .call(() => {
-          document.body.style.overflow = "unset";
-        });
+        );
     }
   };
 
