@@ -52,7 +52,7 @@ export function MeasurementGuideDisplay({
   return (
     <motion.div
       key={currentMeasurement}
-      className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs${!isMobile ? "rounded-2xl" : ""} border border-emerald-700/10 p-6 shadow-2xl ${className}`}
+      className={`bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-xs ${!isMobile ? "rounded-2xl" : ""} border border-emerald-700/10 p-6 shadow-2xl ${className}`}
     >
       <div className="space-y-4">
         {/* Header */}
