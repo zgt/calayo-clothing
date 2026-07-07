@@ -73,9 +73,6 @@ export function GSAPFormContainer({
       "#garment-preview-card",
     );
     const designCard = containerRef.current.querySelector("#design-card");
-    const styleOptionsCard = containerRef.current.querySelector(
-      "#style-options-card",
-    );
     const measurementGuideCard = containerRef.current.querySelector(
       "#measurement-guide-card",
     );
@@ -93,12 +90,7 @@ export function GSAPFormContainer({
       x: -500,
     });
     gsap.set(
-      [
-        measurementGuideCard,
-        measurementNavigatorCard,
-        styleOptionsCard,
-        submitButtonContainer,
-      ],
+      [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
       {
         x: -1000,
       },
@@ -212,9 +204,6 @@ export function GSAPFormContainer({
       "#garment-preview-card",
     );
     const designCard = containerRef.current.querySelector("#design-card");
-    const styleOptionsCard = containerRef.current.querySelector(
-      "#style-options-card",
-    );
     const measurementGuideCard = containerRef.current.querySelector(
       "#measurement-guide-card",
     );
@@ -312,18 +301,6 @@ export function GSAPFormContainer({
         )
         .to(
           measurementNavigatorCard,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "",
-        )
-        // Construction details card (right column)
-        .to(
-          styleOptionsCard,
           {
             opacity: 1,
             x: 0,

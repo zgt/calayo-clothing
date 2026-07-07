@@ -349,7 +349,7 @@ export const UnifiedFormLayout = forwardRef<
               {/* Left Column - Commission Request + Additional Details */}
               <div
                 id="column-1"
-                className="grid-column-inline-grid space-y-6 opacity-0"
+                className="grid-column-inline-grid content-start space-y-6 opacity-0"
               >
                 {/* Target position for commission request card after flip */}
                 <div
@@ -359,7 +359,7 @@ export const UnifiedFormLayout = forwardRef<
                 >
                   <div
                     id="main-card-gradient"
-                    className="h-full rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-8 shadow-2xl backdrop-blur-xs"
+                    className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-8 shadow-2xl backdrop-blur-xs"
                   >
                     <div id="card-header" className="mb-8 text-center">
                       <h2 className="mb-2 text-3xl font-bold text-white">
@@ -385,6 +385,31 @@ export const UnifiedFormLayout = forwardRef<
 
                       {/* Budget and Timeline - hidden initially, shown after expansion */}
                       <div id="budget-timeline-target"></div>
+
+                      {/* Garment construction options join the request card
+                          once a garment is chosen */}
+                      {formData.garmentType &&
+                        (styleGroupsForGarment(formData.garmentType).length >
+                        0 ? (
+                          <div className="border-t border-emerald-700/20 pt-6">
+                            <h3 className="mb-4 text-lg font-semibold text-white">
+                              Details & Construction
+                            </h3>
+                            <StyleOptionsPicker
+                              garmentType={formData.garmentType}
+                              design={formData.design}
+                              onDesignChange={onDesignChange}
+                            />
+                          </div>
+                        ) : (
+                          <div className="border-t border-emerald-700/20 pt-6">
+                            <p className="text-sm text-emerald-200/60">
+                              Describe the construction you have in mind under
+                              Additional Details — we&apos;ll design it
+                              together.
+                            </p>
+                          </div>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -497,29 +522,6 @@ export const UnifiedFormLayout = forwardRef<
                     isLoadingMeasurements={isLoadingMeasurements}
                     onMeasurementChange={onMeasurementChange}
                   />
-                </div>
-                {/* Garment construction details - populated once a garment is chosen */}
-                <div
-                  id="style-options-card"
-                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs"
-                >
-                  <h3 className="mb-4 text-lg font-semibold text-white">
-                    Details & Construction
-                  </h3>
-                  {formData.garmentType &&
-                  styleGroupsForGarment(formData.garmentType).length > 0 ? (
-                    <StyleOptionsPicker
-                      garmentType={formData.garmentType}
-                      design={formData.design}
-                      onDesignChange={onDesignChange}
-                    />
-                  ) : (
-                    <p className="text-sm text-emerald-200/60">
-                      {formData.garmentType
-                        ? "Describe the construction you have in mind in the details section — we'll design it together."
-                        : "Choose a garment to see its construction options."}
-                    </p>
-                  )}
                 </div>
                 <div id="submit-button-container" className="submit-container">
                   <SubmitButton isLoading={isSubmitting} />
