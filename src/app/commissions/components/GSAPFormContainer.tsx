@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Flip } from "gsap/Flip";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
@@ -11,17 +12,15 @@ import type { CommissionDesign } from "~/lib/commission-design";
 import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
-gsap.registerPlugin(Flip, ScrambleTextPlugin);
+gsap.registerPlugin(Flip, ScrambleTextPlugin, useGSAP);
 
-// Panels revealed by the expansion, in cascade order: the center column rises
-// first (nearest the request card's landing spot), then the right column.
-const CENTER_CARD_SELECTORS = [
-  "#budget-timeline-section",
+// Panels revealed by the expansion, ordered by distance from the request
+// card's landing column so the cascade sweeps diagonally across the grid
+// instead of column by column.
+const REVEAL_PANEL_SELECTORS = [
   "#garment-preview-card",
-  "#design-card",
-];
-const RIGHT_CARD_SELECTORS = [
   "#measurement-guide-card",
+  "#design-card",
   "#measurement-navigator-card",
   "#additional-details-card",
   "#submit-button-container",
@@ -56,10 +55,10 @@ function applyExpandedState(container: HTMLElement) {
   commissionRequestTarget?.remove();
   gsap.set([column1, column3], { autoAlpha: 1 });
   gsap.set(
-    [
-      ...queryAll(container, CENTER_CARD_SELECTORS),
-      ...queryAll(container, RIGHT_CARD_SELECTORS),
-    ],
+    queryAll(container, [
+      "#budget-timeline-section",
+      ...REVEAL_PANEL_SELECTORS,
+    ]),
     { autoAlpha: 1, y: 0 },
   );
 }
@@ -168,6 +167,94 @@ export function GSAPFormContainer({
     });
   }, [currentMeasurement]);
 
+  // Unfold the Details & Construction section when a garment is chosen.
+  // It mounts after handleExpand has already captured the Flip, so it
+  // animates from its own effect: collapsed to height 0 before paint, then
+  // unfurled beneath the sliders with the heading scrambling in and the
+  // option chips rippling into place. Switching garments later only
+  // re-ripples the chips.
+  const prevGarmentRef = useRef("");
+  useGSAP(
+    () => {
+      const container = containerRef.current;
+      const garment = formData.garmentType;
+      const prev = prevGarmentRef.current;
+      prevGarmentRef.current = garment;
+      if (!container || !garment || garment === prev || !isDesktop) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
+
+      const section = container.querySelector<HTMLElement>(
+        "#details-construction-section",
+      );
+      if (!section) return;
+      const chips = section.querySelectorAll("button");
+
+      if (prev !== "") {
+        // Garment switched after expansion — refresh the new chip set only.
+        if (chips.length) {
+          gsap.fromTo(
+            chips,
+            { autoAlpha: 0, y: 8 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: "power2.out",
+              stagger: 0.02,
+              clearProps: "all",
+            },
+          );
+        }
+        return;
+      }
+
+      // First reveal: measure before collapsing so the unfurl can tween to
+      // the section's natural height (GSAP can't tween to "auto").
+      const height = section.offsetHeight;
+      gsap.set(section, { height: 0, overflow: "hidden", autoAlpha: 0 });
+
+      const tl = gsap.timeline({ delay: 0.85 });
+      tl.to(section, {
+        height,
+        autoAlpha: 1,
+        duration: 0.5,
+        ease: "power2.inOut",
+      }).set(section, { clearProps: "all" });
+      if (chips.length) {
+        tl.fromTo(
+          chips,
+          { autoAlpha: 0, y: 10, scale: 0.85 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.35,
+            ease: "back.out(1.7)",
+            stagger: 0.025,
+          },
+          "-=0.2",
+        ).set(chips, { clearProps: "all" });
+      }
+
+      const heading = section.querySelector("h3");
+      if (heading?.textContent) {
+        gsap.to(heading, {
+          delay: 1,
+          duration: 0.8,
+          scrambleText: {
+            text: heading.textContent,
+            chars: "XO!@#$%",
+            revealDelay: 0.1,
+            speed: 0.1,
+          },
+        });
+      }
+    },
+    { dependencies: [formData.garmentType, isDesktop], scope: containerRef },
+  );
+
   const handleExpand = () => {
     const container = containerRef.current;
     if (isExpandedRef.current || !container || !isDesktop) return;
@@ -176,7 +263,7 @@ export function GSAPFormContainer({
     const commissionRequestTarget = container.querySelector(
       "#commission-request-target",
     );
-    const budgetTimelineSection = container.querySelector(
+    const budgetTimelineSection = container.querySelector<HTMLElement>(
       "#budget-timeline-section",
     );
     const budgetTimelineTarget = container.querySelector(
@@ -207,8 +294,7 @@ export function GSAPFormContainer({
       return;
     }
 
-    const centerCards = queryAll(container, CENTER_CARD_SELECTORS);
-    const rightCards = queryAll(container, RIGHT_CARD_SELECTORS);
+    const panels = queryAll(container, REVEAL_PANEL_SELECTORS);
 
     // Re-home the card into its column slot first, then animate from the
     // captured centered position with a single Flip. The final layout
@@ -221,9 +307,18 @@ export function GSAPFormContainer({
     budgetTimelineTarget.appendChild(budgetTimelineSection);
     commissionRequestTarget?.remove();
 
+    // Collapse the sliders before Flip measures its end state, so the card
+    // lands compact and then grows in normal flow as its contents unfold.
+    const budgetHeight = budgetTimelineSection.offsetHeight;
+    gsap.set(budgetTimelineSection, {
+      height: 0,
+      overflow: "hidden",
+      autoAlpha: 0,
+    });
+
     Flip.from(state, {
-      duration: 0.6,
-      ease: "power1.inOut",
+      duration: 0.65,
+      ease: "power3.inOut",
       absolute: true,
       zIndex: 2000,
     });
@@ -233,25 +328,53 @@ export function GSAPFormContainer({
     // the layout mid-state the way the double Flip.fit did.
     gsap.to(mainCard, {
       scale: 1.02,
-      duration: 0.3,
+      duration: 0.32,
       ease: "power1.inOut",
       yoyo: true,
       repeat: 1,
     });
 
-    // Cascade the remaining panels up into place, radiating outward from
-    // the card's landing column while the flip is still settling.
-    const tl = gsap.timeline({ delay: 0.25 });
+    // Satellite panels swing in like glass panes hinged on the edge facing
+    // the card, in a diagonal wave ordered by distance from its landing
+    // column; then the card interior unfolds (sliders first — Details &
+    // Construction follows from its own effect once React mounts it).
+    const tl = gsap.timeline();
     tl.fromTo(
-      centerCards,
-      { autoAlpha: 0, y: 24 },
-      { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.08 },
-    ).fromTo(
-      rightCards,
-      { autoAlpha: 0, y: 24 },
-      { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.08 },
-      "-=0.35",
-    );
+      panels,
+      {
+        autoAlpha: 0,
+        y: 36,
+        scale: 0.96,
+        rotationY: -12,
+        transformPerspective: 600,
+        transformOrigin: "left center",
+      },
+      {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        rotationY: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.07,
+      },
+      0.15,
+    )
+      // Leave only opacity/visibility inline — panels keep their opacity-0
+      // class, but residual transforms would break hover styles and create
+      // stray containing blocks.
+      .set(panels, { clearProps: "transform" })
+      .to(
+        budgetTimelineSection,
+        {
+          height: budgetHeight,
+          autoAlpha: 1,
+          duration: 0.45,
+          ease: "power2.inOut",
+        },
+        0.7,
+      )
+      .set(budgetTimelineSection, { clearProps: "height,overflow" });
     timelineRef.current = tl;
   };
 

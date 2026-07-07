@@ -154,28 +154,31 @@ export const UnifiedFormLayout = forwardRef<
 
                       {/* Garment construction options join the request card
                           once a garment is chosen */}
-                      {formData.garmentType &&
-                        (styleGroupsForGarment(formData.garmentType).length >
-                        0 ? (
-                          <div className="border-t border-emerald-700/20 pt-6">
-                            <h3 className="mb-4 text-lg font-semibold text-white">
-                              Details & Construction
-                            </h3>
-                            <StyleOptionsPicker
-                              garmentType={formData.garmentType}
-                              design={formData.design}
-                              onDesignChange={onDesignChange}
-                            />
-                          </div>
-                        ) : (
-                          <div className="border-t border-emerald-700/20 pt-6">
-                            <p className="text-sm text-emerald-200/60">
-                              Describe the construction you have in mind under
-                              Additional Details — we&apos;ll design it
-                              together.
-                            </p>
-                          </div>
-                        ))}
+                      {formData.garmentType && (
+                        <div id="details-construction-section">
+                          {styleGroupsForGarment(formData.garmentType).length >
+                          0 ? (
+                            <div className="border-t border-emerald-700/20 pt-6">
+                              <h3 className="mb-4 text-lg font-semibold text-white">
+                                Details &amp; Construction
+                              </h3>
+                              <StyleOptionsPicker
+                                garmentType={formData.garmentType}
+                                design={formData.design}
+                                onDesignChange={onDesignChange}
+                              />
+                            </div>
+                          ) : (
+                            <div className="border-t border-emerald-700/20 pt-6">
+                              <p className="text-sm text-emerald-200/60">
+                                Describe the construction you have in mind
+                                under Additional Details — we&apos;ll design
+                                it together.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
