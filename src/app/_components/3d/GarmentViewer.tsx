@@ -43,6 +43,7 @@ interface GarmentViewerProps {
   fabric?: string | null; // Fabric preset id, drives material params
   forceFallback?: boolean; // Force 2D fallback
   disableInteraction?: boolean; // Disable orbit controls for mobile
+  autoRotate?: boolean; // Override auto-rotation (defaults to !disableInteraction)
 }
 
 export function GarmentViewer({
@@ -52,6 +53,7 @@ export function GarmentViewer({
   fabric = null,
   forceFallback = false,
   disableInteraction = false,
+  autoRotate,
 }: GarmentViewerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -182,6 +184,7 @@ export function GarmentViewer({
           colorHex={colorHex}
           fabric={fabric}
           disableInteraction={disableInteraction || isMobile}
+          autoRotate={autoRotate}
         />
       </Canvas>
 

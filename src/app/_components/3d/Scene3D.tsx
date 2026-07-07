@@ -19,6 +19,7 @@ interface Scene3DProps {
   colorHex?: string | null;
   fabric?: string | null;
   disableInteraction?: boolean;
+  autoRotate?: boolean;
 }
 
 export function Scene3D({
@@ -26,6 +27,7 @@ export function Scene3D({
   colorHex,
   fabric,
   disableInteraction = false,
+  autoRotate,
 }: Scene3DProps) {
   const { isMobile } = useMobile();
 
@@ -86,7 +88,7 @@ export function Scene3D({
         enablePan={false}
         enableZoom={!disableInteraction}
         enableRotate={!disableInteraction}
-        autoRotate={!disableInteraction}
+        autoRotate={autoRotate ?? !disableInteraction}
         autoRotateSpeed={isMobile ? 1 : 2} // Slower rotation on mobile
         minDistance={isMobile ? 1.5 : 2}
         maxDistance={isMobile ? 8 : 50}
