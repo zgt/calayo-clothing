@@ -12,25 +12,25 @@ import {
 // asset, so meshes are rendered flat inside a group carrying the transform.
 const GARMENT_MODEL_CONFIG = {
   shirt: {
-    path: "/3d-assets/shirt/scene.gltf",
+    path: "/3d-assets/shirt/scene.glb",
     rotation: [(Math.PI / 180) * 270, 0, 0] as const,
     position: [0, -1.5, 0] as const,
     scale: 1.2,
   },
   jacket: {
-    path: "/3d-assets/jacket/scene.gltf",
+    path: "/3d-assets/jacket/scene.glb",
     rotation: [(Math.PI / 180) * 270, 0, 0] as const,
     position: [0, -0.4, 0] as const,
     scale: 0.07,
   },
   pants: {
-    path: "/3d-assets/pants/scene.gltf",
+    path: "/3d-assets/pants/scene.glb",
     rotation: [(Math.PI / 180) * 270, 0, 0] as const,
     position: [0, 0, 0] as const,
     scale: 0.009,
   },
   dress: {
-    path: "/3d-assets/dress/scene.gltf",
+    path: "/3d-assets/dress/scene.glb",
     rotation: [0, 0, 0] as const,
     position: [0, -0.7, 0] as const,
     scale: 0.007,
@@ -102,7 +102,9 @@ interface GLTFGarmentProps {
 
 export function GLTFGarment({ garmentType, colorHex, fabric }: GLTFGarmentProps) {
   const config = GARMENT_MODEL_CONFIG[garmentType];
-  const { nodes } = useGLTF(config.path);
+  // Models are Draco-compressed; the decoder is self-hosted so nothing is
+  // fetched from a third-party CDN.
+  const { nodes } = useGLTF(config.path, "/draco/");
   const material = useGarmentMaterial(colorHex, fabric);
 
   const geometries = useMemo(
