@@ -1,5 +1,6 @@
 import { commissionsRouter } from "~/server/api/routers/commissions";
 import { instagramRouter } from "~/server/api/routers/instagram";
+import { messagesRouter } from "~/server/api/routers/messages";
 import { profileRouter } from "~/server/api/routers/profile";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -11,6 +12,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   commissions: commissionsRouter,
   instagram: instagramRouter,
+  messages: messagesRouter,
   profile: profileRouter,
 });
 

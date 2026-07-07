@@ -1,22 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { createClient } from "~/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "~/lib/auth-client";
-import type { Database } from "~/types/supabase";
-import type {
-  RealtimePostgresChangesPayload,
-  PostgrestSingleResponse,
-} from "@supabase/supabase-js";
+import { api, type RouterOutputs } from "~/trpc/react";
 
-type Message = Database["public"]["Tables"]["messages"]["Row"] & {
-  user?: {
-    name: string | null;
-    email: string | null;
-  };
-};
-
-type MessagePayload = RealtimePostgresChangesPayload<Message>;
+type Message = RouterOutputs["messages"]["list"][number];
 
 interface MessagesComponentProps {
   commissionId: string;
@@ -29,18 +17,57 @@ export default function MessagesComponent({
   currentUserId,
   isAdmin = false,
 }: MessagesComponentProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
   const { data: session } = useSession();
   const user = session?.user;
 
   // Use auth context user ID if currentUserId not provided
   const userId = currentUserId ?? user?.id;
+
+  const utils = api.useUtils();
+
+  // Polling replaces the previous realtime subscription; React Query pauses
+  // refetching while the tab is hidden.
+  const messagesQuery = api.messages.list.useQuery(
+    { commissionId },
+    { enabled: !!userId, refetchInterval: 5000 },
+  );
+  const messages = messagesQuery.data ?? [];
+  const isLoading = messagesQuery.isLoading;
+
+  const sendMutation = api.messages.send.useMutation({
+    onSuccess: (message) => {
+      // Instant echo for the sender; the next poll reconciles.
+      utils.messages.list.setData({ commissionId }, (prev) =>
+        prev ? [...prev, message] : [message],
+      );
+      setNewMessage("");
+    },
+    onError: () => {
+      toast.error("Failed to send message");
+    },
+  });
+  const isSending = sendMutation.isPending;
+
+  const markReadMutation = api.messages.markRead.useMutation({
+    onSuccess: () => {
+      // Refresh the read flags so the effect below stops re-firing.
+      void utils.messages.list.invalidate({ commissionId });
+    },
+  });
+
+  // Mark the other party's messages read whenever unread ones are on screen.
+  const hasUnreadFromOthers = messages.some(
+    (message) => !message.read && message.sender_id !== userId,
+  );
+  const isMarkingRead = markReadMutation.isPending;
+  useEffect(() => {
+    if (!userId || !hasUnreadFromOthers || isMarkingRead) return;
+    markReadMutation.mutate({ commissionId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, hasUnreadFromOthers, isMarkingRead, commissionId]);
 
   // Function to format date
   const formatDate = (dateString: string) => {
@@ -62,118 +89,10 @@ export default function MessagesComponent({
     }
   };
 
-  // Fetch messages
-  const fetchMessages = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from("messages")
-        .select(
-          `
-          *,
-          user:sender_id (
-            name,
-            email
-          )
-        `,
-        )
-        .eq("commission_id", commissionId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      setMessages(data as Message[]);
-
-      // Mark messages as read
-      const unreadMessages = data?.filter(
-        (msg: Message) => !msg.read && msg.sender_id !== userId,
-      );
-
-      if (unreadMessages?.length) {
-        await Promise.all(
-          unreadMessages.map((msg: Message) =>
-            supabase.from("messages").update({ read: true }).eq("id", msg.id),
-          ),
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      toast.error("Failed to load messages");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [commissionId, userId, supabase]);
-
-  // Subscribe to new messages
-  useEffect(() => {
-    if (!userId) return;
-
-    const subscription = supabase
-      .channel(`commission_${commissionId}`)
-      .on(
-        "postgres_changes" as const,
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `commission_id=eq.${commissionId}`,
-        },
-        (payload: MessagePayload) => {
-          // Payload received from subscription
-          // Only fetch the new message if it wasn't sent by the current user
-          const newMessage = payload.new as Message;
-          if (newMessage.sender_id !== userId) {
-            void (async () => {
-              try {
-                const response = await supabase
-                  .from("messages")
-                  .select(
-                    `
-                    *,
-                    user:sender_id (
-                      name,
-                      email
-                    )
-                  `,
-                  )
-                  .eq("id", newMessage.id)
-                  .single();
-
-                if (response.error) {
-                  console.error("Error fetching new message:", response.error);
-                  return;
-                }
-
-                if (response.data) {
-                  const typedData = response.data as Message;
-                  setMessages((prev) => [...prev, typedData]);
-                  // Mark message as read
-                  void supabase
-                    .from("messages")
-                    .update({ read: true })
-                    .eq("id", typedData.id);
-                }
-              } catch (error) {
-                console.error("Error in message subscription handler:", error);
-              }
-            })();
-          }
-        },
-      )
-      .subscribe();
-
-    void fetchMessages();
-
-    return () => {
-      void subscription.unsubscribe();
-    };
-  }, [commissionId, userId, fetchMessages, supabase]);
-
   // Scroll to bottom when messages update
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages.length]);
 
   // Scroll to bottom on initial load
   useEffect(() => {
@@ -183,54 +102,19 @@ export default function MessagesComponent({
   }, [isLoading, messages.length]);
 
   // Send message
-  const handleSendMessage = async (e: React.MouseEvent) => {
+  const handleSendMessage = (e: React.MouseEvent) => {
     e.preventDefault();
 
     if (!newMessage.trim() || isSending || !userId) return;
 
-    setIsSending(true);
-
-    try {
-      const { data, error }: PostgrestSingleResponse<Message> = await supabase
-        .from("messages")
-        .insert({
-          id: crypto.randomUUID(),
-          commission_id: commissionId,
-          sender_id: userId,
-          content: newMessage.trim(),
-        })
-        .select(
-          `
-          *,
-          user:sender_id (
-            name,
-            email
-          )
-        `,
-        )
-        .single();
-
-      if (error) throw error;
-
-      // Update local messages state
-      if (data) {
-        setMessages((prev) => [...prev, data]);
-      }
-
-      setNewMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
-    } finally {
-      setIsSending(false);
-    }
+    sendMutation.mutate({ commissionId, content: newMessage.trim() });
   };
 
   // Handle enter key press
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      void handleSendMessage(e as unknown as React.MouseEvent);
+      handleSendMessage(e as unknown as React.MouseEvent);
     }
   };
 
@@ -276,7 +160,7 @@ export default function MessagesComponent({
           </div>
         ) : (
           <AnimatePresence>
-            {messages.map((message) => (
+            {messages.map((message: Message) => (
               <motion.div
                 key={message.id}
                 initial={{ opacity: 0, y: 10 }}
