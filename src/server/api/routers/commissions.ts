@@ -226,7 +226,10 @@ export const commissionsRouter = createTRPCRouter({
           // Rollback: delete commission if measurements fail
           await supabase.from("commissions").delete().eq("id", commission.id);
 
-          console.error("Error creating commission measurements:", measurementsError);
+          console.error(
+            "Error creating commission measurements:",
+            measurementsError,
+          );
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create commission",

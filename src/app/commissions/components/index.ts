@@ -1,5 +1,6 @@
 // Export all commission form components
 export { FormSelect } from "./FormSelect";
+export { StepSlider } from "./StepSlider";
 export { FormTextarea } from "./FormTextarea";
 export { MeasurementInput } from "./MeasurementInput";
 export { MeasurementSection } from "./MeasurementSection";

@@ -250,9 +250,7 @@ export function MobileMeasurementsStep({
                             id={field.id}
                             label={field.label}
                             value={
-                              formData.measurements[
-                                field.id as MeasurementKey
-                              ]
+                              formData.measurements[field.id as MeasurementKey]
                             }
                             error={errors[`measurements.${field.id}`]}
                             required={false}

@@ -2,6 +2,7 @@
 
 import { forwardRef, useState, useEffect } from "react";
 import { FormSelect } from "./FormSelect";
+import { StepSlider } from "./StepSlider";
 import { FormTextarea } from "./FormTextarea";
 import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
@@ -12,7 +13,11 @@ import {
   StyleOptionsPicker,
 } from "./DesignPanel";
 import { MobileCommissionFlow } from "./mobile/MobileCommissionFlow";
-import { styleGroupsForGarment } from "~/lib/commission-design";
+import {
+  styleGroupsForGarment,
+  BUDGET_OPTIONS,
+  TIMELINE_OPTIONS,
+} from "~/lib/commission-design";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import type { CommissionDesign } from "~/lib/commission-design";
@@ -34,27 +39,11 @@ interface UnifiedFormLayoutProps {
   onExpand: () => void;
 }
 
-const budgetOptions = [
-  { value: "100-300", label: "$100 - $300" },
-  { value: "300-500", label: "$300 - $500" },
-  { value: "500-1000", label: "$500 - $1000" },
-  { value: "1000+", label: "$1000+" },
-];
-
-const timelineOptions = [
-  { value: "1-2weeks", label: "1-2 weeks" },
-  { value: "3-4weeks", label: "3-4 weeks" },
-  { value: "1-2months", label: "1-2 months" },
-  { value: "flexible", label: "Flexible" },
-];
-
 const BASE_GARMENT_OPTIONS = [
   { value: "shirt", label: "Shirt" },
   { value: "jacket", label: "Jacket" },
   { value: "pants", label: "Pants" },
   { value: "dress", label: "Dress" },
-  { value: "skirt", label: "Skirt" },
-  { value: "other", label: "Other" },
 ];
 
 export const UnifiedFormLayout = forwardRef<
@@ -206,26 +195,26 @@ export const UnifiedFormLayout = forwardRef<
                       id="budget-timeline-section"
                       className="space-y-6 opacity-0"
                     >
-                      <FormSelect
+                      <StepSlider
                         id="budget"
                         name="budget"
                         label="Budget Range"
                         value={formData.budget}
                         onChange={(value) => onSelectChange(value, "budget")}
-                        options={budgetOptions}
-                        placeholder="Select budget range"
+                        options={BUDGET_OPTIONS}
+                        placeholder="Set your budget"
                         error={errors.budget}
                         required
                       />
 
-                      <FormSelect
+                      <StepSlider
                         id="timeline"
                         name="timeline"
                         label="Timeline"
                         value={formData.timeline}
                         onChange={(value) => onSelectChange(value, "timeline")}
-                        options={timelineOptions}
-                        placeholder="Select timeline"
+                        options={TIMELINE_OPTIONS}
+                        placeholder="Set your timeline"
                         error={errors.timeline}
                         required
                       />
@@ -263,7 +252,6 @@ export const UnifiedFormLayout = forwardRef<
                       )}
                     </div>
                   </div>
-
                 </div>
               </div>
 

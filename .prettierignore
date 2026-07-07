@@ -1,0 +1,6 @@
+# Vendored third-party Draco decoder (minified, do not reformat)
+public/draco/
+
+# Build output
+.next/
+node_modules/

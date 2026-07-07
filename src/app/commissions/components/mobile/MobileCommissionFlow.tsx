@@ -9,7 +9,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronLeft, Pencil } from "lucide-react";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
 import { GarmentSilhouette } from "~/app/_components/3d/GarmentSilhouette";
-import { FormSelect } from "../FormSelect";
+import { StepSlider } from "../StepSlider";
 import { FormTextarea } from "../FormTextarea";
 import { SubmitButton } from "../SubmitButton";
 import { DesignPanel } from "../DesignPanel";
@@ -18,6 +18,8 @@ import { REQUIRED_MEASUREMENTS } from "../../constants";
 import {
   DEFAULT_GARMENT_COLOR,
   MEASUREMENT_BOUNDS,
+  BUDGET_OPTIONS,
+  TIMELINE_OPTIONS,
   checkMeasurementPlausibility,
   getFabricById,
   styleGroupsForGarment,
@@ -33,20 +35,6 @@ const GARMENT_TILES = [
   { value: "dress", label: "Dress" },
   { value: "skirt", label: "Skirt" },
   { value: "other", label: "Other" },
-];
-
-const budgetOptions = [
-  { value: "100-300", label: "$100 - $300" },
-  { value: "300-500", label: "$300 - $500" },
-  { value: "500-1000", label: "$500 - $1000" },
-  { value: "1000+", label: "$1000+" },
-];
-
-const timelineOptions = [
-  { value: "1-2weeks", label: "1-2 weeks" },
-  { value: "3-4weeks", label: "3-4 weeks" },
-  { value: "1-2months", label: "1-2 months" },
-  { value: "flexible", label: "Flexible" },
 ];
 
 const UNIT_SUFFIX: Record<string, string> = {
@@ -374,25 +362,25 @@ export function MobileCommissionFlow({
 
             {step.id === "budget" && (
               <div className="space-y-6">
-                <FormSelect
+                <StepSlider
                   id="budget"
                   name="budget"
                   label="Budget Range"
                   value={formData.budget}
                   onChange={(value) => handleSelectField(value, "budget")}
-                  options={budgetOptions}
-                  placeholder="Select budget range"
+                  options={BUDGET_OPTIONS}
+                  placeholder="Set your budget"
                   error={mergedErrors.budget}
                   required
                 />
-                <FormSelect
+                <StepSlider
                   id="timeline"
                   name="timeline"
                   label="Timeline"
                   value={formData.timeline}
                   onChange={(value) => handleSelectField(value, "timeline")}
-                  options={timelineOptions}
-                  placeholder="Select timeline"
+                  options={TIMELINE_OPTIONS}
+                  placeholder="Set your timeline"
                   error={mergedErrors.timeline}
                   required
                 />
@@ -576,10 +564,11 @@ function ReviewStep({
 
       <ReviewSection title="Budget & Details" onEdit={() => onEdit(3)}>
         <ReviewRow label="Budget">
-          {budgetOptions.find((b) => b.value === formData.budget)?.label ?? "—"}
+          {BUDGET_OPTIONS.find((b) => b.value === formData.budget)?.label ??
+            "—"}
         </ReviewRow>
         <ReviewRow label="Timeline">
-          {timelineOptions.find((t) => t.value === formData.timeline)?.label ??
+          {TIMELINE_OPTIONS.find((t) => t.value === formData.timeline)?.label ??
             "—"}
         </ReviewRow>
         {formData.details && (

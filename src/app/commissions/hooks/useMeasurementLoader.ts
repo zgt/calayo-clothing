@@ -86,10 +86,7 @@ export const useMeasurementLoader = ({
         }
       }
 
-      if (
-        !data ||
-        Object.keys(profileMeasurements).length === 0
-      ) {
+      if (!data || Object.keys(profileMeasurements).length === 0) {
         toast.error(
           "No measurements found in your profile. Please add your measurements in your profile first.",
         );

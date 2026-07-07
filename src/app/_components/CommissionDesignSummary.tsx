@@ -3,10 +3,7 @@
 // admin views. Renders nothing for commissions submitted before design
 // intake existed.
 
-import {
-  getFabricById,
-  styleGroupsForGarment,
-} from "~/lib/commission-design";
+import { getFabricById, styleGroupsForGarment } from "~/lib/commission-design";
 
 export interface CommissionDesignFields {
   garment_type: string;

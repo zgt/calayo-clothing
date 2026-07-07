@@ -3,10 +3,7 @@
 import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
-import {
-  DEFAULT_GARMENT_COLOR,
-  getFabricById,
-} from "~/lib/commission-design";
+import { DEFAULT_GARMENT_COLOR, getFabricById } from "~/lib/commission-design";
 
 // Per-garment GLTF path and transform. The GLTF node hierarchies differ per
 // asset, so meshes are rendered flat inside a group carrying the transform.
@@ -54,7 +51,11 @@ export function hasGarmentModel(
 }
 
 // Fabric material defaults used when no fabric preset is selected.
-const DEFAULT_FABRIC_PARAMS = { roughness: 0.85, sheen: 0.1, sheenRoughness: 0.9 };
+const DEFAULT_FABRIC_PARAMS = {
+  roughness: 0.85,
+  sheen: 0.1,
+  sheenRoughness: 0.9,
+};
 
 // One material shared by every mesh of the garment. It is created once and
 // mutated in place when the color or fabric changes — no per-render material
@@ -80,15 +81,15 @@ export function useGarmentMaterial(
 
   useEffect(() => {
     material.color.set(colorHex ?? DEFAULT_GARMENT_COLOR);
-    const params = getFabricById(fabricId ?? null)?.material ?? DEFAULT_FABRIC_PARAMS;
+    const params =
+      getFabricById(fabricId ?? null)?.material ?? DEFAULT_FABRIC_PARAMS;
     material.roughness = params.roughness;
     material.sheen = params.sheen;
     material.sheenRoughness = params.sheenRoughness;
     // Tinted sheen reads as fabric lustre rather than a white specular film.
-    material.sheenColor.set(colorHex ?? DEFAULT_GARMENT_COLOR).lerp(
-      new THREE.Color("#ffffff"),
-      0.5,
-    );
+    material.sheenColor
+      .set(colorHex ?? DEFAULT_GARMENT_COLOR)
+      .lerp(new THREE.Color("#ffffff"), 0.5);
   }, [material, colorHex, fabricId]);
 
   return material;
@@ -100,7 +101,11 @@ interface GLTFGarmentProps {
   fabric?: string | null;
 }
 
-export function GLTFGarment({ garmentType, colorHex, fabric }: GLTFGarmentProps) {
+export function GLTFGarment({
+  garmentType,
+  colorHex,
+  fabric,
+}: GLTFGarmentProps) {
   const config = GARMENT_MODEL_CONFIG[garmentType];
   // Models are Draco-compressed; the decoder is self-hosted so nothing is
   // fetched from a third-party CDN.

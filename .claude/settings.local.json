@@ -55,7 +55,9 @@
       "Bash(echo \"exit=$?\")",
       "Bash(python3 -c ' *)",
       "Bash(echo \"typecheck exit: $?\")",
-      "Bash(pnpm exec *)"
+      "Bash(pnpm exec *)",
+      "Bash(git rm *)",
+      "Bash(awk '{print $NF}')"
     ],
     "deny": []
   }

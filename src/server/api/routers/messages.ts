@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { User } from "~/lib/auth";
 
@@ -36,7 +36,10 @@ async function assertCommissionAccess(
     .from("commissions")
     .select("id, user_id")
     .eq("id", commissionId)
-    .single()) as { data: { id: string; user_id: string } | null; error: any };
+    .single()) as {
+    data: { id: string; user_id: string } | null;
+    error: PostgrestError | null;
+  };
 
   if (error || !commission) {
     if (error && error.code !== "PGRST116") {
@@ -58,7 +61,9 @@ export const messagesRouter = createTRPCRouter({
   // Get all messages for a commission (owner or admin only)
   list: protectedProcedure
     .input(
-      z.object({ commissionId: z.string().min(1, "Commission ID is required") }),
+      z.object({
+        commissionId: z.string().min(1, "Commission ID is required"),
+      }),
     )
     .query(async ({ input, ctx }) => {
       const { supabase } = ctx;
@@ -72,7 +77,7 @@ export const messagesRouter = createTRPCRouter({
         .eq("commission_id", input.commissionId)
         .order("created_at", { ascending: true })) as {
         data: ChatMessage[] | null;
-        error: any;
+        error: PostgrestError | null;
       };
 
       if (error) {
@@ -110,7 +115,10 @@ export const messagesRouter = createTRPCRouter({
           content: input.content,
         })
         .select(MESSAGE_EMBED)
-        .single()) as { data: ChatMessage | null; error: any };
+        .single()) as {
+        data: ChatMessage | null;
+        error: PostgrestError | null;
+      };
 
       if (error || !message) {
         console.error("Error sending message:", error);
@@ -126,7 +134,9 @@ export const messagesRouter = createTRPCRouter({
   // Mark every message from the other party as read.
   markRead: protectedProcedure
     .input(
-      z.object({ commissionId: z.string().min(1, "Commission ID is required") }),
+      z.object({
+        commissionId: z.string().min(1, "Commission ID is required"),
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       const { supabase } = ctx;
@@ -139,7 +149,7 @@ export const messagesRouter = createTRPCRouter({
         .update({ read: true })
         .eq("commission_id", input.commissionId)
         .neq("sender_id", user.id)
-        .eq("read", false)) as { error: any };
+        .eq("read", false)) as { error: PostgrestError | null };
 
       if (error) {
         console.error("Error marking messages read:", error);

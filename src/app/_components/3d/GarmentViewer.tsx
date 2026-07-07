@@ -5,10 +5,7 @@ import { Scene3D } from "./Scene3D";
 import { GarmentSilhouette } from "./GarmentSilhouette";
 import { useState, useEffect } from "react";
 import { useMobile } from "~/context/mobile-provider";
-import {
-  DEFAULT_GARMENT_COLOR,
-  getFabricById,
-} from "~/lib/commission-design";
+import { DEFAULT_GARMENT_COLOR, getFabricById } from "~/lib/commission-design";
 
 // Hook to detect device performance capabilities
 const useDeviceCapabilities = () => {
@@ -100,8 +97,7 @@ export function GarmentViewer({
               <div className="flex items-center justify-between rounded-lg bg-black/20 p-3 backdrop-blur-sm">
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {garmentType.charAt(0).toUpperCase() +
-                      garmentType.slice(1)}{" "}
+                    {garmentType.charAt(0).toUpperCase() + garmentType.slice(1)}{" "}
                     Preview
                   </h3>
                   {fabricLabel && (

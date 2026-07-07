@@ -14,16 +14,42 @@ export const GARMENT_TYPES = [
 
 export type GarmentType = (typeof GARMENT_TYPES)[number];
 
-export const BUDGET_VALUES = ["100-300", "300-500", "500-1000", "1000+"] as const;
-export const TIMELINE_VALUES = [
-  "1-2weeks",
-  "3-4weeks",
-  "1-2months",
-  "flexible",
+// Budget and timeline tiers. Values double as the DB-stored enum keys and are
+// validated by both the client form and the tRPC router, so labels live here
+// too (single source of truth) to keep the picker UI and the schema in sync.
+// Ordered from smallest/soonest to largest/most-relaxed so a slider reads
+// left-to-right naturally.
+export const BUDGET_OPTIONS = [
+  { value: "50-100", label: "$50–$100" },
+  { value: "100-250", label: "$100–$250" },
+  { value: "250-500", label: "$250–$500" },
+  { value: "500-750", label: "$500–$750" },
+  { value: "750-1000", label: "$750–$1,000" },
+  { value: "1000-1500", label: "$1,000–$1,500" },
+  { value: "1500+", label: "$1,500+" },
 ] as const;
 
-export type BudgetValue = (typeof BUDGET_VALUES)[number];
-export type TimelineValue = (typeof TIMELINE_VALUES)[number];
+export const TIMELINE_OPTIONS = [
+  { value: "1-2weeks", label: "1–2 weeks" },
+  { value: "3-4weeks", label: "3–4 weeks" },
+  { value: "1-2months", label: "1–2 months" },
+  { value: "2-3months", label: "2–3 months" },
+  { value: "flexible", label: "Flexible" },
+] as const;
+
+export type BudgetValue = (typeof BUDGET_OPTIONS)[number]["value"];
+export type TimelineValue = (typeof TIMELINE_OPTIONS)[number]["value"];
+
+// Non-empty tuples for z.enum(). Derived from the option lists above so the
+// two can never drift apart.
+export const BUDGET_VALUES = BUDGET_OPTIONS.map((o) => o.value) as [
+  BudgetValue,
+  ...BudgetValue[],
+];
+export const TIMELINE_VALUES = TIMELINE_OPTIONS.map((o) => o.value) as [
+  TimelineValue,
+  ...TimelineValue[],
+];
 
 // ---------------------------------------------------------------------------
 // Color
