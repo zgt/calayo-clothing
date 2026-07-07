@@ -60,7 +60,11 @@ export default function CircularPhotoLayout() {
     width: typeof window !== "undefined" ? window.innerWidth : 1024,
     height: typeof window !== "undefined" ? window.innerHeight : 768,
   });
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  // Ref, not state: image-load completion must NOT re-run the animation
+  // effect below. Rebuilding the pinned ScrollTriggers seconds after mount
+  // (when uncached images finish) tears down pin spacers mid-scroll and can
+  // freeze scrolling on mobile until a refresh.
+  const imagesLoadedRef = useRef(false);
   const loadedImagesCount = useRef(0);
   const [clickedPhotos, setClickedPhotos] = useState<Set<string>>(new Set());
   // Photos can only be enlarged before any scroll (container is at scale 1).
@@ -85,8 +89,8 @@ export default function CircularPhotoLayout() {
     // Progress ring will be updated only during scroll animation, not during image loading
 
     // Check if all images are loaded
-    if (loadedImagesCount.current === totalPhotos && !imagesLoaded) {
-      setImagesLoaded(true);
+    if (loadedImagesCount.current === totalPhotos && !imagesLoadedRef.current) {
+      imagesLoadedRef.current = true;
       // Small delay to ensure all images are rendered
       setTimeout(() => {
         // Start staggered photo animation first
@@ -385,7 +389,7 @@ export default function CircularPhotoLayout() {
 
           const handleMouseEnter = () => {
             // Only apply hover effect if photo is not clicked AND images are fully loaded
-            if (!clickedPhotos.has(photoId) && imagesLoaded) {
+            if (!clickedPhotos.has(photoId) && imagesLoadedRef.current) {
               const originalPosition = photoPositions[index];
               if (!originalPosition) return;
 
@@ -468,7 +472,7 @@ export default function CircularPhotoLayout() {
 
           const handleMouseLeave = () => {
             // Only apply hover reset if images are fully loaded
-            if (!imagesLoaded) return;
+            if (!imagesLoadedRef.current) return;
 
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
@@ -543,7 +547,7 @@ export default function CircularPhotoLayout() {
 
           const handleClick = () => {
             // Only allow clicks if images are fully loaded
-            if (!imagesLoaded) return;
+            if (!imagesLoadedRef.current) return;
 
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             const originalPosition = photoPositions[index];
@@ -665,7 +669,7 @@ export default function CircularPhotoLayout() {
       // Hide the scroll cue until the intro animation reveals it; skip once
       // images are loaded so photo clicks (which re-run this effect) don't
       // wipe it back to invisible.
-      if (!imagesLoaded) {
+      if (!imagesLoadedRef.current) {
         gsap.set(subsubtitleRef.current, { opacity: 0 });
       }
 
@@ -1036,7 +1040,6 @@ export default function CircularPhotoLayout() {
     screenSize,
     isMobile,
     clickedPhotos,
-    imagesLoaded,
     circleConfig.maxPhotos,
     circleConfig.aspectRatio,
     circleConfig.photoSize,
