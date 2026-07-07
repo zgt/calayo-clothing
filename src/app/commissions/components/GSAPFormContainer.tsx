@@ -4,14 +4,13 @@ import { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { Flip } from "gsap/Flip";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import type { CommissionDesign } from "~/lib/commission-design";
 import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
-gsap.registerPlugin(Flip, ScrambleTextPlugin, ScrollToPlugin);
+gsap.registerPlugin(Flip, ScrambleTextPlugin);
 
 interface GSAPFormContainerProps {
   formData: CommissionFormData;
@@ -59,6 +58,9 @@ export function GSAPFormContainer({
 
   useEffect(() => {
     if (!containerRef.current) return;
+    // The GSAP expansion (and its scroll lock) is desktop-only; the mobile
+    // stepper scrolls normally and has none of these elements.
+    if (window.innerWidth < 1024) return;
     document.body.style.overflow = "hidden";
 
     // Set initial states for hidden elements
@@ -181,16 +183,6 @@ export function GSAPFormContainer({
       },
     });
   }, [currentMeasurement]);
-
-  const handleMobileGarmentSelect = () => {
-    if (!containerRef.current) return;
-
-    gsap.to(window, {
-      duration: 0.5,
-      scrollTo: { y: "#measurements", offsetY: -200 },
-    });
-    document.body.style.overflow = "unset";
-  };
 
   const handleExpand = () => {
     if (isExpanded || !containerRef.current || isMobile) return; // Skip GSAP animations on mobile
@@ -350,7 +342,6 @@ export function GSAPFormContainer({
         onMeasurementChange={onMeasurementChange}
         onDesignChange={onDesignChange}
         onExpand={handleExpand}
-        onMobileGarmentSelect={handleMobileGarmentSelect}
       />
     </div>
   );

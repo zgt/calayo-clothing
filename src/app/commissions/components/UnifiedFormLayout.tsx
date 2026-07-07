@@ -7,14 +7,13 @@ import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
 import {
-  DesignPanel,
   ColorSwatchPicker,
   FabricPicker,
   StyleOptionsPicker,
 } from "./DesignPanel";
-import { getFabricById, styleGroupsForGarment } from "~/lib/commission-design";
+import { MobileCommissionFlow } from "./mobile/MobileCommissionFlow";
+import { styleGroupsForGarment } from "~/lib/commission-design";
 import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
-import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
 import type { CommissionFormData, MeasurementKey } from "../types";
 import type { CommissionDesign } from "~/lib/commission-design";
 
@@ -33,7 +32,6 @@ interface UnifiedFormLayoutProps {
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
   onDesignChange: (design: Partial<CommissionDesign>) => void;
   onExpand: () => void;
-  onMobileGarmentSelect: () => void;
 }
 
 const budgetOptions = [
@@ -77,7 +75,6 @@ export const UnifiedFormLayout = forwardRef<
       onMeasurementChange,
       onDesignChange,
       onExpand,
-      onMobileGarmentSelect,
     },
     ref,
   ) => {
@@ -98,237 +95,23 @@ export const UnifiedFormLayout = forwardRef<
       if (value && !isMobile) {
         onExpand();
       }
-      if (value && isMobile) {
-        onMobileGarmentSelect();
-      }
     };
 
     if (isMobile) {
       return (
-        <div ref={ref} className="min-h-screen">
-          <div className="mx-auto">
-            {/* Fixed 3D Preview at top */}
-            {formData.garmentType && (
-              <div
-                className="sticky top-0 z-30 h-48 w-full"
-                style={{ backgroundColor: "black" }}
-              >
-                <GarmentViewer
-                  className="h-full w-full"
-                  garmentType={formData.garmentType}
-                  colorHex={formData.design.colorHex}
-                  fabric={formData.design.fabric}
-                  disableInteraction={true}
-                />
-              </div>
-            )}
-
-            {/* Sticky Tabs Form */}
-            <form onSubmit={onSubmit}>
-              <StickyTabs
-                mainNavHeight={formData.garmentType ? "12rem" : "38rem"}
-                rootClassName="bg-transparent"
-                navSpacerClassName="bg-transparent"
-                sectionClassName="bg-transparent"
-              >
-                <StickyTabs.Item title="Garment Type" id="garment-type">
-                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                    <FormSelect
-                      id="garmentType"
-                      name="garmentType"
-                      label="Garment Type"
-                      value={formData.garmentType}
-                      onChange={handleGarmentTypeChange}
-                      options={BASE_GARMENT_OPTIONS}
-                      placeholder="Select garment type"
-                      error={errors.garmentType}
-                      required
-                    />
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Design" id="design">
-                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                    {formData.garmentType ? (
-                      <DesignPanel
-                        garmentType={formData.garmentType}
-                        design={formData.design}
-                        onDesignChange={onDesignChange}
-                        error={errors.design}
-                      />
-                    ) : (
-                      <p className="py-4 text-center text-emerald-200/70">
-                        Select a garment type to start designing
-                      </p>
-                    )}
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Budget & Timeline" id="budget-timeline">
-                  <div className="space-y-6">
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <div className="space-y-6">
-                        <FormSelect
-                          id="budget"
-                          name="budget"
-                          label="Budget Range"
-                          value={formData.budget}
-                          onChange={(value) => onSelectChange(value, "budget")}
-                          options={budgetOptions}
-                          placeholder="Select budget range"
-                          error={errors.budget}
-                          required
-                        />
-
-                        <FormSelect
-                          id="timeline"
-                          name="timeline"
-                          label="Timeline"
-                          value={formData.timeline}
-                          onChange={(value) =>
-                            onSelectChange(value, "timeline")
-                          }
-                          options={timelineOptions}
-                          placeholder="Select timeline"
-                          error={errors.timeline}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Additional Details" id="details">
-                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                    <FormTextarea
-                      id="details"
-                      name="details"
-                      label="Additional Details"
-                      value={formData.details}
-                      onChange={onInputChange}
-                      placeholder="Describe your vision, preferred colors, style, fit, or any special requirements..."
-                      error={errors.details}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Measurements" id="measurements">
-                  <div className="">
-                    <MeasurementGuideDisplay
-                      currentMeasurement={currentMeasurement}
-                    />
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <MeasurementNavigator
-                        formData={formData}
-                        errors={errors}
-                        onChange={onInputChange}
-                        onLoadMeasurements={onLoadMeasurements}
-                        isLoadingMeasurements={isLoadingMeasurements}
-                        onMeasurementChange={onMeasurementChange}
-                      />
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Review & Submit" id="review">
-                  <div className="space-y-6">
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <div className="mb-8 space-y-4">
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">
-                            Garment Type:
-                          </span>
-                          <span className="font-medium text-white">
-                            {formData.garmentType}
-                          </span>
-                        </div>
-                        {formData.design.colorHex && (
-                          <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                            <span className="text-emerald-200">Color:</span>
-                            <span className="flex items-center gap-2 font-medium text-white">
-                              <span
-                                className="h-4 w-4 rounded-full border border-white/30"
-                                style={{
-                                  backgroundColor: formData.design.colorHex,
-                                }}
-                              />
-                              {formData.design.colorName ?? "Custom"}
-                            </span>
-                          </div>
-                        )}
-                        {formData.design.fabric && (
-                          <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                            <span className="text-emerald-200">Fabric:</span>
-                            <span className="font-medium text-white">
-                              {getFabricById(formData.design.fabric)?.label}
-                            </span>
-                          </div>
-                        )}
-                        {Object.entries(formData.design.styleOptions).map(
-                          ([groupId, value]) => {
-                            const group = styleGroupsForGarment(
-                              formData.garmentType,
-                            ).find((g) => g.id === groupId);
-                            const option = group?.options.find(
-                              (o) => o.value === value,
-                            );
-                            if (!group || !option) return null;
-                            return (
-                              <div
-                                key={groupId}
-                                className="flex justify-between border-b border-emerald-700/20 py-3"
-                              >
-                                <span className="text-emerald-200">
-                                  {group.label}:
-                                </span>
-                                <span className="font-medium text-white">
-                                  {option.label}
-                                </span>
-                              </div>
-                            );
-                          },
-                        )}
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">Budget:</span>
-                          <span className="font-medium text-white">
-                            {
-                              budgetOptions.find(
-                                (b) => b.value === formData.budget,
-                              )?.label
-                            }
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">Timeline:</span>
-                          <span className="font-medium text-white">
-                            {
-                              timelineOptions.find(
-                                (t) => t.value === formData.timeline,
-                              )?.label
-                            }
-                          </span>
-                        </div>
-                        <div className="py-3">
-                          <span className="mb-2 block text-emerald-200">
-                            Details:
-                          </span>
-                          <p className="text-sm text-white">
-                            {formData.details}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pb-8">
-                      <SubmitButton isLoading={isSubmitting} />
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-              </StickyTabs>
-            </form>
-          </div>
+        <div ref={ref}>
+          <form onSubmit={onSubmit}>
+            <MobileCommissionFlow
+              formData={formData}
+              errors={errors}
+              onInputChange={onInputChange}
+              onSelectChange={onSelectChange}
+              onLoadMeasurements={onLoadMeasurements}
+              isLoadingMeasurements={isLoadingMeasurements}
+              isSubmitting={isSubmitting}
+              onDesignChange={onDesignChange}
+            />
+          </form>
         </div>
       );
     }
