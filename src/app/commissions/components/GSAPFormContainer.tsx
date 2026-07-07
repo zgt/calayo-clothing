@@ -86,11 +86,16 @@ export function GSAPFormContainer({
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
-    gsap.set([additionalDetailsCard, garmentPreviewCard, designCard], {
+    gsap.set([garmentPreviewCard, designCard], {
       x: -500,
     });
     gsap.set(
-      [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
+      [
+        measurementGuideCard,
+        measurementNavigatorCard,
+        additionalDetailsCard,
+        submitButtonContainer,
+      ],
       {
         x: -1000,
       },

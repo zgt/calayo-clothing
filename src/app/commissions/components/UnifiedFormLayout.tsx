@@ -451,7 +451,7 @@ export const UnifiedFormLayout = forwardRef<
 
                   <div
                     id="garment-preview-card"
-                    className="aspect-square w-full max-w-sm opacity-0"
+                    className="aspect-[3/4] w-full max-w-sm opacity-0"
                   >
                     <GarmentViewer
                       className="h-full w-full"
@@ -481,29 +481,13 @@ export const UnifiedFormLayout = forwardRef<
                     </div>
                   </div>
 
-                  <div
-                    id="additional-details-card"
-                    className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
-                  >
-                    <FormTextarea
-                      id="details"
-                      name="details"
-                      label="Additional Details"
-                      value={formData.details}
-                      onChange={onInputChange}
-                      placeholder="Tell us more about your vision..."
-                      error={errors.details}
-                      rows={4}
-                      required
-                    />
-                  </div>
                 </div>
               </div>
 
               {/* Right Column - Measurement Guide and Measurements */}
               <div
                 id="column-3"
-                className="grid-column-inline-grid min-w-0 space-y-6 opacity-0"
+                className="grid-column-inline-grid min-w-0 content-start space-y-6 opacity-0"
               >
                 <div id="measurement-guide-card" style={{ height: "16rem" }}>
                   <MeasurementGuideDisplay
@@ -523,7 +507,23 @@ export const UnifiedFormLayout = forwardRef<
                     onMeasurementChange={onMeasurementChange}
                   />
                 </div>
-                <div id="submit-button-container" className="submit-container">
+                <div
+                  id="additional-details-card"
+                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
+                >
+                  <FormTextarea
+                    id="details"
+                    name="details"
+                    label="Additional Details"
+                    value={formData.details}
+                    onChange={onInputChange}
+                    placeholder="Tell us more about your vision..."
+                    error={errors.details}
+                    rows={4}
+                    required
+                  />
+                </div>
+                <div id="submit-button-container">
                   <SubmitButton isLoading={isSubmitting} />
                 </div>
               </div>
