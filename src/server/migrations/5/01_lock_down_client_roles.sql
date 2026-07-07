@@ -41,7 +41,7 @@ ALTER TABLE "user"                  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE account                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE verification            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "passwordReset"         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE passwordreset           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE commissions             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE commission_measurements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages                ENABLE ROW LEVEL SECURITY;
