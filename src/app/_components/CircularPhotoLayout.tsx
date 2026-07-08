@@ -1272,6 +1272,7 @@ export default function CircularPhotoLayout() {
                         src={photo.mediaUrl}
                         alt="Calayo Clothing custom garment"
                         fill
+                        sizes="(max-width: 479px) 70px, (max-width: 767px) 80px, (max-width: 1023px) 90px, (max-width: 1439px) 100px, 121px"
                         style={{
                           objectFit: "cover",
                         }}

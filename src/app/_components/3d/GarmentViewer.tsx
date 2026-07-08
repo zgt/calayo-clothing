@@ -171,7 +171,7 @@ export function GarmentViewer({
           powerPreference: isMobile ? "low-power" : "high-performance",
           premultipliedAlpha: false,
         }}
-        shadows={!isMobile} // Disable shadows on mobile
+        shadows={isMobile ? false : "percentage"} // Disable shadows on mobile; "percentage" -> THREE.PCFShadowMap (PCFSoftShadowMap is deprecated in three)
         className="h-full w-full"
         dpr={isMobile ? [1, 2] : [1, 2]} // Limit device pixel ratio on mobile
       >
