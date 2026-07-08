@@ -46,3 +46,4 @@ env
 # idea files
 .idea
 .vercel
+.env*
