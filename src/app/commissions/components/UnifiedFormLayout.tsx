@@ -45,6 +45,8 @@ const BASE_GARMENT_OPTIONS = [
   { value: "jacket", label: "Jacket" },
   { value: "pants", label: "Pants" },
   { value: "dress", label: "Dress" },
+  { value: "skirt", label: "Skirt" },
+  { value: "other", label: "Other" },
 ];
 
 export const UnifiedFormLayout = forwardRef<

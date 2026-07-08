@@ -111,6 +111,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  */
 const rateLimitMiddleware = t.middleware(({ ctx, type, next }) => {
   if (type !== "mutation") return next();
+  // Admins are exempt: bulk actions (e.g. approve-all) legitimately issue one
+  // mutation per commission and would trip the cap.
+  if (ctx.user && (ctx.user as User).role === "admin") return next();
 
   const ip =
     ctx.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
