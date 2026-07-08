@@ -12,7 +12,8 @@ interface GarmentModelProps {
   fabric?: string | null;
 }
 
-// Shown for garments without a dedicated 3D model (skirt, other). Tinted by
+// Shown for garments without a dedicated 3D model (e.g. legacy commission
+// types that are no longer offered). Tinted by
 // the chosen color so the design selection still reads in the viewer.
 function PlaceholderModel({
   colorHex,

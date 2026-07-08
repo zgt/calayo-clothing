@@ -38,7 +38,7 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
       </div>
 
       {/* Upper Body Measurements - Show for shirts, jackets, dresses */}
-      {["shirt", "jacket", "dress", "other"].includes(formData.garmentType) && (
+      {["shirt", "jacket", "dress"].includes(formData.garmentType) && (
         <MeasurementSection
           title="Upper Body"
           measurements={MEASUREMENT_GROUPS.upper}
@@ -49,8 +49,8 @@ export const MeasurementsForm: React.FC<MeasurementsFormProps> = ({
         />
       )}
 
-      {/* Lower Body Measurements - Show for pants, skirts, dresses */}
-      {["pants", "skirt", "dress", "other"].includes(formData.garmentType) && (
+      {/* Lower Body Measurements - Show for pants and dresses */}
+      {["pants", "dress"].includes(formData.garmentType) && (
         <MeasurementSection
           title="Lower Body"
           measurements={MEASUREMENT_GROUPS.lower}

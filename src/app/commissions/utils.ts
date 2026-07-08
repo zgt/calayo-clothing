@@ -18,12 +18,12 @@ export const shouldShowMeasurement = (
 
   // For upper body measurements, show for shirt, jacket, dress
   if (MEASUREMENT_GROUPS.upper.some((m) => m.id === measurementId)) {
-    return ["shirt", "jacket", "dress", "other"].includes(garmentType);
+    return ["shirt", "jacket", "dress"].includes(garmentType);
   }
 
-  // For lower body measurements, show for pants, skirt, dress
+  // For lower body measurements, show for pants and dresses
   if (MEASUREMENT_GROUPS.lower.some((m) => m.id === measurementId)) {
-    return ["pants", "skirt", "dress", "other"].includes(garmentType);
+    return ["pants", "dress"].includes(garmentType);
   }
 
   return true;

@@ -3,14 +3,7 @@
 // Imported by both the client form and the tRPC router so the two
 // validation layers can't drift.
 
-export const GARMENT_TYPES = [
-  "shirt",
-  "jacket",
-  "pants",
-  "dress",
-  "skirt",
-  "other",
-] as const;
+export const GARMENT_TYPES = ["shirt", "jacket", "pants", "dress"] as const;
 
 export type GarmentType = (typeof GARMENT_TYPES)[number];
 
@@ -116,56 +109,56 @@ export const FABRIC_PRESETS: readonly FabricPreset[] = [
     label: "Cotton Poplin",
     description: "Crisp, smooth and breathable — the classic shirting cloth.",
     material: { roughness: 0.8, sheen: 0.15, sheenRoughness: 0.9 },
-    garments: ["shirt", "dress", "skirt", "other"],
+    garments: ["shirt", "dress"],
   },
   {
     id: "linen",
     label: "Linen",
     description: "Airy with a dry, textured hand. Softens with wear.",
     material: { roughness: 0.92, sheen: 0.05, sheenRoughness: 1 },
-    garments: ["shirt", "jacket", "pants", "dress", "skirt", "other"],
+    garments: ["shirt", "jacket", "pants", "dress"],
   },
   {
     id: "wool-suiting",
     label: "Wool Suiting",
     description: "Structured drape with a subtle matte lustre.",
     material: { roughness: 0.85, sheen: 0.2, sheenRoughness: 0.8 },
-    garments: ["jacket", "pants", "skirt", "other"],
+    garments: ["jacket", "pants"],
   },
   {
     id: "denim",
     label: "Denim",
     description: "Rugged twill that breaks in beautifully.",
     material: { roughness: 0.95, sheen: 0, sheenRoughness: 1 },
-    garments: ["jacket", "pants", "skirt", "other"],
+    garments: ["jacket", "pants"],
   },
   {
     id: "silk-charmeuse",
     label: "Silk Charmeuse",
     description: "Fluid and lustrous with a soft, liquid drape.",
     material: { roughness: 0.35, sheen: 0.6, sheenRoughness: 0.4 },
-    garments: ["shirt", "dress", "skirt", "other"],
+    garments: ["shirt", "dress"],
   },
   {
     id: "satin",
     label: "Satin",
     description: "High-shine face with a smooth, formal finish.",
     material: { roughness: 0.3, sheen: 0.8, sheenRoughness: 0.35 },
-    garments: ["dress", "skirt", "other"],
+    garments: ["dress"],
   },
   {
     id: "velvet",
     label: "Velvet",
     description: "Deep pile that catches light directionally.",
     material: { roughness: 1, sheen: 1, sheenRoughness: 0.5 },
-    garments: ["jacket", "dress", "skirt", "other"],
+    garments: ["jacket", "dress"],
   },
   {
     id: "jersey-knit",
     label: "Jersey Knit",
     description: "Soft stretch knit for relaxed, close-to-body pieces.",
     material: { roughness: 0.9, sheen: 0.1, sheenRoughness: 0.95 },
-    garments: ["shirt", "dress", "skirt", "other"],
+    garments: ["shirt", "dress"],
   },
 ];
 
@@ -389,50 +382,6 @@ export const GARMENT_STYLE_OPTIONS: Record<
       ],
     },
   ],
-  skirt: [
-    {
-      id: "silhouette",
-      label: "Silhouette",
-      options: [
-        { value: "a-line", label: "A-Line" },
-        { value: "pencil", label: "Pencil" },
-        { value: "pleated", label: "Pleated" },
-        { value: "wrap", label: "Wrap" },
-        { value: "circle", label: "Circle" },
-      ],
-    },
-    {
-      id: "length",
-      label: "Length",
-      options: [
-        { value: "mini", label: "Mini" },
-        { value: "knee", label: "Knee" },
-        { value: "midi", label: "Midi" },
-        { value: "maxi", label: "Maxi" },
-      ],
-    },
-    {
-      id: "waistband",
-      label: "Waistband",
-      options: [
-        { value: "fitted", label: "Fitted" },
-        { value: "elastic", label: "Elastic" },
-        { value: "paper-bag", label: "Paper-Bag" },
-      ],
-    },
-    {
-      id: "closure",
-      label: "Closure",
-      options: [
-        { value: "side-zip", label: "Side Zip" },
-        { value: "back-zip", label: "Back Zip" },
-        { value: "buttons", label: "Buttons" },
-        { value: "wrap-tie", label: "Wrap Tie" },
-      ],
-    },
-  ],
-  // "Other" garments describe their construction in the details field.
-  other: [],
 };
 
 export function styleGroupsForGarment(
@@ -507,8 +456,6 @@ export const REQUIRED_MEASUREMENTS: Record<string, string[]> = {
   jacket: ["chest", "shoulders", "sleeve_length", "bicep"],
   pants: ["waist", "hips", "inseam", "length", "rise"],
   dress: ["chest", "waist", "hips", "length", "shoulders"],
-  skirt: ["waist", "hips", "length"],
-  other: [],
 };
 
 export interface MeasurementBound {

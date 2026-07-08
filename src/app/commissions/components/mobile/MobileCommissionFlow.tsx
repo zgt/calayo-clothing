@@ -33,8 +33,6 @@ const GARMENT_TILES = [
   { value: "jacket", label: "Jacket" },
   { value: "pants", label: "Pants" },
   { value: "dress", label: "Dress" },
-  { value: "skirt", label: "Skirt" },
-  { value: "other", label: "Other" },
 ];
 
 const UNIT_SUFFIX: Record<string, string> = {
