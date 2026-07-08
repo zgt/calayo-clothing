@@ -14,16 +14,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, a custom clothing commission platform.
+This is a T3 Stack application (Next.js 16 + tRPC + Supabase) for Calayo Clothing, a custom clothing commission platform.
 
 ### Core Technologies
-- **Next.js 15** with App Router
-- **tRPC** for type-safe API endpoints (`src/server/api/`)
+- **Next.js 16** with App Router (React 19, Node ≥22, pnpm)
+- **tRPC v11** for type-safe API endpoints (`src/server/api/`)
 - **Better-Auth** for authentication with admin roles
-- **Supabase/PostgreSQL** for database
-- **TailwindCSS 4 + Material-UI** for styling
+- **Supabase/PostgreSQL** for database (accessed via `@supabase/supabase-js` and `pg`)
+- **TailwindCSS 4 + Material-UI v9** for styling
 - **TypeScript** with strict configuration
-- **Zod** for runtime validation
+- **Zod v4** for runtime validation
 - **React Three Fiber + Drei** for 3D graphics
 - **GSAP + Framer Motion** for animations
 - **UploadThing** for file uploads
@@ -83,7 +83,25 @@ The app handles:
 - 3D models are Draco-compressed `.glb` files in `public/3d-assets/` (decoder self-hosted in `public/draco/`; uncompressed originals archived outside the repo; regenerate with `scripts/optimize-3d-assets.sh`)
 
 ### Claude Guidance
-- Never add information about claude in the commit messages, that includes made by claude or helped by claude.
-- Never include this information: 🤖 Generated with [Claude Code](https://claude.ai/code)                                                           Co-Authored-By: Claude <noreply@anthropic.com>
-- Commit changes with descriptive message
-- don't run npm run lint after every change, it tends to timeout
+
+**Working principles**
+- Ask, don't assume. If intent, architecture, or requirements are unclear, clarify before writing code. When running unattended, pick the most reasonable interpretation, proceed, and record the assumption rather than blocking.
+- Implement the simplest solution that fits the problem. Don't over-engineer or add flexibility that isn't needed yet.
+- Don't touch unrelated code — but surface bad code or design smells you find so they can be addressed separately.
+- Flag uncertainty explicitly instead of asserting with false confidence.
+- Suggest better approaches when you see them, including ones with long-lasting impact over a tactical fix.
+
+**Subagent workflows**
+- Delegate by default. Keep the main context as orchestrator/reviewer: plan, dispatch subagents, judge their output, integrate.
+- Use subagents (e.g. Explore) for codebase search/exploration so file dumps stay out of the main context.
+- Hand well-specified, independent changes to subagents; fan out concurrent agents in a single message when the work doesn't conflict.
+- Before landing nontrivial work, get an independent, fresh-context review.
+- Give subagents self-contained prompts (goal, constraints, paths, expected output) and carry over "don't touch unrelated code" and "record assumptions instead of blocking".
+
+**Git**
+- Keep commit messages concise.
+- Never add Claude attribution to commits — no "made by Claude"/"helped by Claude", no `Co-Authored-By: Claude ...`, no `🤖 Generated with [Claude Code]`.
+
+**Development**
+- A dev server is usually already running. Don't run `pnpm build` or `pnpm dev` after making changes unless asked.
+- Don't run `pnpm lint` after every change — it tends to time out. Use `pnpm typecheck` for a fast check.
