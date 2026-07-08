@@ -10,7 +10,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth, type User } from "~/lib/auth";
-import { createClient } from "~/utils/supabase/server";
+import { consumeRateLimit } from "~/server/api/rate-limit";
+import { createServiceClient } from "~/utils/supabase/server";
 
 /**
  * 1. CONTEXT
@@ -38,8 +39,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     console.error("Error getting session in tRPC context:", error);
   }
 
-  // Keep Supabase client for database operations during migration
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   return {
     ...opts,
@@ -92,19 +92,10 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
- * Middleware for timing procedure execution and adding an artificial delay in development.
- *
- * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
- * network latency that would occur in production but not in local development.
+ * Middleware for timing procedure execution.
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
   const start = Date.now();
-
-  if (t._config.isDev) {
-    // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
 
   const result = await next();
 
@@ -112,6 +103,31 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   console.warn(`[TRPC] ${path} took ${end - start}ms to execute`);
 
   return result;
+});
+
+/**
+ * Rate limiting for mutations, keyed by user id (falling back to IP).
+ * Queries are deliberately unlimited — the chat polls every 5 seconds.
+ */
+const rateLimitMiddleware = t.middleware(({ ctx, type, next }) => {
+  if (type !== "mutation") return next();
+  // Admins are exempt: bulk actions (e.g. approve-all) legitimately issue one
+  // mutation per commission and would trip the cap.
+  if (ctx.user && (ctx.user as User).role === "admin") return next();
+
+  const ip =
+    ctx.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    ctx.headers.get("x-real-ip");
+  const key = ctx.user?.id ?? ip ?? "anonymous";
+
+  if (!consumeRateLimit(`trpc:${key}`, 30, 60_000)) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many requests, please slow down.",
+    });
+  }
+
+  return next();
 });
 
 /**
@@ -171,13 +187,16 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(rateLimitMiddleware);
 
 /**
  * Protected procedure that requires authentication
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
+  .use(rateLimitMiddleware)
   .use(enforceUserIsAuthed);
 
 /**
@@ -185,4 +204,5 @@ export const protectedProcedure = t.procedure
  */
 export const adminProcedure = t.procedure
   .use(timingMiddleware)
+  .use(rateLimitMiddleware)
   .use(enforceUserIsAdmin);

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
@@ -12,6 +13,7 @@ import type { LenisRef } from "lenis/react";
 import { api } from "~/trpc/react";
 import TextLogo, { type TextLogoRef } from "./TextLogo";
 import AnimatedSubtitle, { type AnimatedSubtitleRef } from "./AnimatedSubtitle";
+import LoadingAnimation from "./LoadingAnimation";
 import { useMobile } from "~/context/mobile-provider";
 import { useGSAP } from "@gsap/react";
 
@@ -36,6 +38,9 @@ export default function CircularPhotoLayout() {
   const mobileSubtitleRef = useRef<AnimatedSubtitleRef>(null);
   const lightRaysRef = useRef<SVGSVGElement>(null);
   const progressRingRef = useRef<SVGCircleElement>(null);
+  const photoHintRef = useRef<HTMLDivElement>(null);
+  const scrollCueRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
   const { isMobile, isTablet, isDesktop } = useMobile();
 
   // Animate photos sequentially after all have loaded
@@ -55,9 +60,17 @@ export default function CircularPhotoLayout() {
     width: typeof window !== "undefined" ? window.innerWidth : 1024,
     height: typeof window !== "undefined" ? window.innerHeight : 768,
   });
-  const [imagesLoaded, setImagesLoaded] = useState(false);
+  // Ref, not state: image-load completion must NOT re-run the animation
+  // effect below. Rebuilding the pinned ScrollTriggers seconds after mount
+  // (when uncached images finish) tears down pin spacers mid-scroll and can
+  // freeze scrolling on mobile until a refresh.
+  const imagesLoadedRef = useRef(false);
   const loadedImagesCount = useRef(0);
   const [clickedPhotos, setClickedPhotos] = useState<Set<string>>(new Set());
+  // Photos can only be enlarged before any scroll (container is at scale 1).
+  // Track scroll position so the "enlarge" hover hint only shows while enlarging
+  // is actually possible.
+  const [canEnlarge, setCanEnlarge] = useState(true);
 
   const {
     data: photos,
@@ -76,8 +89,8 @@ export default function CircularPhotoLayout() {
     // Progress ring will be updated only during scroll animation, not during image loading
 
     // Check if all images are loaded
-    if (loadedImagesCount.current === totalPhotos && !imagesLoaded) {
-      setImagesLoaded(true);
+    if (loadedImagesCount.current === totalPhotos && !imagesLoadedRef.current) {
+      imagesLoadedRef.current = true;
       // Small delay to ensure all images are rendered
       setTimeout(() => {
         // Start staggered photo animation first
@@ -110,6 +123,29 @@ export default function CircularPhotoLayout() {
                 revealDelay: 0.3,
                 speed: 0.5,
               },
+            });
+
+            if (photoHintRef.current) {
+              gsap.to(photoHintRef.current, {
+                opacity: 0.6,
+                duration: 2,
+                delay: 0.6,
+                scrambleText: {
+                  text: "CLICK A PHOTO TO ENLARGE",
+                  chars: "▄█▀▌▐",
+                  revealDelay: 0.3,
+                  speed: 0.5,
+                },
+              });
+            }
+          }
+
+          if (scrollCueRef.current) {
+            gsap.to(scrollCueRef.current, {
+              opacity: 0.6,
+              duration: 1.5,
+              delay: 1.2,
+              ease: "power2.out",
             });
           }
 
@@ -301,6 +337,22 @@ export default function CircularPhotoLayout() {
     };
   }, []);
 
+  // Track whether the page is scrolled at all. Photos can only be enlarged
+  // while at the very top (container still at scale 1), so the enlarge hint
+  // should hide as soon as the user scrolls.
+  useEffect(() => {
+    const handleScroll = () => {
+      setCanEnlarge(window.scrollY <= 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   //  GSAP animations for photos
   useEffect(() => {
     if (!photos || photos.length === 0) return;
@@ -321,6 +373,13 @@ export default function CircularPhotoLayout() {
     const photoElements = container?.querySelectorAll(".circular-photo");
     const photosToShow = photos.slice(0, circleConfig.maxPhotos);
 
+    // Holders for instances/tweens created below so cleanup can kill them symmetrically
+    let tl: gsap.core.Timeline | undefined;
+    let draggableInstances: Draggable[] | undefined;
+    let lightRaysRotationTween: gsap.core.Tween | undefined;
+    let lightRaysOpacityTween: gsap.core.Tween | undefined;
+    let breathingAnimation: gsap.core.Tween | undefined;
+
     if (container && photoElements) {
       // Setup hover animations for photo elements
       photoElements.forEach((photoElement, index) => {
@@ -330,7 +389,7 @@ export default function CircularPhotoLayout() {
 
           const handleMouseEnter = () => {
             // Only apply hover effect if photo is not clicked AND images are fully loaded
-            if (!clickedPhotos.has(photoId) && imagesLoaded) {
+            if (!clickedPhotos.has(photoId) && imagesLoadedRef.current) {
               const originalPosition = photoPositions[index];
               if (!originalPosition) return;
 
@@ -413,7 +472,7 @@ export default function CircularPhotoLayout() {
 
           const handleMouseLeave = () => {
             // Only apply hover reset if images are fully loaded
-            if (!imagesLoaded) return;
+            if (!imagesLoadedRef.current) return;
 
             const originalPosition = photoPositions[index];
             if (!originalPosition) return;
@@ -488,7 +547,7 @@ export default function CircularPhotoLayout() {
 
           const handleClick = () => {
             // Only allow clicks if images are fully loaded
-            if (!imagesLoaded) return;
+            if (!imagesLoadedRef.current) return;
 
             const isCurrentlyClicked = clickedPhotos.has(photoId);
             const originalPosition = photoPositions[index];
@@ -604,13 +663,42 @@ export default function CircularPhotoLayout() {
           };
         }
       });
-      const tl = gsap.timeline();
+      tl = gsap.timeline();
       const { width } = screenSize;
       const containerWidth = container.offsetWidth;
-      gsap.set(subsubtitleRef.current, { opacity: 0 });
+      // Hide the scroll cue until the intro animation reveals it; skip once
+      // images are loaded so photo clicks (which re-run this effect) don't
+      // wipe it back to invisible.
+      if (!imagesLoadedRef.current) {
+        gsap.set(subsubtitleRef.current, { opacity: 0 });
+      }
+
+      // Reveal the commission CTA overlay near the end of the spin scroll.
+      // It slides up from fully below the viewport and settles below screen
+      // center, around the middle of the circle (which ends up half on screen).
+      const updateCta = (self: ScrollTrigger) => {
+        const cta = ctaRef.current;
+        if (!cta) return;
+        const ctaProgress = Math.min(
+          Math.max((self.progress - 0.55) / 0.35, 0),
+          1,
+        );
+        // Final resting offset below center, roughly at the circle's center.
+        const restY = screenSize.height * 0.22;
+        // Start fully below the viewport so it slides in from off-screen.
+        const startY = screenSize.height;
+        gsap.set(cta, {
+          opacity: ctaProgress,
+          y: startY + (restY - startY) * ctaProgress,
+        });
+        const ctaContent = cta.querySelector<HTMLElement>(".cta-content");
+        if (ctaContent) {
+          ctaContent.style.pointerEvents = ctaProgress > 0.8 ? "auto" : "none";
+        }
+      };
 
       if (!isMobile) {
-        Draggable.create(container, {
+        draggableInstances = Draggable.create(container, {
           type: "rotation",
           inertia: true,
           snap: function () {
@@ -621,7 +709,7 @@ export default function CircularPhotoLayout() {
 
       // Animate light rays
       if (lightRays) {
-        gsap.to(lightRays, {
+        lightRaysRotationTween = gsap.to(lightRays, {
           rotation: -360,
           duration: 60,
           ease: "none",
@@ -630,7 +718,7 @@ export default function CircularPhotoLayout() {
         });
 
         // Subtle opacity pulse for rays
-        gsap.to(lightRays, {
+        lightRaysOpacityTween = gsap.to(lightRays, {
           opacity: 0.5,
           duration: 4,
           ease: "sine.inOut",
@@ -640,7 +728,6 @@ export default function CircularPhotoLayout() {
       }
 
       // Breathing animation for the entire circle
-      let breathingAnimation: gsap.core.Tween;
       if (circle) {
         breathingAnimation = gsap.to(circle, {
           scale: 1.02,
@@ -803,6 +890,8 @@ export default function CircularPhotoLayout() {
                     strokeDashoffset: offset,
                   });
                 }
+
+                updateCta(self);
               },
             },
           },
@@ -907,6 +996,7 @@ export default function CircularPhotoLayout() {
                 end: "+=1000",
                 pin: true,
                 scrub: true,
+                onUpdate: updateCta,
               },
             },
             "spin",
@@ -928,6 +1018,21 @@ export default function CircularPhotoLayout() {
       }
 
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+
+      // Kill Draggable instance(s) created this run
+      if (draggableInstances) {
+        draggableInstances.forEach((instance) => instance.kill());
+      }
+
+      // Kill the infinite light-ray tweens
+      lightRaysRotationTween?.kill();
+      lightRaysOpacityTween?.kill();
+
+      // Kill the infinite breathing tween
+      breathingAnimation?.kill();
+
+      // Kill the timeline
+      tl?.kill();
     };
   }, [
     photos,
@@ -935,7 +1040,6 @@ export default function CircularPhotoLayout() {
     screenSize,
     isMobile,
     clickedPhotos,
-    imagesLoaded,
     circleConfig.maxPhotos,
     circleConfig.aspectRatio,
     circleConfig.photoSize,
@@ -944,14 +1048,23 @@ export default function CircularPhotoLayout() {
 
   if (isLoading) {
     return (
-      <main className="relative flex min-h-screen w-full items-center justify-center"></main>
+      <main className="relative flex min-h-screen w-full items-center justify-center">
+        <LoadingAnimation />
+      </main>
     );
   }
 
   if (error || !photos) {
     return (
       <main className="relative flex min-h-screen w-full items-center justify-center">
-        <div className="text-white">Error loading photos</div>
+        <div className="px-4 text-center text-white">
+          <p className="text-lg font-light">
+            The gallery couldn&apos;t be loaded
+          </p>
+          <p className="mt-2 text-sm text-white/60">
+            Please refresh the page to try again.
+          </p>
+        </div>
       </main>
     );
   }
@@ -988,6 +1101,19 @@ export default function CircularPhotoLayout() {
                   />
                   <div className="mt-4 text-sm opacity-70">
                     SCROLL TO EXPLORE
+                  </div>
+                  <div className="mt-3 flex justify-center opacity-60">
+                    <svg
+                      className="h-5 w-5 animate-bounce"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -1117,7 +1243,9 @@ export default function CircularPhotoLayout() {
                 return (
                   <div
                     key={photo.id}
-                    className="circular-photo absolute"
+                    className={`circular-photo group absolute ${
+                      isMobile ? "" : "cursor-pointer"
+                    }`}
                     style={{
                       left: `calc(50% + ${position.x}px)`,
                       top: `calc(50% + ${position.y}px)`,
@@ -1142,7 +1270,7 @@ export default function CircularPhotoLayout() {
                     >
                       <Image
                         src={photo.mediaUrl}
-                        alt={`Instagram photo ${photo.id}`}
+                        alt="Calayo Clothing custom garment"
                         fill
                         style={{
                           objectFit: "cover",
@@ -1150,6 +1278,24 @@ export default function CircularPhotoLayout() {
                         onLoad={() => handleImageLoad()}
                         priority={index < 8}
                       />
+                      {!isMobile && canEnlarge && (
+                        <div className="pointer-events-none absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/50 via-transparent to-transparent p-1.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <svg
+                            className="h-4 w-4 text-white drop-shadow"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M15 3h6v6" />
+                            <path d="M9 21H3v-6" />
+                            <path d="M21 3l-7 7" />
+                            <path d="M3 21l7-7" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -1188,9 +1334,70 @@ export default function CircularPhotoLayout() {
                 <div ref={subsubtitleRef} className="mt-8 text-sm opacity-70">
                   SCROLL TO EXPLORE
                 </div>
+                <div
+                  ref={photoHintRef}
+                  className="mt-3 text-xs tracking-widest"
+                  style={{ opacity: 0 }}
+                >
+                  CLICK A PHOTO TO ENLARGE
+                </div>
+                <div
+                  ref={scrollCueRef}
+                  className="mt-5 flex justify-center"
+                  style={{ opacity: 0 }}
+                >
+                  <svg
+                    className="h-5 w-5 animate-bounce"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
               </div>
             </div>
           )}
+          {/* End-of-scroll commission CTA, revealed as the spin completes */}
+          <div
+            ref={ctaRef}
+            className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center"
+            style={{ opacity: 0 }}
+          >
+            <div
+              className="cta-content px-6 text-center text-white"
+              style={{ pointerEvents: "none" }}
+            >
+              <h2 className="text-3xl font-light tracking-wide sm:text-4xl">
+                Intentionally yours.
+              </h2>
+              <p className="mx-auto mt-4 max-w-md text-sm text-white/70 sm:text-base">
+                Every piece is made to order, cut to your measurements, and
+                designed around you.
+              </p>
+              <Link
+                href="/commissions"
+                className="group/cta mt-8 inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-8 py-3 text-sm font-medium tracking-widest text-emerald-300 backdrop-blur-sm transition-all duration-300 hover:border-emerald-300/80 hover:bg-emerald-400/20 hover:text-white hover:shadow-[0_0_30px_rgba(0,255,127,0.35)]"
+              >
+                START YOUR COMMISSION
+                <svg
+                  className="h-4 w-4 transition-transform duration-300 group-hover/cta:translate-x-1"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </div>
           <div className="invis"></div>
         </div>
       </main>

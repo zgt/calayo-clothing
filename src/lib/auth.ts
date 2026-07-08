@@ -56,6 +56,19 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // 1 day
   },
 
+  rateLimit: {
+    // Enabled in dev too so limits are exercised before production.
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-up/email": { window: 60, max: 5 },
+      "/request-password-reset": { window: 60, max: 3 },
+      "/sign-in/magic-link": { window: 60, max: 3 },
+    },
+  },
+
   user: {
     additionalFields: {
       // Add fields that match existing Supabase user structure

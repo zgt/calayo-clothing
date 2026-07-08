@@ -1,6 +1,6 @@
 // src/app/profile/orders/page.tsx
 import { redirect } from "next/navigation";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
 import { Suspense } from "react";
@@ -86,7 +86,7 @@ export default async function OrdersPage() {
     redirect("/login");
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch user commissions
   const { data: commissionsData, error: commissionsError } = await supabase

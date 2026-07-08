@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowDown, ArrowUp } from "lucide-react";
 import { LoadMeasurementsButton } from "./LoadMeasurementsButton";
 import { MEASUREMENT_GROUPS, REQUIRED_MEASUREMENTS } from "../constants";
+import {
+  MEASUREMENT_BOUNDS,
+  UNIT_LABELS,
+  checkMeasurementPlausibility,
+} from "~/lib/commission-design";
 import type { CommissionFormData, MeasurementKey } from "../types";
 
 // Hook to detect mobile
@@ -148,6 +153,18 @@ export function MeasurementNavigator({
     formData.measurements[currentMeasurement.id as MeasurementKey];
   const hasError = errors[`measurements.${currentMeasurement.id}`];
 
+  // Unit-aware hint plus a live plausibility check that flags typos and
+  // cm-vs-inches mix-ups as the user types (before submit validation).
+  const bound = MEASUREMENT_BOUNDS[currentMeasurement.id];
+  const unitHint =
+    currentMeasurement.id === "posture"
+      ? "Describe your posture"
+      : `Enter measurement in ${UNIT_LABELS[bound?.unit ?? "in"]}`;
+  const plausibilityWarning =
+    typeof currentValue === "number"
+      ? checkMeasurementPlausibility(currentMeasurement.id, currentValue)
+      : null;
+
   if (isMobile) {
     // Mobile-optimized layout with larger touch targets and swipe support
     return (
@@ -226,11 +243,7 @@ export function MeasurementNavigator({
                   {currentMeasurement.label}
                   {isRequired && <span className="ml-1 text-red-400">*</span>}
                 </label>
-                <p className="text-sm text-emerald-200/70">
-                  {currentMeasurement.id === "posture"
-                    ? "Describe your posture"
-                    : "Enter measurement in inches"}
-                </p>
+                <p className="text-sm text-emerald-200/70">{unitHint}</p>
               </div>
 
               <div className="relative">
@@ -266,6 +279,11 @@ export function MeasurementNavigator({
                 {hasError && (
                   <p className="mt-2 text-center text-sm text-red-400">
                     {hasError}
+                  </p>
+                )}
+                {!hasError && plausibilityWarning && (
+                  <p className="mt-2 text-center text-sm text-amber-400">
+                    {plausibilityWarning}
                   </p>
                 )}
               </div>
@@ -327,11 +345,7 @@ export function MeasurementNavigator({
               {currentMeasurement.label}
               {isRequired && <span className="ml-1 text-red-400">*</span>}
             </label>
-            <p className="text-xs text-emerald-200/60">
-              {currentMeasurement.id === "posture"
-                ? "Describe your posture"
-                : "Enter measurement in inches"}
-            </p>
+            <p className="text-xs text-emerald-200/60">{unitHint}</p>
           </div>
 
           <div className="relative">
@@ -366,6 +380,11 @@ export function MeasurementNavigator({
             {hasError && (
               <p className="absolute right-0 -bottom-6 left-0 text-center text-xs text-red-400">
                 {hasError}
+              </p>
+            )}
+            {!hasError && plausibilityWarning && (
+              <p className="absolute right-0 -bottom-6 left-0 text-center text-xs text-amber-400">
+                {plausibilityWarning}
               </p>
             )}
           </div>

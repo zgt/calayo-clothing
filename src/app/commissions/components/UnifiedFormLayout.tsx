@@ -1,20 +1,27 @@
 "use client";
 
-import { forwardRef, useState, useEffect } from "react";
+import { forwardRef } from "react";
 import { FormSelect } from "./FormSelect";
+import { StepSlider } from "./StepSlider";
 import { FormTextarea } from "./FormTextarea";
 import { MeasurementNavigator } from "./MeasurementNavigator";
 import { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 import { SubmitButton } from "./SubmitButton";
-import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
-import StickyTabs from "~/app/_components/ui/sticky-section-tabs";
-import type { CommissionFormData, MeasurementKey } from "../types";
 import {
-  preloadAllGarments,
-  useGarmentModelReadiness,
-  useIsLowEndDevice,
-} from "~/app/_components/3d/garments-preloader";
-import type { GarmentType } from "~/app/_components/3d/garments-preloader";
+  ColorSwatchPicker,
+  FabricPicker,
+  StyleOptionsPicker,
+} from "./DesignPanel";
+import { MobileCommissionFlow } from "./mobile/MobileCommissionFlow";
+import {
+  styleGroupsForGarment,
+  BUDGET_OPTIONS,
+  TIMELINE_OPTIONS,
+} from "~/lib/commission-design";
+import { GarmentViewer } from "~/app/_components/3d/GarmentViewer";
+import { useMobile } from "~/context/mobile-provider";
+import type { CommissionFormData, MeasurementKey } from "../types";
+import type { CommissionDesign } from "~/lib/commission-design";
 
 interface UnifiedFormLayoutProps {
   formData: CommissionFormData;
@@ -29,32 +36,16 @@ interface UnifiedFormLayoutProps {
   isSubmitting: boolean;
   currentMeasurement: MeasurementKey | null;
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
+  onDesignChange: (design: Partial<CommissionDesign>) => void;
   onExpand: () => void;
-  onMobileGarmentSelect: () => void;
 }
-
-const budgetOptions = [
-  { value: "100-300", label: "$100 - $300" },
-  { value: "300-500", label: "$300 - $500" },
-  { value: "500-1000", label: "$500 - $1000" },
-  { value: "1000+", label: "$1000+" },
-];
-
-const timelineOptions = [
-  { value: "1-2weeks", label: "1-2 weeks" },
-  { value: "3-4weeks", label: "3-4 weeks" },
-  { value: "1-2months", label: "1-2 months" },
-  { value: "flexible", label: "Flexible" },
-];
 
 const BASE_GARMENT_OPTIONS = [
   { value: "shirt", label: "Shirt" },
   { value: "jacket", label: "Jacket" },
   { value: "pants", label: "Pants" },
   { value: "dress", label: "Dress" },
-  { value: "skirt", label: "Skirt" },
-  { value: "other", label: "Other" },
-] as const;
+];
 
 export const UnifiedFormLayout = forwardRef<
   HTMLDivElement,
@@ -72,221 +63,38 @@ export const UnifiedFormLayout = forwardRef<
       isSubmitting,
       currentMeasurement,
       onMeasurementChange,
+      onDesignChange,
       onExpand,
-      onMobileGarmentSelect,
     },
     ref,
   ) => {
-    const [isMobile, setIsMobile] = useState(false);
-    const readiness = useGarmentModelReadiness();
-    const isLowEndDevice = useIsLowEndDevice();
-
-    useEffect(() => {
-      // Start preloading 3D models ASAP for gating and better UX
-      preloadAllGarments();
-    }, []);
-
-    const computedGarmentOptions = BASE_GARMENT_OPTIONS.map((o) => {
-      const type = o.value as GarmentType;
-      const status = readiness[type] ?? "ready";
-      // Treat low-end devices as ready (do not block selection)
-      const disabled = isLowEndDevice
-        ? false
-        : !(type === "other" || type === "skirt") &&
-          !(status === "ready" || status === "error");
-
-      // Add small suffix to communicate state when disabled
-      let label: string = o.label;
-      if (!isLowEndDevice && disabled) {
-        label = `${o.label} (loading 3D...)`;
-      } else if (!isLowEndDevice && status === "error") {
-        label = `${o.label} (3D unavailable)`;
-      }
-
-      return { value: o.value, label, disabled };
-    });
-
-    useEffect(() => {
-      const checkIsMobile = () => {
-        setIsMobile(window.innerWidth < 1024);
-      };
-
-      checkIsMobile();
-      window.addEventListener("resize", checkIsMobile);
-      return () => window.removeEventListener("resize", checkIsMobile);
-    }, []);
+    // The GSAP three-column flow needs the full lg breakpoint; everything
+    // narrower gets the guided stepper.
+    const { isDesktop } = useMobile();
+    const isMobile = !isDesktop;
 
     const handleGarmentTypeChange = (value: string) => {
       onSelectChange(value, "garmentType");
       if (value && !isMobile) {
         onExpand();
       }
-      if (value && isMobile) {
-        onMobileGarmentSelect();
-      }
     };
 
     if (isMobile) {
       return (
-        <div ref={ref} className="min-h-screen">
-          <div className="mx-auto">
-            {/* Fixed 3D Preview at top */}
-            {formData.garmentType && (
-              <div
-                className="sticky top-0 z-30 h-48 w-full"
-                style={{ backgroundColor: "black" }}
-              >
-                <GarmentViewer
-                  className="h-full w-full"
-                  garmentType={formData.garmentType}
-                  disableInteraction={true}
-                />
-              </div>
-            )}
-
-            {/* Sticky Tabs Form */}
-            <form onSubmit={onSubmit}>
-              <StickyTabs
-                mainNavHeight={formData.garmentType ? "12rem" : "38rem"}
-                rootClassName="bg-transparent"
-                navSpacerClassName="bg-transparent"
-                sectionClassName="bg-transparent"
-              >
-                <StickyTabs.Item title="Garment Type" id="garment-type">
-                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                    <FormSelect
-                      id="garmentType"
-                      name="garmentType"
-                      label="Garment Type"
-                      value={formData.garmentType}
-                      onChange={handleGarmentTypeChange}
-                      options={computedGarmentOptions}
-                      placeholder="Select garment type"
-                      error={errors.garmentType}
-                      required
-                    />
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Budget & Timeline" id="budget-timeline">
-                  <div className="space-y-6">
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <div className="space-y-6">
-                        <FormSelect
-                          id="budget"
-                          name="budget"
-                          label="Budget Range"
-                          value={formData.budget}
-                          onChange={(value) => onSelectChange(value, "budget")}
-                          options={budgetOptions}
-                          placeholder="Select budget range"
-                          error={errors.budget}
-                          required
-                        />
-
-                        <FormSelect
-                          id="timeline"
-                          name="timeline"
-                          label="Timeline"
-                          value={formData.timeline}
-                          onChange={(value) =>
-                            onSelectChange(value, "timeline")
-                          }
-                          options={timelineOptions}
-                          placeholder="Select timeline"
-                          error={errors.timeline}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Additional Details" id="details">
-                  <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                    <FormTextarea
-                      id="details"
-                      name="details"
-                      label="Additional Details"
-                      value={formData.details}
-                      onChange={onInputChange}
-                      placeholder="Describe your vision, preferred colors, style, fit, or any special requirements..."
-                      error={errors.details}
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Measurements" id="measurements">
-                  <div className="">
-                    <MeasurementGuideDisplay
-                      currentMeasurement={currentMeasurement}
-                    />
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <MeasurementNavigator
-                        formData={formData}
-                        errors={errors}
-                        onChange={onInputChange}
-                        onLoadMeasurements={onLoadMeasurements}
-                        isLoadingMeasurements={isLoadingMeasurements}
-                        onMeasurementChange={onMeasurementChange}
-                      />
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-
-                <StickyTabs.Item title="Review & Submit" id="review">
-                  <div className="space-y-6">
-                    <div className="border border-emerald-700/30 bg-gradient-to-br from-emerald-900/10 to-emerald-950/20 p-6 shadow-2xl backdrop-blur-md">
-                      <div className="mb-8 space-y-4">
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">
-                            Garment Type:
-                          </span>
-                          <span className="font-medium text-white">
-                            {formData.garmentType}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">Budget:</span>
-                          <span className="font-medium text-white">
-                            {
-                              budgetOptions.find(
-                                (b) => b.value === formData.budget,
-                              )?.label
-                            }
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-b border-emerald-700/20 py-3">
-                          <span className="text-emerald-200">Timeline:</span>
-                          <span className="font-medium text-white">
-                            {
-                              timelineOptions.find(
-                                (t) => t.value === formData.timeline,
-                              )?.label
-                            }
-                          </span>
-                        </div>
-                        <div className="py-3">
-                          <span className="mb-2 block text-emerald-200">
-                            Details:
-                          </span>
-                          <p className="text-sm text-white">
-                            {formData.details}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pb-8">
-                      <SubmitButton isLoading={isSubmitting} />
-                    </div>
-                  </div>
-                </StickyTabs.Item>
-              </StickyTabs>
-            </form>
-          </div>
+        <div ref={ref}>
+          <form onSubmit={onSubmit}>
+            <MobileCommissionFlow
+              formData={formData}
+              errors={errors}
+              onInputChange={onInputChange}
+              onSelectChange={onSelectChange}
+              onLoadMeasurements={onLoadMeasurements}
+              isLoadingMeasurements={isLoadingMeasurements}
+              isSubmitting={isSubmitting}
+              onDesignChange={onDesignChange}
+            />
+          </form>
         </div>
       );
     }
@@ -307,7 +115,7 @@ export const UnifiedFormLayout = forwardRef<
               {/* Left Column - Commission Request + Additional Details */}
               <div
                 id="column-1"
-                className="grid-column-inline-grid space-y-6 opacity-0"
+                className="grid-column-inline-grid content-start space-y-6 opacity-0"
               >
                 {/* Target position for commission request card after flip */}
                 <div
@@ -317,7 +125,7 @@ export const UnifiedFormLayout = forwardRef<
                 >
                   <div
                     id="main-card-gradient"
-                    className="h-full rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-8 shadow-2xl backdrop-blur-xs"
+                    className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-8 shadow-2xl backdrop-blur-xs"
                   >
                     <div id="card-header" className="mb-8 text-center">
                       <h2 className="mb-2 text-3xl font-bold text-white">
@@ -335,7 +143,7 @@ export const UnifiedFormLayout = forwardRef<
                         label="Garment Type"
                         value={formData.garmentType}
                         onChange={handleGarmentTypeChange}
-                        options={computedGarmentOptions}
+                        options={BASE_GARMENT_OPTIONS}
                         placeholder="Select garment type"
                         error={errors.garmentType}
                         required
@@ -343,6 +151,34 @@ export const UnifiedFormLayout = forwardRef<
 
                       {/* Budget and Timeline - hidden initially, shown after expansion */}
                       <div id="budget-timeline-target"></div>
+
+                      {/* Garment construction options join the request card
+                          once a garment is chosen */}
+                      {formData.garmentType && (
+                        <div id="details-construction-section">
+                          {styleGroupsForGarment(formData.garmentType).length >
+                          0 ? (
+                            <div className="border-t border-emerald-700/20 pt-6">
+                              <h3 className="mb-4 text-lg font-semibold text-white">
+                                Details &amp; Construction
+                              </h3>
+                              <StyleOptionsPicker
+                                garmentType={formData.garmentType}
+                                design={formData.design}
+                                onDesignChange={onDesignChange}
+                              />
+                            </div>
+                          ) : (
+                            <div className="border-t border-emerald-700/20 pt-6">
+                              <p className="text-sm text-emerald-200/60">
+                                Describe the construction you have in mind
+                                under Additional Details — we&apos;ll design
+                                it together.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -356,26 +192,26 @@ export const UnifiedFormLayout = forwardRef<
                       id="budget-timeline-section"
                       className="space-y-6 opacity-0"
                     >
-                      <FormSelect
+                      <StepSlider
                         id="budget"
                         name="budget"
                         label="Budget Range"
                         value={formData.budget}
                         onChange={(value) => onSelectChange(value, "budget")}
-                        options={budgetOptions}
-                        placeholder="Select budget range"
+                        options={BUDGET_OPTIONS}
+                        placeholder="Set your budget"
                         error={errors.budget}
                         required
                       />
 
-                      <FormSelect
+                      <StepSlider
                         id="timeline"
                         name="timeline"
                         label="Timeline"
                         value={formData.timeline}
                         onChange={(value) => onSelectChange(value, "timeline")}
-                        options={timelineOptions}
-                        placeholder="Select timeline"
+                        options={TIMELINE_OPTIONS}
+                        placeholder="Set your timeline"
                         error={errors.timeline}
                         required
                       />
@@ -384,29 +220,34 @@ export const UnifiedFormLayout = forwardRef<
 
                   <div
                     id="garment-preview-card"
-                    className="aspect-square w-full max-w-sm opacity-0"
+                    className="aspect-[3/4] w-full max-w-sm opacity-0"
                   >
                     <GarmentViewer
                       className="h-full w-full"
                       garmentType={formData.garmentType}
+                      colorHex={formData.design.colorHex}
+                      fabric={formData.design.fabric}
                     />
                   </div>
 
                   <div
-                    id="additional-details-card"
-                    className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
+                    id="design-card"
+                    className="w-full max-w-sm rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
                   >
-                    <FormTextarea
-                      id="details"
-                      name="details"
-                      label="Additional Details"
-                      value={formData.details}
-                      onChange={onInputChange}
-                      placeholder="Tell us more about your vision..."
-                      error={errors.details}
-                      rows={4}
-                      required
-                    />
+                    <div className="space-y-5">
+                      <ColorSwatchPicker
+                        design={formData.design}
+                        onDesignChange={onDesignChange}
+                      />
+                      <FabricPicker
+                        garmentType={formData.garmentType}
+                        design={formData.design}
+                        onDesignChange={onDesignChange}
+                      />
+                      {errors.design && (
+                        <p className="text-xs text-red-400">{errors.design}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -414,16 +255,20 @@ export const UnifiedFormLayout = forwardRef<
               {/* Right Column - Measurement Guide and Measurements */}
               <div
                 id="column-3"
-                className="grid-column-inline-grid space-y-6 opacity-0"
+                className="grid-column-inline-grid min-w-0 content-start space-y-6 opacity-0"
               >
-                <div id="measurement-guide-card" style={{ height: "16rem" }}>
+                <div
+                  id="measurement-guide-card"
+                  className="opacity-0"
+                  style={{ height: "16rem" }}
+                >
                   <MeasurementGuideDisplay
                     currentMeasurement={currentMeasurement}
                   />
                 </div>
                 <div
                   id="measurement-navigator-card"
-                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 shadow-2xl backdrop-blur-xs"
+                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
                 >
                   <MeasurementNavigator
                     formData={formData}
@@ -434,7 +279,23 @@ export const UnifiedFormLayout = forwardRef<
                     onMeasurementChange={onMeasurementChange}
                   />
                 </div>
-                <div id="submit-button-container" className="submit-container">
+                <div
+                  id="additional-details-card"
+                  className="rounded-2xl border border-emerald-700/10 bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 p-6 opacity-0 shadow-2xl backdrop-blur-xs"
+                >
+                  <FormTextarea
+                    id="details"
+                    name="details"
+                    label="Additional Details"
+                    value={formData.details}
+                    onChange={onInputChange}
+                    placeholder="Tell us more about your vision..."
+                    error={errors.details}
+                    rows={4}
+                    required
+                  />
+                </div>
+                <div id="submit-button-container" className="opacity-0">
                   <SubmitButton isLoading={isSubmitting} />
                 </div>
               </div>

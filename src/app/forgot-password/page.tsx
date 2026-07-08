@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { forgetPassword } from "~/lib/auth-client";
+import { requestPasswordReset } from "~/lib/auth-client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const handleForgotPassword = async (email: string) => {
-    const result = await forgetPassword({
+    const result = await requestPasswordReset({
       email,
       redirectTo: `${window.location.origin}/reset-password`,
     });

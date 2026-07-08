@@ -558,7 +558,8 @@ export const instagramRouter = createTRPCRouter({
         )
         .eq("is_parent", false)
         .eq("media_type", "IMAGE")
-        .order("synced_at", { ascending: false });
+        .order("synced_at", { ascending: false })
+        .limit(100);
 
       if (error) {
         console.error("Error fetching instagram photos from database:", error);

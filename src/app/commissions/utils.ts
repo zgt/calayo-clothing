@@ -1,35 +1,10 @@
 // Utility functions for commission forms
-import { createClient } from "~/utils/supabase/client";
-import type {
-  UserMeasurements,
-  SupabaseError,
-  MeasurementKey,
-  CommissionFormData,
-} from "./types";
+import type { MeasurementKey, CommissionFormData } from "./types";
 import { REQUIRED_MEASUREMENTS, MEASUREMENT_GROUPS } from "./constants";
-
-// Helper function to fetch profile measurements
-export const fetchProfileMeasurements = async (
-  userId: string,
-): Promise<UserMeasurements> => {
-  const supabase = createClient();
-
-  const { data, error } = (await supabase
-    .from("profile_measurements")
-    .select("*")
-    .eq("user_id", userId)
-    .single()) as {
-    data: UserMeasurements | null;
-    error: SupabaseError | null;
-  };
-
-  if (error) {
-    console.error("Error fetching measurements:", error);
-    throw new Error(error.message);
-  }
-
-  return data ?? {};
-};
+import {
+  checkMeasurementPlausibility,
+  validateDesign,
+} from "~/lib/commission-design";
 
 // Helper function to determine if a measurement field should be shown based on the garment type
 export const shouldShowMeasurement = (
@@ -43,12 +18,12 @@ export const shouldShowMeasurement = (
 
   // For upper body measurements, show for shirt, jacket, dress
   if (MEASUREMENT_GROUPS.upper.some((m) => m.id === measurementId)) {
-    return ["shirt", "jacket", "dress", "other"].includes(garmentType);
+    return ["shirt", "jacket", "dress"].includes(garmentType);
   }
 
-  // For lower body measurements, show for pants, skirt, dress
+  // For lower body measurements, show for pants and dresses
   if (MEASUREMENT_GROUPS.lower.some((m) => m.id === measurementId)) {
-    return ["pants", "skirt", "dress", "other"].includes(garmentType);
+    return ["pants", "dress"].includes(garmentType);
   }
 
   return true;
@@ -92,6 +67,22 @@ export const validateCommissionForm = (
     if (!formData.measurements[field as MeasurementKey]) {
       errors[`measurements.${field}`] = "Required";
     }
+  }
+
+  // Reject values outside plausible human ranges (catches typos and
+  // cm-vs-inches mix-ups). Mirrors the server-side Zod bounds.
+  for (const [field, value] of Object.entries(formData.measurements)) {
+    if (typeof value !== "number") continue;
+    const warning = checkMeasurementPlausibility(field, value);
+    if (warning && !errors[`measurements.${field}`]) {
+      errors[`measurements.${field}`] = warning;
+    }
+  }
+
+  // Design selections must exist in the option tree for the garment.
+  const designProblems = validateDesign(formData.design, formData.garmentType);
+  if (designProblems.length > 0) {
+    errors.design = designProblems.join("; ");
   }
 
   return errors;

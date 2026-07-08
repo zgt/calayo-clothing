@@ -1,4 +1,4 @@
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../../types/supabase";
@@ -18,7 +18,7 @@ export interface UserMeasurements {
 // Cached version for server components
 export const fetchProfileMeasurements = cache(
   async (userId: string): Promise<UserMeasurements> => {
-    const supabase = await createClient();
+    const supabase = createServiceClient();
 
     const result = await supabase
       .from("profile_measurements")

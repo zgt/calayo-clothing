@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import MessagesComponent from "~/app/_components/Messages";
+import { CommissionDesignSummary } from "~/app/_components/CommissionDesignSummary";
 import { useSession } from "~/lib/auth-client";
 import { api } from "~/trpc/react";
 
@@ -50,6 +51,10 @@ type Commission = {
   budget: string;
   timeline: string;
   details: string | null;
+  color_hex: string | null;
+  color_name: string | null;
+  fabric: string | null;
+  design_options: Record<string, string> | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -469,6 +474,7 @@ export default function AdminCommissionDetails({
                         <dt className="text-emerald-200/70">Timeline:</dt>
                         <dd className="text-white">{commission.timeline}</dd>
                       </div>
+                      <CommissionDesignSummary commission={commission} />
                       <div className="flex justify-between">
                         <dt className="text-emerald-200/70">Status:</dt>
                         <dd className="text-white capitalize">

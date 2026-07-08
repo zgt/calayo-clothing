@@ -47,7 +47,17 @@
       "Bash(pnpm format:check:*)",
       "Bash(pnpm format:write:*)",
       "Bash(pnpm check:*)",
-      "mcp__morphllm-fast-apply__tiny_edit_file"
+      "mcp__morphllm-fast-apply__tiny_edit_file",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git stash *)",
+      "Bash(node -e \"const p=require\\('/home/m/coding/calayo-clothing/node_modules/better-auth/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(python3 -)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"typecheck exit: $?\")",
+      "Bash(pnpm exec *)",
+      "Bash(git rm *)",
+      "Bash(awk '{print $NF}')"
     ],
     "deny": []
   }

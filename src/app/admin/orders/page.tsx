@@ -1,6 +1,6 @@
 // src/app/admin/orders/page.tsx
 import { redirect } from "next/navigation";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 // Removed unused imports
 import { getAdminSession } from "~/lib/admin-utils";
 import { headers } from "next/headers";
@@ -50,7 +50,7 @@ export default async function AdminOrdersPage() {
     redirect("/");
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch all commissions and join with user table
   const { data: commissionsData, error: commissionsError } = await supabase

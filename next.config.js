@@ -6,12 +6,9 @@ import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
-  // Add any specific Next.js configuration options here
-  env: {
-    // These will be available at build time
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  },
+  // supabase-js is server-only here; its 2.87.x ESM wrapper breaks webpack's
+  // default-export interop when bundled, so let Node load it directly.
+  serverExternalPackages: ["@supabase/supabase-js"],
   images: {
     remotePatterns: [
       {

@@ -17,7 +17,7 @@ export const {
   useSession,
   getSession,
   changePassword,
-  forgetPassword,
+  requestPasswordReset,
   resetPassword,
   // Magic link methods are now available
   // authClient.signIn.magicLink({ email: "user@example.com" })

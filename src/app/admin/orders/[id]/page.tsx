@@ -1,7 +1,7 @@
 // src/app/admin/orders/[id]/page.tsx
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 import { auth, type User } from "~/lib/auth";
 import { headers } from "next/headers";
 import { Suspense } from "react";
@@ -54,6 +54,10 @@ type Commission = {
   budget: string;
   timeline: string;
   details: string | null;
+  color_hex: string | null;
+  color_name: string | null;
+  fabric: string | null;
+  design_options: Record<string, string> | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -105,7 +109,7 @@ export default async function AdminCommissionDetailsPage(props: {
     redirect("/");
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch commission details
   const { data: commission, error: commissionError } = await supabase

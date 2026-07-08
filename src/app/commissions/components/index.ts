@@ -1,5 +1,6 @@
 // Export all commission form components
 export { FormSelect } from "./FormSelect";
+export { StepSlider } from "./StepSlider";
 export { FormTextarea } from "./FormTextarea";
 export { MeasurementInput } from "./MeasurementInput";
 export { MeasurementSection } from "./MeasurementSection";
@@ -10,3 +11,9 @@ export { SubmitButton } from "./SubmitButton";
 export { MeasurementGuideDisplay } from "./MeasurementGuideDisplay";
 export { UnifiedFormLayout } from "./UnifiedFormLayout";
 export { GSAPFormContainer } from "./GSAPFormContainer";
+export {
+  DesignPanel,
+  ColorSwatchPicker,
+  FabricPicker,
+  StyleOptionsPicker,
+} from "./DesignPanel";

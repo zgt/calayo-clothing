@@ -38,7 +38,7 @@ This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, 
 - Email verification and magic link support
 
 **API Layer**:
-- tRPC routers in `src/server/api/routers/` (commissions, instagram, profile)
+- tRPC routers in `src/server/api/routers/` (commissions, instagram, profile, messages)
 - Main router in `src/server/api/root.ts`
 - Client-side tRPC setup in `src/trpc/`
 - Middleware for auth, admin, and timing
@@ -46,7 +46,7 @@ This is a T3 Stack application (Next.js + tRPC + Supabase) for Calayo Clothing, 
 **Environment Variables**:
 - Managed through `@t3-oss/env-nextjs` in `src/env.js`
 - Required: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_BETTER_AUTH_URL`
-- Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Required: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - Required: `INSTA_USER_ID`, `INSTA_ACCESS_TOKEN`, `UPLOADTHING_APP_ID`
 - Required: `RESEND_API_KEY`
 - Optional: `UPLOADTHING_SECRET`, `UPLOADTHING_TOKEN`
@@ -80,7 +80,7 @@ The app handles:
 - Better-Auth replaces Supabase auth (database still uses Supabase PostgreSQL)
 - tRPC procedures: `publicProcedure`, `protectedProcedure`, `adminProcedure`
 - Email templates stored as HTML files in `/emails` directory
-- 3D models use GLTF format with textures in `public/3d-assets/`
+- 3D models are Draco-compressed `.glb` files in `public/3d-assets/` (decoder self-hosted in `public/draco/`; uncompressed originals archived outside the repo; regenerate with `scripts/optimize-3d-assets.sh`)
 
 ### Claude Guidance
 - Never add information about claude in the commit messages, that includes made by claude or helped by claude.

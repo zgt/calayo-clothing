@@ -14,8 +14,10 @@ export default function CursorTrail() {
   useEffect(() => {
     if (isMobile) return; // Skip on mobile devices
 
-    let animationFrame: number;
+    let animationFrame: number | null = null;
     let lastSpawnTime = 0;
+    let running = false;
+    let hasMoved = false; // Set on mousemove; gates spawning so nothing spawns before first move
     const spawnInterval = 50; // Spawn particle every 50ms
 
     const createParticle = (x: number, y: number) => {
@@ -46,14 +48,15 @@ export default function CursorTrail() {
     };
 
     const updateParticles = (timestamp: number) => {
-      // Spawn new particle if enough time has passed
-      if (timestamp - lastSpawnTime > spawnInterval) {
+      // Spawn a new particle only if the mouse has moved since the last spawn
+      if (hasMoved && timestamp - lastSpawnTime > spawnInterval) {
         const newParticle = createParticle(
           mousePosition.current.x,
           mousePosition.current.y,
         );
         particles.current.push(newParticle);
         lastSpawnTime = timestamp;
+        hasMoved = false;
       }
 
       // Update existing particles
@@ -74,19 +77,32 @@ export default function CursorTrail() {
         return true;
       });
 
+      // Idle the loop when there is nothing to animate and no pending movement
+      if (particles.current.length === 0 && !hasMoved) {
+        running = false;
+        animationFrame = null;
+        return;
+      }
+
+      animationFrame = requestAnimationFrame(updateParticles);
+    };
+
+    const startLoop = () => {
+      if (running) return; // Guard prevents double-starting the loop
+      running = true;
       animationFrame = requestAnimationFrame(updateParticles);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       mousePosition.current = { x: e.clientX, y: e.clientY };
+      hasMoved = true;
+      startLoop();
     };
 
-    // Start the animation loop
-    animationFrame = requestAnimationFrame(updateParticles);
     window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      cancelAnimationFrame(animationFrame);
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
       window.removeEventListener("mousemove", handleMouseMove);
 
       // Clean up particles

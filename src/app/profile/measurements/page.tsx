@@ -1,7 +1,7 @@
 // src/app/profile/measurements/page.tsx - Updated version
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "~/utils/supabase/server";
+import { createServiceClient } from "~/utils/supabase/server";
 import { auth, type User } from "~/lib/auth";
 import { headers } from "next/headers";
 import MeasurementsForm from "./_components/MeasurementsForm";
@@ -65,7 +65,7 @@ export default async function MeasurementsPage() {
   }
 
   const user = session.user as User;
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   // Fetch user profile measurements
   const { data: measurements, error: measurementsError } = (await supabase

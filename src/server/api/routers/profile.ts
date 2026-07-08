@@ -8,6 +8,43 @@ import {
   bioSchema,
 } from "~/lib/profile-validation";
 
+// Zod schema for profile measurements input validation
+const profileMeasurementsSchema = z.object({
+  // Basic measurements
+  chest: z.number().nullable().optional(),
+  waist: z.number().nullable().optional(),
+  hips: z.number().nullable().optional(),
+  length: z.number().nullable().optional(),
+  inseam: z.number().nullable().optional(),
+  shoulders: z.number().nullable().optional(),
+  // Additional upper body
+  neck: z.number().nullable().optional(),
+  sleeve_length: z.number().nullable().optional(),
+  bicep: z.number().nullable().optional(),
+  forearm: z.number().nullable().optional(),
+  wrist: z.number().nullable().optional(),
+  armhole_depth: z.number().nullable().optional(),
+  back_width: z.number().nullable().optional(),
+  front_chest_width: z.number().nullable().optional(),
+  // Additional lower body
+  thigh: z.number().nullable().optional(),
+  knee: z.number().nullable().optional(),
+  calf: z.number().nullable().optional(),
+  ankle: z.number().nullable().optional(),
+  rise: z.number().nullable().optional(),
+  outseam: z.number().nullable().optional(),
+  // Full body
+  height: z.number().nullable().optional(),
+  weight: z.number().nullable().optional(),
+  // Formal wear
+  torso_length: z.number().nullable().optional(),
+  shoulder_slope: z.number().nullable().optional(),
+  posture: z.string().max(100).nullable().optional(),
+  // Preferences
+  size_preference: z.string().max(100).nullable().optional(),
+  fit_preference: z.string().max(100).nullable().optional(),
+});
+
 export const profileRouter = createTRPCRouter({
   updateName: protectedProcedure
     .input(
@@ -164,4 +201,65 @@ export const profileRouter = createTRPCRouter({
 
     return data;
   }),
+
+  // Get current user's profile measurements
+  getMeasurements: protectedProcedure.query(async ({ ctx }) => {
+    const { data, error } = (await ctx.supabase
+      .from("profile_measurements")
+      .select("*")
+      .eq("user_id", ctx.user.id)
+      .maybeSingle()) as {
+      data: Record<string, number | string | null> | null;
+      error: { message?: string } | null;
+    };
+
+    if (error) {
+      console.error("Error fetching measurements:", error);
+      throw new Error("Failed to fetch measurements");
+    }
+
+    return data ?? null;
+  }),
+
+  // Create or update the current user's profile measurements
+  upsertMeasurements: protectedProcedure
+    .input(profileMeasurementsSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Check if measurements already exist for this user
+      const { data: existing, error: fetchError } = await ctx.supabase
+        .from("profile_measurements")
+        .select("id")
+        .eq("user_id", ctx.user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error checking existing measurements:", fetchError);
+        throw new Error("Failed to save measurements");
+      }
+
+      if (existing?.id) {
+        // Update existing measurements (never trust a client-supplied user_id)
+        const { error: updateError } = await ctx.supabase
+          .from("profile_measurements")
+          .update(input)
+          .eq("id", existing.id);
+
+        if (updateError) {
+          console.error("Error updating measurements:", updateError);
+          throw new Error("Failed to save measurements");
+        }
+      } else {
+        // Insert new measurements scoped to the authenticated user
+        const { error: insertError } = await ctx.supabase
+          .from("profile_measurements")
+          .insert({ ...input, user_id: ctx.user.id });
+
+        if (insertError) {
+          console.error("Error inserting measurements:", insertError);
+          throw new Error("Failed to save measurements");
+        }
+      }
+
+      return { success: true };
+    }),
 });

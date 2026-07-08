@@ -1,15 +1,9 @@
 // Constants for commission forms
 import type { MeasurementGroups, CommissionFormData } from "./types";
 
-// Required measurements by garment type
-export const REQUIRED_MEASUREMENTS: Record<string, string[]> = {
-  shirt: ["chest", "shoulders", "sleeve_length"],
-  jacket: ["chest", "shoulders", "sleeve_length", "bicep"],
-  pants: ["waist", "hips", "inseam", "length", "rise"],
-  dress: ["chest", "waist", "hips", "length", "shoulders"],
-  skirt: ["waist", "hips", "length"],
-  other: [],
-};
+// Required measurements live in the shared design domain so the server-side
+// Zod schema uses the same source of truth.
+export { REQUIRED_MEASUREMENTS } from "~/lib/commission-design";
 
 // Group measurements by body area for better UI organization
 export const MEASUREMENT_GROUPS: MeasurementGroups = {

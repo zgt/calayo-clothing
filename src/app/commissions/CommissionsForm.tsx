@@ -12,6 +12,13 @@ import { GSAPFormContainer } from "./components/GSAPFormContainer";
 import { useMeasurementLoader } from "./hooks/useMeasurementLoader";
 import { validateCommissionForm } from "./utils";
 import { getEmptyMeasurements } from "./constants";
+import { getEmptyDesign, getFabricById } from "~/lib/commission-design";
+import type {
+  CommissionDesign,
+  GarmentType,
+  BudgetValue,
+  TimelineValue,
+} from "~/lib/commission-design";
 import type { CommissionFormData, MeasurementKey } from "./types";
 
 export default function CommissionsForm() {
@@ -21,6 +28,7 @@ export default function CommissionsForm() {
 
   const [formData, setFormData] = useState<CommissionFormData>({
     garmentType: "",
+    design: getEmptyDesign(),
     measurements: getEmptyMeasurements(),
     budget: "",
     timeline: "",
@@ -44,6 +52,7 @@ export default function CommissionsForm() {
       // Reset form
       setFormData({
         garmentType: "",
+        design: getEmptyDesign(),
         measurements: getEmptyMeasurements(),
         budget: "",
         timeline: "",
@@ -77,12 +86,14 @@ export default function CommissionsForm() {
       return;
     }
 
-    // Use tRPC mutation to submit commission
+    // Use tRPC mutation to submit commission. Validation above guarantees
+    // these narrow to the server's enums.
     createCommissionMutation.mutate({
-      garmentType: formData.garmentType,
+      garmentType: formData.garmentType as GarmentType,
+      design: formData.design,
       measurements: formData.measurements,
-      budget: formData.budget,
-      timeline: formData.timeline,
+      budget: formData.budget as BudgetValue,
+      timeline: formData.timeline as TimelineValue,
       details: formData.details,
     });
   };
@@ -119,11 +130,21 @@ export default function CommissionsForm() {
     field: keyof CommissionFormData,
   ) => {
     if (field === "garmentType") {
-      // Reset measurements when garment type changes
+      // Reset measurements and garment-specific design choices when the
+      // garment changes. Color carries over (it's universal); fabric only
+      // survives if the new garment offers it.
+      const fabric = getFabricById(formData.design.fabric);
+      const fabricStillOffered =
+        fabric?.garments.includes(value as GarmentType) ?? false;
       setFormData({
         ...formData,
         garmentType: value,
         measurements: getEmptyMeasurements(),
+        design: {
+          ...formData.design,
+          fabric: fabricStillOffered ? formData.design.fabric : null,
+          styleOptions: {},
+        },
       });
     } else {
       setFormData({
@@ -135,6 +156,13 @@ export default function CommissionsForm() {
 
   const handleMeasurementChange = (measurement: MeasurementKey | null) => {
     setCurrentMeasurement(measurement);
+  };
+
+  const handleDesignChange = (design: Partial<CommissionDesign>) => {
+    setFormData((prev) => ({
+      ...prev,
+      design: { ...prev.design, ...design },
+    }));
   };
 
   return (
@@ -149,6 +177,7 @@ export default function CommissionsForm() {
       isSubmitting={createCommissionMutation.isPending}
       currentMeasurement={currentMeasurement}
       onMeasurementChange={handleMeasurementChange}
+      onDesignChange={handleDesignChange}
     />
   );
 }

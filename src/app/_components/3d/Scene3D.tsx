@@ -1,27 +1,52 @@
 "use client";
 
-import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import {
+  Html,
+  OrbitControls,
+  PerspectiveCamera,
+  useProgress,
+} from "@react-three/drei";
 import { GarmentModel } from "./GarmentModel";
 import { Suspense } from "react";
 import { useMobile } from "~/context/mobile-provider";
 
+// Shown while the garment GLTF downloads. useProgress reports the actual
+// asset loading progress, so the bar reflects real network state.
 function LoadingFallback() {
+  const { progress } = useProgress();
+
   return (
-    <mesh>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#6b7280" wireframe />
-    </mesh>
+    <Html center>
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent" />
+        <p className="text-xs whitespace-nowrap text-emerald-200/70">
+          Loading model…
+        </p>
+        <div className="h-1 w-36 overflow-hidden rounded-full bg-emerald-900/60">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-[width] duration-200"
+            style={{ width: `${Math.max(5, Math.round(progress))}%` }}
+          />
+        </div>
+      </div>
+    </Html>
   );
 }
 
 interface Scene3DProps {
   garmentType: string;
+  colorHex?: string | null;
+  fabric?: string | null;
   disableInteraction?: boolean;
+  autoRotate?: boolean;
 }
 
 export function Scene3D({
   garmentType,
+  colorHex,
+  fabric,
   disableInteraction = false,
+  autoRotate,
 }: Scene3DProps) {
   const { isMobile } = useMobile();
 
@@ -70,7 +95,11 @@ export function Scene3D({
 
       {/* 3D Model */}
       <Suspense fallback={<LoadingFallback />}>
-        <GarmentModel garmentType={garmentType} />
+        <GarmentModel
+          garmentType={garmentType}
+          colorHex={colorHex}
+          fabric={fabric}
+        />
       </Suspense>
 
       {/* Controls - adaptive for mobile */}
@@ -78,7 +107,7 @@ export function Scene3D({
         enablePan={false}
         enableZoom={!disableInteraction}
         enableRotate={!disableInteraction}
-        autoRotate={!disableInteraction}
+        autoRotate={autoRotate ?? !disableInteraction}
         autoRotateSpeed={isMobile ? 1 : 2} // Slower rotation on mobile
         minDistance={isMobile ? 1.5 : 2}
         maxDistance={isMobile ? 8 : 50}

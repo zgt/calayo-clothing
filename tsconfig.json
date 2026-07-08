@@ -13,7 +13,11 @@
     /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "checkJs": true,
+    // checkJs disabled: gsap 3.14's exports map declares types as ./types/<Plugin>.d.ts
+    // but ships kebab-case filenames, so tsc falls back to type-checking gsap's raw
+    // .js (66 errors in utils/VelocityTracker.js). Cannot be fixed via "paths" -
+    // Next.js applies tsconfig paths to runtime resolution and breaks the imports.
+    "checkJs": false,
 
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],

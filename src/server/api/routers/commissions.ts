@@ -7,43 +7,113 @@ import {
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import crypto from "crypto";
+import {
+  GARMENT_TYPES,
+  BUDGET_VALUES,
+  TIMELINE_VALUES,
+  MEASUREMENT_BOUNDS,
+  UNIT_LABELS,
+  HEX_COLOR_PATTERN,
+  validateDesign,
+  REQUIRED_MEASUREMENTS,
+} from "~/lib/commission-design";
 
 // Zod schemas for input validation
+
+// Numeric measurement bounded to its plausible range (shared with the client
+// so both validation layers agree).
+const boundedMeasurement = (field: keyof typeof MEASUREMENT_BOUNDS) => {
+  const bound = MEASUREMENT_BOUNDS[field]!;
+  return z
+    .number()
+    .min(
+      bound.min,
+      `${field} should be at least ${bound.min} ${UNIT_LABELS[bound.unit]}`,
+    )
+    .max(
+      bound.max,
+      `${field} should be at most ${bound.max} ${UNIT_LABELS[bound.unit]}`,
+    )
+    .nullable()
+    .optional();
+};
+
 const measurementsSchema = z.object({
-  chest: z.number().nullable().optional(),
-  waist: z.number().nullable().optional(),
-  hips: z.number().nullable().optional(),
-  length: z.number().nullable().optional(),
-  inseam: z.number().nullable().optional(),
-  shoulders: z.number().nullable().optional(),
-  neck: z.number().nullable().optional(),
-  sleeve_length: z.number().nullable().optional(),
-  bicep: z.number().nullable().optional(),
-  forearm: z.number().nullable().optional(),
-  wrist: z.number().nullable().optional(),
-  armhole_depth: z.number().nullable().optional(),
-  back_width: z.number().nullable().optional(),
-  front_chest_width: z.number().nullable().optional(),
-  thigh: z.number().nullable().optional(),
-  knee: z.number().nullable().optional(),
-  calf: z.number().nullable().optional(),
-  ankle: z.number().nullable().optional(),
-  rise: z.number().nullable().optional(),
-  outseam: z.number().nullable().optional(),
-  height: z.number().nullable().optional(),
-  weight: z.number().nullable().optional(),
-  torso_length: z.number().nullable().optional(),
-  shoulder_slope: z.number().nullable().optional(),
-  posture: z.string().nullable().optional(),
+  chest: boundedMeasurement("chest"),
+  waist: boundedMeasurement("waist"),
+  hips: boundedMeasurement("hips"),
+  length: boundedMeasurement("length"),
+  inseam: boundedMeasurement("inseam"),
+  shoulders: boundedMeasurement("shoulders"),
+  neck: boundedMeasurement("neck"),
+  sleeve_length: boundedMeasurement("sleeve_length"),
+  bicep: boundedMeasurement("bicep"),
+  forearm: boundedMeasurement("forearm"),
+  wrist: boundedMeasurement("wrist"),
+  armhole_depth: boundedMeasurement("armhole_depth"),
+  back_width: boundedMeasurement("back_width"),
+  front_chest_width: boundedMeasurement("front_chest_width"),
+  thigh: boundedMeasurement("thigh"),
+  knee: boundedMeasurement("knee"),
+  calf: boundedMeasurement("calf"),
+  ankle: boundedMeasurement("ankle"),
+  rise: boundedMeasurement("rise"),
+  outseam: boundedMeasurement("outseam"),
+  height: boundedMeasurement("height"),
+  weight: boundedMeasurement("weight"),
+  torso_length: boundedMeasurement("torso_length"),
+  shoulder_slope: boundedMeasurement("shoulder_slope"),
+  posture: z.string().max(200).nullable().optional(),
 });
 
-const createCommissionSchema = z.object({
-  garmentType: z.string().min(1, "Garment type is required"),
-  measurements: measurementsSchema,
-  budget: z.string().min(1, "Budget is required"),
-  timeline: z.string().min(1, "Timeline is required"),
-  details: z.string().min(1, "Details are required"),
+const designSchema = z.object({
+  colorHex: z
+    .string()
+    .regex(HEX_COLOR_PATTERN, "Color must be a hex value like #1f2a44")
+    .nullable(),
+  colorName: z.string().max(64).nullable(),
+  fabric: z.string().max(64).nullable(),
+  styleOptions: z.record(z.string().max(64)),
 });
+
+const createCommissionSchema = z
+  .object({
+    garmentType: z.enum(GARMENT_TYPES, {
+      errorMap: () => ({ message: "Garment type is required" }),
+    }),
+    measurements: measurementsSchema,
+    design: designSchema,
+    budget: z.enum(BUDGET_VALUES, {
+      errorMap: () => ({ message: "Budget is required" }),
+    }),
+    timeline: z.enum(TIMELINE_VALUES, {
+      errorMap: () => ({ message: "Timeline is required" }),
+    }),
+    details: z.string().min(1, "Details are required").max(5000),
+  })
+  .superRefine((input, ctx) => {
+    // Design choices must exist in the option tree for the chosen garment.
+    for (const problem of validateDesign(input.design, input.garmentType)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["design"],
+        message: problem,
+      });
+    }
+
+    // Required measurements per garment (previously only checked client-side).
+    for (const field of REQUIRED_MEASUREMENTS[input.garmentType] ?? []) {
+      const value =
+        input.measurements[field as keyof z.infer<typeof measurementsSchema>];
+      if (value === null || value === undefined || value === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["measurements", field],
+          message: `${field} is required for a ${input.garmentType}`,
+        });
+      }
+    }
+  });
 
 const updateCommissionStatusSchema = z.object({
   id: z.string().min(1, "Commission ID is required"),
@@ -80,6 +150,13 @@ export const commissionsRouter = createTRPCRouter({
           budget: input.budget,
           timeline: input.timeline,
           details: input.details,
+          color_hex: input.design.colorHex,
+          color_name: input.design.colorName,
+          fabric: input.design.fabric,
+          design_options:
+            Object.keys(input.design.styleOptions).length > 0
+              ? input.design.styleOptions
+              : null,
           user_id: (user as any).id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -93,9 +170,10 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: { id: string } | null; error: any };
 
         if (commissionError) {
+          console.error("Error creating commission:", commissionError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: commissionError.message,
+            message: "Failed to create commission",
           });
         }
 
@@ -148,9 +226,13 @@ export const commissionsRouter = createTRPCRouter({
           // Rollback: delete commission if measurements fail
           await supabase.from("commissions").delete().eq("id", commission.id);
 
+          console.error(
+            "Error creating commission measurements:",
+            measurementsError,
+          );
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: measurementsError.message,
+            message: "Failed to create commission",
           });
         }
 
@@ -164,12 +246,10 @@ export const commissionsRouter = createTRPCRouter({
           throw error;
         }
 
+        console.error("Error processing commission request:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "An error occurred processing your request",
+          message: "An error occurred processing your request",
         });
       }
     }),
@@ -193,9 +273,10 @@ export const commissionsRouter = createTRPCRouter({
     };
 
     if (error) {
+      console.error("Error fetching commissions:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: error.message,
+        message: "Failed to fetch commissions",
       });
     }
 
@@ -221,11 +302,16 @@ export const commissionsRouter = createTRPCRouter({
         .single()) as { data: any | null; error: any };
 
       if (error) {
+        if (error.code !== "PGRST116") {
+          console.error("Error fetching commission:", error);
+        }
         throw new TRPCError({
           code:
             error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
           message:
-            error.code === "PGRST116" ? "Commission not found" : error.message,
+            error.code === "PGRST116"
+              ? "Commission not found"
+              : "Failed to fetch commission",
         });
       }
 
@@ -253,9 +339,10 @@ export const commissionsRouter = createTRPCRouter({
       };
 
       if (error) {
+        console.error("Error fetching commissions:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
+          message: "Failed to fetch commissions",
         });
       }
 
@@ -279,13 +366,16 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: any | null; error: any };
 
         if (error) {
+          if (error.code !== "PGRST116") {
+            console.error("Error updating commission status:", error);
+          }
           throw new TRPCError({
             code:
               error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
             message:
               error.code === "PGRST116"
                 ? "Commission not found"
-                : error.message,
+                : "Failed to update commission status",
           });
         }
 
@@ -311,13 +401,16 @@ export const commissionsRouter = createTRPCRouter({
           .single()) as { data: any | null; error: any };
 
         if (error) {
+          if (error.code !== "PGRST116") {
+            console.error("Error fetching commission:", error);
+          }
           throw new TRPCError({
             code:
               error.code === "PGRST116" ? "NOT_FOUND" : "INTERNAL_SERVER_ERROR",
             message:
               error.code === "PGRST116"
                 ? "Commission not found"
-                : error.message,
+                : "Failed to fetch commission",
           });
         }
 

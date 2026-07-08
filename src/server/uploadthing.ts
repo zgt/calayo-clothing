@@ -2,6 +2,7 @@ import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UTApi } from "uploadthing/server";
 import { auth, type User } from "~/lib/auth";
 import { headers } from "next/headers";
+import { consumeRateLimit } from "~/server/api/rate-limit";
 
 // Initialize UploadThing API with server token
 export const utapi = new UTApi({
@@ -26,6 +27,10 @@ export const ourFileRouter = {
       const user = session.user as User;
       if (user.role !== "admin") {
         throw new Error("Admin access required");
+      }
+
+      if (!consumeRateLimit(`upload:${user.id}`, 20, 60_000)) {
+        throw new Error("Too many uploads, please slow down");
       }
 
       return { userId: user.id };

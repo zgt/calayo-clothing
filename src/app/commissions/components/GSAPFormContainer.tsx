@@ -1,16 +1,67 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Flip } from "gsap/Flip";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { UnifiedFormLayout } from "./UnifiedFormLayout";
+import { useMobile } from "~/context/mobile-provider";
 import type { CommissionFormData, MeasurementKey } from "../types";
+import type { CommissionDesign } from "~/lib/commission-design";
 import { MEASUREMENT_GUIDE_ITEMS } from "../measurementGuideData";
 
 // Register GSAP plugins
-gsap.registerPlugin(Flip, ScrambleTextPlugin, ScrollToPlugin);
+gsap.registerPlugin(Flip, ScrambleTextPlugin, useGSAP);
+
+// Panels revealed by the expansion, ordered by distance from the request
+// card's landing column so the cascade sweeps diagonally across the grid
+// instead of column by column.
+const REVEAL_PANEL_SELECTORS = [
+  "#garment-preview-card",
+  "#measurement-guide-card",
+  "#design-card",
+  "#measurement-navigator-card",
+  "#additional-details-card",
+  "#submit-button-container",
+];
+
+function queryAll(container: HTMLElement, selectors: string[]): Element[] {
+  return selectors
+    .map((selector) => container.querySelector(selector))
+    .filter((el): el is Element => el !== null);
+}
+
+// Snap the layout straight to its expanded end-state with no animation. Used
+// for reduced-motion users and when the desktop layout re-mounts after the
+// form was already expanded (a resize round trip through the mobile layout
+// recreates the DOM in its pre-expansion markup state).
+function applyExpandedState(container: HTMLElement) {
+  const commissionRequestTarget = container.querySelector(
+    "#commission-request-target",
+  );
+  const budgetTimelineSection = container.querySelector(
+    "#budget-timeline-section",
+  );
+  const budgetTimelineTarget = container.querySelector(
+    "#budget-timeline-target",
+  );
+  const column1 = container.querySelector("#column-1");
+  const column3 = container.querySelector("#column-3");
+
+  if (budgetTimelineTarget && budgetTimelineSection) {
+    budgetTimelineTarget.appendChild(budgetTimelineSection);
+  }
+  commissionRequestTarget?.remove();
+  gsap.set([column1, column3], { autoAlpha: 1 });
+  gsap.set(
+    queryAll(container, [
+      "#budget-timeline-section",
+      ...REVEAL_PANEL_SELECTORS,
+    ]),
+    { autoAlpha: 1, y: 0 },
+  );
+}
 
 interface GSAPFormContainerProps {
   formData: CommissionFormData;
@@ -25,6 +76,7 @@ interface GSAPFormContainerProps {
   isSubmitting: boolean;
   currentMeasurement: MeasurementKey | null;
   onMeasurementChange: (measurement: MeasurementKey | null) => void;
+  onDesignChange: (design: Partial<CommissionDesign>) => void;
 }
 
 export function GSAPFormContainer({
@@ -38,99 +90,44 @@ export function GSAPFormContainer({
   isSubmitting,
   currentMeasurement,
   onMeasurementChange,
+  onDesignChange,
 }: GSAPFormContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isExpandedRef = useRef(false);
+  const { isDesktop } = useMobile();
 
   useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
+    const container = containerRef.current;
+    if (!container) return;
+    // The GSAP expansion (and its scroll lock) is desktop-only; the mobile
+    // stepper scrolls normally and has none of these elements. `isDesktop`
+    // is only the re-run trigger — the provider defaults to desktop before
+    // it has measured, so check the real viewport here.
+    if (window.innerWidth < 1024) return;
 
-    checkIsMobile();
-    window.addEventListener("resize", checkIsMobile);
-    return () => window.removeEventListener("resize", checkIsMobile);
-  }, []);
+    if (isExpandedRef.current) {
+      applyExpandedState(container);
+      return;
+    }
 
-  useEffect(() => {
-    if (!containerRef.current) return;
     document.body.style.overflow = "hidden";
 
-    // Set initial states for hidden elements
-    const mainCard = containerRef.current.querySelector("#main-form-card");
-    const commissionRequestTarget = containerRef.current.querySelector(
+    // Center the request card until a garment is chosen.
+    const mainCard = container.querySelector("#main-form-card");
+    const commissionRequestTarget = container.querySelector(
       "#commission-request-target",
     );
-    const additionalDetailsCard = containerRef.current.querySelector(
-      "#additional-details-card",
-    );
-    const garmentPreviewCard = containerRef.current.querySelector(
-      "#garment-preview-card",
-    );
-    const measurementGuideCard = containerRef.current.querySelector(
-      "#measurement-guide-card",
-    );
-    const measurementNavigatorCard = containerRef.current.querySelector(
-      "#measurement-navigator-card",
-    );
-    const submitButtonContainer = containerRef.current.querySelector(
-      "#submit-button-container",
-    );
-
     if (commissionRequestTarget && mainCard) {
       commissionRequestTarget.appendChild(mainCard);
     }
-    gsap.set([additionalDetailsCard, garmentPreviewCard], {
-      x: -500,
-    });
-    gsap.set(
-      [measurementGuideCard, measurementNavigatorCard, submitButtonContainer],
-      {
-        x: -1000,
-      },
-    );
 
-    // Capture timeline ref for cleanup
-    const currentTimeline = timelineRef.current;
-
-    // Cleanup function
     return () => {
-      if (currentTimeline) {
-        currentTimeline.kill();
-      }
+      timelineRef.current?.kill();
+      // Restore page scroll when leaving the commissions flow.
+      document.body.style.overflow = "unset";
     };
-  }, []);
-
-  // Handle responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      if (!containerRef.current || !timelineRef.current) return;
-
-      const mainCard = containerRef.current.querySelector("#main-form-card");
-      if (!mainCard) return;
-
-      if (isExpanded) {
-        // Adjust positioning for different screen sizes
-        gsap.set(mainCard, {
-          x: 0,
-          y: 0,
-          scale: 1,
-        });
-      } else {
-        // Reset to centered position
-        gsap.set(mainCard, {
-          x: 0,
-          y: 0,
-          scale: 1,
-        });
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isExpanded]);
+  }, [isDesktop]);
 
   // Handle scramble text animation when measurement changes
   useEffect(() => {
@@ -156,7 +153,6 @@ export function GSAPFormContainer({
         revealDelay: 0.1,
         speed: 0.1,
       },
-      // text: guideItem.title,
     });
 
     // Scramble animation for description
@@ -171,159 +167,215 @@ export function GSAPFormContainer({
     });
   }, [currentMeasurement]);
 
-  const handleMobileGarmentSelect = () => {
-    if (!containerRef.current) return;
+  // Unfold the Details & Construction section when a garment is chosen.
+  // It mounts after handleExpand has already captured the Flip, so it
+  // animates from its own effect: collapsed to height 0 before paint, then
+  // unfurled beneath the sliders with the heading scrambling in and the
+  // option chips rippling into place. Switching garments later only
+  // re-ripples the chips.
+  const prevGarmentRef = useRef("");
+  useGSAP(
+    () => {
+      const container = containerRef.current;
+      const garment = formData.garmentType;
+      const prev = prevGarmentRef.current;
+      prevGarmentRef.current = garment;
+      if (!container || !garment || garment === prev || !isDesktop) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return;
+      }
 
-    gsap.to(window, {
-      duration: 0.5,
-      scrollTo: { y: "#measurements", offsetY: -200 },
-    });
-    document.body.style.overflow = "unset";
-  };
+      const section = container.querySelector<HTMLElement>(
+        "#details-construction-section",
+      );
+      if (!section) return;
+      const chips = section.querySelectorAll("button");
+
+      if (prev !== "") {
+        // Garment switched after expansion — refresh the new chip set only.
+        if (chips.length) {
+          gsap.fromTo(
+            chips,
+            { autoAlpha: 0, y: 8 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: "power2.out",
+              stagger: 0.02,
+              clearProps: "all",
+            },
+          );
+        }
+        return;
+      }
+
+      // First reveal: measure before collapsing so the unfurl can tween to
+      // the section's natural height (GSAP can't tween to "auto").
+      const height = section.offsetHeight;
+      gsap.set(section, { height: 0, overflow: "hidden", autoAlpha: 0 });
+
+      const tl = gsap.timeline({ delay: 0.85 });
+      tl.to(section, {
+        height,
+        autoAlpha: 1,
+        duration: 0.5,
+        ease: "power2.inOut",
+      }).set(section, { clearProps: "all" });
+      if (chips.length) {
+        tl.fromTo(
+          chips,
+          { autoAlpha: 0, y: 10, scale: 0.85 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.35,
+            ease: "back.out(1.7)",
+            stagger: 0.025,
+          },
+          "-=0.2",
+        ).set(chips, { clearProps: "all" });
+      }
+
+      const heading = section.querySelector("h3");
+      if (heading?.textContent) {
+        gsap.to(heading, {
+          delay: 1,
+          duration: 0.8,
+          scrambleText: {
+            text: heading.textContent,
+            chars: "XO!@#$%",
+            revealDelay: 0.1,
+            speed: 0.1,
+          },
+        });
+      }
+    },
+    { dependencies: [formData.garmentType, isDesktop], scope: containerRef },
+  );
 
   const handleExpand = () => {
-    if (isExpanded || !containerRef.current || isMobile) return; // Skip GSAP animations on mobile
+    const container = containerRef.current;
+    if (isExpandedRef.current || !container || !isDesktop) return;
 
-    setIsExpanded(true);
-
-    // Get all the elements we need to animate
-    const mainCard = containerRef.current.querySelector("#main-form-card");
-    const mainCardGradient = containerRef.current.querySelector(
-      "#main-card-gradient",
-    );
-    const commissionRequestTarget = containerRef.current.querySelector(
+    const mainCard = container.querySelector("#main-form-card");
+    const commissionRequestTarget = container.querySelector(
       "#commission-request-target",
     );
-    const expandedGrid = containerRef.current.querySelector("#expanded-grid");
-    const initialPosition =
-      containerRef.current.querySelector("#initial-position");
-    const additionalDetailsCard = containerRef.current.querySelector(
-      "#additional-details-card",
-    );
-    const garmentPreviewCard = containerRef.current.querySelector(
-      "#garment-preview-card",
-    );
-    const measurementGuideCard = containerRef.current.querySelector(
-      "#measurement-guide-card",
-    );
-    const measurementNavigatorCard = containerRef.current.querySelector(
-      "#measurement-navigator-card",
-    );
-    const submitButtonContainer = containerRef.current.querySelector(
-      "#submit-button-container",
-    );
-    const budgetTimelineSection = containerRef.current.querySelector(
+    const budgetTimelineSection = container.querySelector<HTMLElement>(
       "#budget-timeline-section",
     );
-    const column1 = containerRef.current.querySelector("#column-1");
-    const column3 = containerRef.current.querySelector("#column-3");
-    const budgetTimelineTarget = containerRef.current.querySelector(
+    const budgetTimelineTarget = container.querySelector(
       "#budget-timeline-target",
     );
-    const budget = containerRef.current.querySelector("#budget");
-    const timeline = containerRef.current.querySelector("#timeline");
+    const column1 = container.querySelector("#column-1");
+    const column3 = container.querySelector("#column-3");
 
-    // Move the card to the target position and make target visible
     if (
-      commissionRequestTarget &&
-      mainCard &&
-      mainCardGradient &&
-      expandedGrid &&
-      column1 &&
-      budgetTimelineSection &&
-      budgetTimelineTarget &&
-      budget &&
-      timeline
+      !mainCard ||
+      !column1 ||
+      !column3 ||
+      !budgetTimelineSection ||
+      !budgetTimelineTarget
     ) {
-      // Hide the initial position container
-      gsap.set(initialPosition, { display: "none" });
-
-      // Show the expanded grid and target
-      gsap.set(expandedGrid, { opacity: 1, display: "grid" });
-      gsap.set(commissionRequestTarget, { opacity: 1 });
-
-      // // Move the card to the target position in DOM
-
-      Flip.fit(mainCard, expandedGrid, {
-        duration: 0.5,
-        ease: "power1.inOut",
-        absolute: true,
-        maxWidth: "none",
-        zIndex: "2000",
-        attr: { height: 100 },
-        onComplete: () => {
-          gsap.set(column1, { opacity: 1 });
-          gsap.set(column3, { opacity: 1 });
-          column1.appendChild(mainCard);
-          commissionRequestTarget.remove();
-          gsap.set(budgetTimelineSection, { opacity: 1 });
-          budgetTimelineTarget.appendChild(budgetTimelineSection);
-          Flip.fit(mainCard, column1, {
-            duration: 0.5,
-            absolute: true,
-            ease: "power1.inOut",
-          });
-        },
-      });
-
-      // Animate other elements in sequence
-      const tl = gsap.timeline({ delay: 0.5 });
-
-      // Additional details card
-      tl.to(additionalDetailsCard, {
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out",
-      })
-        // Garment preview card
-        .to(
-          garmentPreviewCard,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "",
-        )
-        // Right column elements
-        .to(
-          measurementGuideCard,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "",
-        )
-        .to(
-          measurementNavigatorCard,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "",
-        )
-        .to(
-          submitButtonContainer,
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: "power2.out",
-          },
-          "",
-        );
+      return;
     }
+
+    isExpandedRef.current = true;
+
+    // The expanded grid is taller than the viewport — give scroll back
+    // before any animation so the page is never stuck.
+    document.body.style.overflow = "unset";
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      column1.appendChild(mainCard);
+      applyExpandedState(container);
+      return;
+    }
+
+    const panels = queryAll(container, REVEAL_PANEL_SELECTORS);
+
+    // Re-home the card into its column slot first, then animate from the
+    // captured centered position with a single Flip. The final layout
+    // exists in the DOM immediately, so even if the animation is starved
+    // (low-end GPU, background tab) the page is laid out correctly and
+    // the card returns to static positioning when the flip ends.
+    const state = Flip.getState(mainCard);
+    gsap.set([column1, column3], { autoAlpha: 1 });
+    column1.appendChild(mainCard);
+    budgetTimelineTarget.appendChild(budgetTimelineSection);
+    commissionRequestTarget?.remove();
+
+    // Collapse the sliders before Flip measures its end state, so the card
+    // lands compact and then grows in normal flow as its contents unfold.
+    const budgetHeight = budgetTimelineSection.offsetHeight;
+    gsap.set(budgetTimelineSection, {
+      height: 0,
+      overflow: "hidden",
+      autoAlpha: 0,
+    });
+
+    Flip.from(state, {
+      duration: 0.65,
+      ease: "power3.inOut",
+      absolute: true,
+      zIndex: 2000,
+    });
+
+    // A brief swell as the card travels — an echo of the old full-grid
+    // expansion, kept to one self-reversing tween so it can never strand
+    // the layout mid-state the way the double Flip.fit did.
+    gsap.to(mainCard, {
+      scale: 1.02,
+      duration: 0.32,
+      ease: "power1.inOut",
+      yoyo: true,
+      repeat: 1,
+    });
+
+    // Satellite panels swing in like glass panes hinged on the edge facing
+    // the card, in a diagonal wave ordered by distance from its landing
+    // column; then the card interior unfolds (sliders first — Details &
+    // Construction follows from its own effect once React mounts it).
+    const tl = gsap.timeline();
+    tl.fromTo(
+      panels,
+      {
+        autoAlpha: 0,
+        y: 36,
+        scale: 0.96,
+        rotationY: -12,
+        transformPerspective: 600,
+        transformOrigin: "left center",
+      },
+      {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        rotationY: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.07,
+      },
+      0.15,
+    )
+      // Leave only opacity/visibility inline — panels keep their opacity-0
+      // class, but residual transforms would break hover styles and create
+      // stray containing blocks.
+      .set(panels, { clearProps: "transform" })
+      .to(
+        budgetTimelineSection,
+        {
+          height: budgetHeight,
+          autoAlpha: 1,
+          duration: 0.45,
+          ease: "power2.inOut",
+        },
+        0.7,
+      )
+      .set(budgetTimelineSection, { clearProps: "height,overflow" });
+    timelineRef.current = tl;
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -345,8 +397,8 @@ export function GSAPFormContainer({
         isSubmitting={isSubmitting}
         currentMeasurement={currentMeasurement}
         onMeasurementChange={onMeasurementChange}
+        onDesignChange={onDesignChange}
         onExpand={handleExpand}
-        onMobileGarmentSelect={handleMobileGarmentSelect}
       />
     </div>
   );
