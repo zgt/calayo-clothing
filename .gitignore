@@ -47,3 +47,4 @@ env
 .idea
 .vercel
 .env*
+!.env.example
