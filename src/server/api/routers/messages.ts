@@ -67,7 +67,7 @@ export const messagesRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { supabase } = ctx;
-      const user = ctx.user as User;
+      const user = ctx.user;
 
       await assertCommissionAccess(supabase, input.commissionId, user);
 
@@ -102,7 +102,7 @@ export const messagesRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { supabase } = ctx;
-      const user = ctx.user as User;
+      const user = ctx.user;
 
       await assertCommissionAccess(supabase, input.commissionId, user);
 
@@ -140,7 +140,7 @@ export const messagesRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { supabase } = ctx;
-      const user = ctx.user as User;
+      const user = ctx.user;
 
       await assertCommissionAccess(supabase, input.commissionId, user);
 

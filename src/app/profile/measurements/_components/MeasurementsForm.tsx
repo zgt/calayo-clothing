@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api, type RouterInputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 
 type ProfileMeasurements = {
   id?: string;
@@ -205,7 +205,7 @@ export default function MeasurementsForm({
 
     try {
       await upsertMeasurements.mutateAsync(
-        formattedMeasurements as RouterInputs["profile"]["upsertMeasurements"],
+        formattedMeasurements,
       );
 
       setMessage({

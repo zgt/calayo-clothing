@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UTApi } from "uploadthing/server";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
 import { consumeRateLimit } from "~/server/api/rate-limit";
 
@@ -24,7 +24,7 @@ export const ourFileRouter = {
         throw new Error("Unauthorized");
       }
 
-      const user = session.user as User;
+      const user = session.user;
       if (user.role !== "admin") {
         throw new Error("Admin access required");
       }

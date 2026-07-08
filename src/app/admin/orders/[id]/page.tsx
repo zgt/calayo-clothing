@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServiceClient } from "~/utils/supabase/server";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import AdminCommissionDetails from "./_components/AdminCommissionDetails";
@@ -103,7 +103,7 @@ export default async function AdminCommissionDetailsPage(props: {
   }
 
   // Check if user is admin using role field
-  const user = session.user as User;
+  const user = session.user;
   if (user.role !== "admin") {
     // Redirect to home if not admin
     redirect("/");

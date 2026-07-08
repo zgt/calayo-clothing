@@ -73,22 +73,16 @@ const designSchema = z.object({
     .nullable(),
   colorName: z.string().max(64).nullable(),
   fabric: z.string().max(64).nullable(),
-  styleOptions: z.record(z.string().max(64)),
+  styleOptions: z.record(z.string(), z.string().max(64)),
 });
 
 const createCommissionSchema = z
   .object({
-    garmentType: z.enum(GARMENT_TYPES, {
-      errorMap: () => ({ message: "Garment type is required" }),
-    }),
+    garmentType: z.enum(GARMENT_TYPES, { error: "Garment type is required" }),
     measurements: measurementsSchema,
     design: designSchema,
-    budget: z.enum(BUDGET_VALUES, {
-      errorMap: () => ({ message: "Budget is required" }),
-    }),
-    timeline: z.enum(TIMELINE_VALUES, {
-      errorMap: () => ({ message: "Timeline is required" }),
-    }),
+    budget: z.enum(BUDGET_VALUES, { error: "Budget is required" }),
+    timeline: z.enum(TIMELINE_VALUES, { error: "Timeline is required" }),
     details: z.string().min(1, "Details are required").max(5000),
   })
   .superRefine((input, ctx) => {
@@ -194,7 +188,7 @@ export const commissionsRouter = createTRPCRouter({
               const measurementKey = key as MeasurementKey;
 
               if (measurementKey === "posture") {
-                acc[measurementKey] = value as string | null;
+                acc[measurementKey] = value;
               } else {
                 const numValue =
                   value === null || value === undefined ? null : Number(value);

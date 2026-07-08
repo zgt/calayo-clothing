@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServiceClient } from "~/utils/supabase/server";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
 import MeasurementsForm from "./_components/MeasurementsForm";
 import MeasurementGuide from "./_components/MeasurementGuide";
@@ -64,7 +64,7 @@ export default async function MeasurementsPage() {
     redirect("/login");
   }
 
-  const user = session.user as User;
+  const user = session.user;
   const supabase = createServiceClient();
 
   // Fetch user profile measurements

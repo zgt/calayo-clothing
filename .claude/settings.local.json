@@ -57,7 +57,9 @@
       "Bash(echo \"typecheck exit: $?\")",
       "Bash(pnpm exec *)",
       "Bash(git rm *)",
-      "Bash(awk '{print $NF}')"
+      "Bash(awk '{print $NF}')",
+      "Bash(git -C /home/m/coding/calayo-clothing show 540302d --stat)",
+      "Bash(git -C /home/m/coding/calayo-clothing show 540302d)"
     ],
     "deny": []
   }

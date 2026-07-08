@@ -106,8 +106,8 @@ export default function ProfileSection({
       }
       return null;
     } catch (error) {
-      const zodError = error as { errors?: Array<{ message: string }> };
-      return zodError.errors?.[0]?.message ?? `Invalid ${field}`;
+      const zodError = error as { issues?: Array<{ message: string }> };
+      return zodError.issues?.[0]?.message ?? `Invalid ${field}`;
     }
   };
 
