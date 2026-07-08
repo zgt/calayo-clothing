@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { createServiceClient } from "~/utils/supabase/server";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
 import ProfileSection from "./_components/ProfileSection";
 
@@ -136,7 +136,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const user = session.user as User;
+  const user = session.user;
   const supabase = createServiceClient();
 
   // Fetch user profile from better-auth user table

@@ -9,7 +9,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { auth, type User } from "~/lib/auth";
+import { auth } from "~/lib/auth";
 import { consumeRateLimit } from "~/server/api/rate-limit";
 import { createServiceClient } from "~/utils/supabase/server";
 
@@ -113,7 +113,7 @@ const rateLimitMiddleware = t.middleware(({ ctx, type, next }) => {
   if (type !== "mutation") return next();
   // Admins are exempt: bulk actions (e.g. approve-all) legitimately issue one
   // mutation per commission and would trip the cap.
-  if (ctx.user && (ctx.user as User).role === "admin") return next();
+  if (ctx.user?.role === "admin") return next();
 
   const ip =
     ctx.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -161,7 +161,7 @@ const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
   }
 
   // Check if user is admin using the role field from better-auth user table
-  const user = ctx.user as User;
+  const user = ctx.user;
   const isAdmin = user.role === "admin";
 
   if (!isAdmin) {

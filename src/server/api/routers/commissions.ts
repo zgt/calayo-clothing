@@ -188,7 +188,7 @@ export const commissionsRouter = createTRPCRouter({
               const measurementKey = key as MeasurementKey;
 
               if (measurementKey === "posture") {
-                acc[measurementKey] = value as string | null;
+                acc[measurementKey] = value;
               } else {
                 const numValue =
                   value === null || value === undefined ? null : Number(value);
