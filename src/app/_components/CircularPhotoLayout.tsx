@@ -498,7 +498,10 @@ export default function CircularPhotoLayout() {
 
             // Remove glow effect
             if (photoContainer) {
-              gsap.killTweensOf(photoContainer); // Stop any ongoing glow animations
+              // Only kill the glow (filter) tweens — killing everything here
+              // would also cancel the intro opacity fade-in if it's still
+              // running, leaving the photo stuck partially or fully invisible.
+              gsap.killTweensOf(photoContainer, "filter");
               gsap.to(photoContainer, {
                 filter: "drop-shadow(0 0 0 rgba(0, 255, 127, 0))",
                 duration: 0.3,
@@ -534,7 +537,7 @@ export default function CircularPhotoLayout() {
                 });
 
                 if (neighborContainer) {
-                  gsap.killTweensOf(neighborContainer);
+                  gsap.killTweensOf(neighborContainer, "filter");
                   gsap.to(neighborContainer, {
                     filter: "drop-shadow(0 0 0 rgba(0, 255, 127, 0))",
                     duration: 0.3,
