@@ -1275,7 +1275,10 @@ export default function CircularPhotoLayout() {
                         src={photo.mediaUrl}
                         alt="Calayo Clothing custom garment"
                         fill
-                        sizes="(max-width: 479px) 70px, (max-width: 767px) 80px, (max-width: 1023px) 90px, (max-width: 1439px) 100px, 121px"
+                        // 5x the base photoSize: GSAP scales photos up to ~5x
+                        // (click zoom / scroll container scale), which `sizes`
+                        // can't see, so request the max displayed resolution.
+                        sizes="(max-width: 479px) 350px, (max-width: 767px) 400px, (max-width: 1023px) 450px, (max-width: 1439px) 500px, 605px"
                         style={{
                           objectFit: "cover",
                         }}
